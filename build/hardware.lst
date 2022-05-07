@@ -1,0 +1,2713 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"hardware.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.PrintScreen,"ax",%progbits
+  16              		.align	1
+  17              		.global	PrintScreen
+  18              		.arch armv7-m
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	PrintScreen:
+  25              	.LFB71:
+  26              		.file 1 "Src/hardware.c"
+   1:Src/hardware.c **** #include "hardware.h"
+   2:Src/hardware.c **** #include "stm32f1xx.h"
+   3:Src/hardware.c **** //#include "cmsis_os.h"
+   4:Src/hardware.c **** #include "main.h"
+   5:Src/hardware.c **** 
+   6:Src/hardware.c **** #include "usbd_cdc_if.h"
+   7:Src/hardware.c **** //#include "stm32f1xx_hal_uart.h"
+   8:Src/hardware.c **** #include "ssd1306.h"
+   9:Src/hardware.c **** #include "i2cSoft.h"
+  10:Src/hardware.c **** #include <stdint.h>
+  11:Src/hardware.c **** #include <stdbool.h>
+  12:Src/hardware.c **** //#include "Toshiba_TC358870.h"
+  13:Src/hardware.c **** #include "Toshiba_TC358870_china.h"
+  14:Src/hardware.c **** //#include "Display_DualAUO_TC358870.c"
+  15:Src/hardware.c **** #include <stdio.h>
+  16:Src/hardware.c **** #include "SerialTrans.h"
+  17:Src/hardware.c **** 
+  18:Src/hardware.c **** uint8_t button_a_is_pressed = 0;
+  19:Src/hardware.c **** uint8_t button_b_is_pressed = 0;
+  20:Src/hardware.c **** uint8_t button_a_press_cntr = 0;
+  21:Src/hardware.c **** uint8_t button_b_press_cntr = 0;
+  22:Src/hardware.c **** bool HMDready = false;
+  23:Src/hardware.c **** bool DisplayStatus = true;
+  24:Src/hardware.c **** bool OledNeedUpdate = false;
+  25:Src/hardware.c **** 
+  26:Src/hardware.c **** void ModesSwitch()
+  27:Src/hardware.c **** {
+  28:Src/hardware.c ****   if(target_mode != mode && stage == 6)
+  29:Src/hardware.c ****   {
+  30:Src/hardware.c ****       DisplaySleep();
+  31:Src/hardware.c ****       PowerOffStage2();
+  32:Src/hardware.c ****       stage = 0;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 2
+
+
+  33:Src/hardware.c ****          
+  34:Src/hardware.c ****   }
+  35:Src/hardware.c ****   return;
+  36:Src/hardware.c **** }
+  37:Src/hardware.c **** void EdidSwitch()
+  38:Src/hardware.c **** {
+  39:Src/hardware.c ****     if(target_edid != edid && stage == 6)
+  40:Src/hardware.c ****   {
+  41:Src/hardware.c ****       DisplaySleep();
+  42:Src/hardware.c ****       PowerOffStage2();
+  43:Src/hardware.c ****       stage = 0;
+  44:Src/hardware.c ****   }
+  45:Src/hardware.c ****   return;
+  46:Src/hardware.c **** 
+  47:Src/hardware.c **** }
+  48:Src/hardware.c **** 
+  49:Src/hardware.c **** void Buttons()
+  50:Src/hardware.c **** {
+  51:Src/hardware.c **** if(stage == 6)
+  52:Src/hardware.c **** {
+  53:Src/hardware.c ****   if(BUTTON_A_STATE == 0)
+  54:Src/hardware.c ****     {
+  55:Src/hardware.c ****       button_a_press_cntr++;
+  56:Src/hardware.c ****       if(button_a_press_cntr >= BUTTON_PRESS_MAX_CNTR )
+  57:Src/hardware.c ****       {
+  58:Src/hardware.c **** 
+  59:Src/hardware.c ****         button_a_press_cntr = 0;
+  60:Src/hardware.c ****         button_a_is_pressed = 1;
+  61:Src/hardware.c ****         }
+  62:Src/hardware.c **** 
+  63:Src/hardware.c ****       }
+  64:Src/hardware.c **** 
+  65:Src/hardware.c ****     else
+  66:Src/hardware.c ****     {
+  67:Src/hardware.c ****       if(button_a_is_pressed)
+  68:Src/hardware.c ****       {
+  69:Src/hardware.c **** 
+  70:Src/hardware.c ****         switch(target_mode)
+  71:Src/hardware.c ****         {
+  72:Src/hardware.c ****           case 0:
+  73:Src/hardware.c ****           target_mode = 1;
+  74:Src/hardware.c ****           break;
+  75:Src/hardware.c ****           
+  76:Src/hardware.c ****           case 1:
+  77:Src/hardware.c ****           target_mode = 0;
+  78:Src/hardware.c ****           break;
+  79:Src/hardware.c ****           
+  80:Src/hardware.c ****           }
+  81:Src/hardware.c ****           /*
+  82:Src/hardware.c ****         SerialPrint("\r\nMode changed to ");
+  83:Src/hardware.c ****         char a = 0;
+  84:Src/hardware.c ****         itoa(target_mode, &a, 2);     
+  85:Src/hardware.c ****         SerialPrint(&a);        
+  86:Src/hardware.c ****         SerialPrint("\r\n");
+  87:Src/hardware.c ****         */
+  88:Src/hardware.c ****        if(OLED_OK) SSD1306_DrawLine(0, 31, 127, 31, 0);
+  89:Src/hardware.c ****         ModesSwitch();
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 3
+
+
+  90:Src/hardware.c ****         button_a_is_pressed = 0;
+  91:Src/hardware.c **** 
+  92:Src/hardware.c ****       }
+  93:Src/hardware.c ****       button_a_press_cntr = 0;
+  94:Src/hardware.c ****     }
+  95:Src/hardware.c ****     if(BUTTON_B_STATE == 0)
+  96:Src/hardware.c ****     {
+  97:Src/hardware.c ****       button_b_press_cntr++;
+  98:Src/hardware.c ****       if(button_b_press_cntr >= BUTTON_PRESS_MAX_CNTR )
+  99:Src/hardware.c ****       {
+ 100:Src/hardware.c **** 
+ 101:Src/hardware.c ****         button_b_press_cntr = 0;
+ 102:Src/hardware.c ****         button_b_is_pressed = 1;
+ 103:Src/hardware.c ****         }
+ 104:Src/hardware.c **** 
+ 105:Src/hardware.c ****       }
+ 106:Src/hardware.c **** 
+ 107:Src/hardware.c ****     else
+ 108:Src/hardware.c ****     {
+ 109:Src/hardware.c ****       if(button_b_is_pressed)
+ 110:Src/hardware.c ****       {
+ 111:Src/hardware.c ****         switch(target_edid)
+ 112:Src/hardware.c ****         {
+ 113:Src/hardware.c ****           case 0:
+ 114:Src/hardware.c ****           target_edid = 1;
+ 115:Src/hardware.c ****           break;
+ 116:Src/hardware.c **** 
+ 117:Src/hardware.c ****           case 1:
+ 118:Src/hardware.c ****           target_edid = 2;
+ 119:Src/hardware.c ****           break;
+ 120:Src/hardware.c **** 
+ 121:Src/hardware.c ****           case 2:
+ 122:Src/hardware.c ****           target_edid = 0;
+ 123:Src/hardware.c ****           break;
+ 124:Src/hardware.c ****           }
+ 125:Src/hardware.c **** /*
+ 126:Src/hardware.c ****         SerialPrint("\r\nEdid changed to ");
+ 127:Src/hardware.c ****         char a = 0;
+ 128:Src/hardware.c ****         itoa(target_edid, &a, 4);     
+ 129:Src/hardware.c ****         SerialPrint(&a);        
+ 130:Src/hardware.c ****         SerialPrint("\r\n");
+ 131:Src/hardware.c ****         */
+ 132:Src/hardware.c ****         if(OLED_OK) SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 133:Src/hardware.c ****         EdidSwitch();
+ 134:Src/hardware.c ****         button_b_is_pressed = 0;
+ 135:Src/hardware.c **** 
+ 136:Src/hardware.c ****       }
+ 137:Src/hardware.c ****       button_b_press_cntr = 0;
+ 138:Src/hardware.c ****     }
+ 139:Src/hardware.c **** 
+ 140:Src/hardware.c **** }
+ 141:Src/hardware.c ****     
+ 142:Src/hardware.c **** 
+ 143:Src/hardware.c **** }
+ 144:Src/hardware.c **** void PrintScreen()
+ 145:Src/hardware.c **** {
+  27              		.loc 1 145 1 view -0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 4
+
+
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  36 0002 84B0     		sub	sp, sp, #16
+  37              	.LCFI1:
+  38              		.cfi_def_cfa_offset 24
+ 146:Src/hardware.c ****     if(status != old_status || OledNeedUpdate)
+  39              		.loc 1 146 5 view .LVU1
+  40              		.loc 1 146 15 is_stmt 0 view .LVU2
+  41 0004 6C4B     		ldr	r3, .L15
+  42 0006 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+  43 0008 6C4B     		ldr	r3, .L15+4
+  44 000a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  45              		.loc 1 146 7 view .LVU3
+  46 000c 9A42     		cmp	r2, r3
+  47 000e 41D0     		beq	.L13
+  48              	.L2:
+  49              	.LBB2:
+ 147:Src/hardware.c ****     {
+ 148:Src/hardware.c ****       char hex_status[] = "na";
+  50              		.loc 1 148 7 is_stmt 1 view .LVU4
+  51              		.loc 1 148 12 is_stmt 0 view .LVU5
+  52 0010 6B4B     		ldr	r3, .L15+8
+  53 0012 1B68     		ldr	r3, [r3]
+  54 0014 ADF80C30 		strh	r3, [sp, #12]	@ movhi
+  55 0018 1B0C     		lsrs	r3, r3, #16
+  56 001a 8DF80E30 		strb	r3, [sp, #14]
+ 149:Src/hardware.c **** 
+ 150:Src/hardware.c ****       switch(target_edid)
+  57              		.loc 1 150 7 is_stmt 1 view .LVU6
+  58 001e 694B     		ldr	r3, .L15+12
+  59 0020 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  60 0022 012B     		cmp	r3, #1
+  61 0024 5DD0     		beq	.L4
+  62 0026 5AB2     		sxtb	r2, r3
+  63 0028 002A     		cmp	r2, #0
+  64 002a 38D0     		beq	.L5
+  65 002c 022B     		cmp	r3, #2
+  66 002e 7AD0     		beq	.L6
+  67              	.L7:
+ 151:Src/hardware.c ****       {
+ 152:Src/hardware.c ****         case 0:
+ 153:Src/hardware.c ****         ssd1306_SetCursor(0, 5); 
+ 154:Src/hardware.c ****         ssd1306_WriteString("OSVR", Font_11x18,White);
+ 155:Src/hardware.c ****         ssd1306_SetCursor(46, 12); 
+ 156:Src/hardware.c ****         ssd1306_WriteString("edid", Font_7x10,White);
+ 157:Src/hardware.c **** 
+ 158:Src/hardware.c ****         
+ 159:Src/hardware.c ****         sprintf(hex_status, "%02X", mode);
+ 160:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_7x10,White);
+ 161:Src/hardware.c **** 
+ 162:Src/hardware.c ****         break;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 5
+
+
+ 163:Src/hardware.c ****         
+ 164:Src/hardware.c ****         case 1:
+ 165:Src/hardware.c ****         ssd1306_SetCursor(0, 5); 
+ 166:Src/hardware.c ****         ssd1306_WriteString("ORIG", Font_11x18,White);
+ 167:Src/hardware.c ****         ssd1306_SetCursor(56, 12); 
+ 168:Src/hardware.c ****         ssd1306_WriteString("edid", Font_7x10,White);
+ 169:Src/hardware.c **** 
+ 170:Src/hardware.c ****          
+ 171:Src/hardware.c ****         sprintf(hex_status, "%02X", mode);
+ 172:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_7x10,White);
+ 173:Src/hardware.c ****         break;
+ 174:Src/hardware.c ****         
+ 175:Src/hardware.c ****         case 2:
+ 176:Src/hardware.c ****         ssd1306_SetCursor(0, 5); 
+ 177:Src/hardware.c ****         ssd1306_WriteString("CUST", Font_11x18,White);
+ 178:Src/hardware.c ****         ssd1306_SetCursor(56, 12); 
+ 179:Src/hardware.c ****         ssd1306_WriteString("edid", Font_7x10,White);
+ 180:Src/hardware.c **** 
+ 181:Src/hardware.c ****         
+ 182:Src/hardware.c ****         sprintf(hex_status, "%02X", mode);
+ 183:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_7x10,White);
+ 184:Src/hardware.c ****         break;
+ 185:Src/hardware.c **** 
+ 186:Src/hardware.c ****       }
+ 187:Src/hardware.c ****       if(DisplayStatus)
+  68              		.loc 1 187 7 view .LVU7
+  69              		.loc 1 187 10 is_stmt 0 view .LVU8
+  70 0030 654B     		ldr	r3, .L15+16
+  71 0032 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  72              		.loc 1 187 9 view .LVU9
+  73 0034 002B     		cmp	r3, #0
+  74 0036 00F09880 		beq	.L8
+ 188:Src/hardware.c ****       {
+ 189:Src/hardware.c ****         ssd1306_SetCursor(100, 0); 
+  75              		.loc 1 189 9 is_stmt 1 view .LVU10
+  76 003a 0021     		movs	r1, #0
+  77 003c 6420     		movs	r0, #100
+  78 003e FFF7FEFF 		bl	ssd1306_SetCursor
+  79              	.LVL0:
+ 190:Src/hardware.c ****         ssd1306_WriteString("sr", Font_7x10,White); 
+  80              		.loc 1 190 9 view .LVU11
+  81 0042 624A     		ldr	r2, .L15+20
+  82 0044 0123     		movs	r3, #1
+  83 0046 06CA     		ldm	r2, {r1, r2}
+  84 0048 6148     		ldr	r0, .L15+24
+  85 004a FFF7FEFF 		bl	ssd1306_WriteString
+  86              	.LVL1:
+ 191:Src/hardware.c ****         ssd1306_SetCursor(100, 10);
+  87              		.loc 1 191 9 view .LVU12
+  88 004e 0A21     		movs	r1, #10
+  89 0050 6420     		movs	r0, #100
+  90 0052 FFF7FEFF 		bl	ssd1306_SetCursor
+  91              	.LVL2:
+ 192:Src/hardware.c ****        
+ 193:Src/hardware.c ****         sprintf(hex_status, "%02X", status);
+  92              		.loc 1 193 9 view .LVU13
+  93 0056 584B     		ldr	r3, .L15
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 6
+
+
+  94 0058 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+  95 005a 5E49     		ldr	r1, .L15+28
+  96 005c 03A8     		add	r0, sp, #12
+  97 005e FFF7FEFF 		bl	sprintf
+  98              	.LVL3:
+ 194:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_11x18,White);
+  99              		.loc 1 194 9 view .LVU14
+ 100 0062 5D4A     		ldr	r2, .L15+32
+ 101 0064 0123     		movs	r3, #1
+ 102 0066 06CA     		ldm	r2, {r1, r2}
+ 103 0068 03A8     		add	r0, sp, #12
+ 104 006a FFF7FEFF 		bl	ssd1306_WriteString
+ 105              	.LVL4:
+ 106              	.L9:
+ 195:Src/hardware.c ****         }
+ 196:Src/hardware.c ****         else
+ 197:Src/hardware.c ****         {
+ 198:Src/hardware.c ****         ssd1306_SetCursor(100, 0); 
+ 199:Src/hardware.c ****         ssd1306_WriteString("  ", Font_7x10,White); 
+ 200:Src/hardware.c ****         ssd1306_SetCursor(100, 10);
+ 201:Src/hardware.c ****         ssd1306_WriteString("  ", Font_11x18,White);
+ 202:Src/hardware.c **** 
+ 203:Src/hardware.c ****         }
+ 204:Src/hardware.c **** 
+ 205:Src/hardware.c **** 
+ 206:Src/hardware.c ****      
+ 207:Src/hardware.c ****       ssd1306_UpdateScreen();
+ 107              		.loc 1 207 7 view .LVU15
+ 108 006e FFF7FEFF 		bl	ssd1306_UpdateScreen
+ 109              	.LVL5:
+ 208:Src/hardware.c ****       old_status = status;
+ 110              		.loc 1 208 7 view .LVU16
+ 111              		.loc 1 208 18 is_stmt 0 view .LVU17
+ 112 0072 514B     		ldr	r3, .L15
+ 113 0074 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 114 0076 514B     		ldr	r3, .L15+4
+ 115 0078 1A70     		strb	r2, [r3]
+ 209:Src/hardware.c ****       if (OledNeedUpdate) OledNeedUpdate = false;
+ 116              		.loc 1 209 7 is_stmt 1 view .LVU18
+ 117              		.loc 1 209 11 is_stmt 0 view .LVU19
+ 118 007a 584B     		ldr	r3, .L15+36
+ 119 007c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 120              		.loc 1 209 10 view .LVU20
+ 121 007e 13B1     		cbz	r3, .L3
+ 122              		.loc 1 209 27 is_stmt 1 discriminator 1 view .LVU21
+ 123              		.loc 1 209 42 is_stmt 0 discriminator 1 view .LVU22
+ 124 0080 564B     		ldr	r3, .L15+36
+ 125 0082 0022     		movs	r2, #0
+ 126 0084 1A70     		strb	r2, [r3]
+ 127              	.L3:
+ 128              	.LBE2:
+ 210:Src/hardware.c ****     }
+ 211:Src/hardware.c **** 
+ 212:Src/hardware.c ****     if(!HMDready)
+ 129              		.loc 1 212 5 is_stmt 1 view .LVU23
+ 130              		.loc 1 212 8 is_stmt 0 view .LVU24
+ 131 0086 564B     		ldr	r3, .L15+40
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 7
+
+
+ 132 0088 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 133              		.loc 1 212 7 view .LVU25
+ 134 008a 002B     		cmp	r3, #0
+ 135 008c 00F08380 		beq	.L14
+ 136              	.L1:
+ 213:Src/hardware.c ****     {
+ 214:Src/hardware.c ****       //void SSD1306_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint8_t c);
+ 215:Src/hardware.c ****       SSD1306_DrawLine(0, 31, stage * 21, 31, 1);
+ 216:Src/hardware.c ****       ssd1306_UpdateScreen();
+ 217:Src/hardware.c ****     }
+ 218:Src/hardware.c **** }
+ 137              		.loc 1 218 1 view .LVU26
+ 138 0090 04B0     		add	sp, sp, #16
+ 139              	.LCFI2:
+ 140              		.cfi_remember_state
+ 141              		.cfi_def_cfa_offset 8
+ 142              		@ sp needed
+ 143 0092 10BD     		pop	{r4, pc}
+ 144              	.L13:
+ 145              	.LCFI3:
+ 146              		.cfi_restore_state
+ 146:Src/hardware.c ****     {
+ 147              		.loc 1 146 29 discriminator 1 view .LVU27
+ 148 0094 514B     		ldr	r3, .L15+36
+ 149 0096 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 150 0098 002B     		cmp	r3, #0
+ 151 009a F4D0     		beq	.L3
+ 152 009c B8E7     		b	.L2
+ 153              	.L5:
+ 154              	.LBB3:
+ 153:Src/hardware.c ****         ssd1306_WriteString("OSVR", Font_11x18,White);
+ 155              		.loc 1 153 9 is_stmt 1 view .LVU28
+ 156 009e 0521     		movs	r1, #5
+ 157 00a0 0020     		movs	r0, #0
+ 158 00a2 FFF7FEFF 		bl	ssd1306_SetCursor
+ 159              	.LVL6:
+ 154:Src/hardware.c ****         ssd1306_SetCursor(46, 12); 
+ 160              		.loc 1 154 9 view .LVU29
+ 161 00a6 4C4A     		ldr	r2, .L15+32
+ 162 00a8 0123     		movs	r3, #1
+ 163 00aa 06CA     		ldm	r2, {r1, r2}
+ 164 00ac 4D48     		ldr	r0, .L15+44
+ 165 00ae FFF7FEFF 		bl	ssd1306_WriteString
+ 166              	.LVL7:
+ 155:Src/hardware.c ****         ssd1306_WriteString("edid", Font_7x10,White);
+ 167              		.loc 1 155 9 view .LVU30
+ 168 00b2 0C21     		movs	r1, #12
+ 169 00b4 2E20     		movs	r0, #46
+ 170 00b6 FFF7FEFF 		bl	ssd1306_SetCursor
+ 171              	.LVL8:
+ 156:Src/hardware.c **** 
+ 172              		.loc 1 156 9 view .LVU31
+ 173 00ba 444C     		ldr	r4, .L15+20
+ 174 00bc 0123     		movs	r3, #1
+ 175 00be 94E80600 		ldm	r4, {r1, r2}
+ 176 00c2 4948     		ldr	r0, .L15+48
+ 177 00c4 FFF7FEFF 		bl	ssd1306_WriteString
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 8
+
+
+ 178              	.LVL9:
+ 159:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_7x10,White);
+ 179              		.loc 1 159 9 view .LVU32
+ 180 00c8 484B     		ldr	r3, .L15+52
+ 181 00ca 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 182 00cc 4149     		ldr	r1, .L15+28
+ 183 00ce 03A8     		add	r0, sp, #12
+ 184 00d0 FFF7FEFF 		bl	sprintf
+ 185              	.LVL10:
+ 160:Src/hardware.c **** 
+ 186              		.loc 1 160 9 view .LVU33
+ 187 00d4 0123     		movs	r3, #1
+ 188 00d6 94E80600 		ldm	r4, {r1, r2}
+ 189 00da 03A8     		add	r0, sp, #12
+ 190 00dc FFF7FEFF 		bl	ssd1306_WriteString
+ 191              	.LVL11:
+ 162:Src/hardware.c ****         
+ 192              		.loc 1 162 9 view .LVU34
+ 193 00e0 A6E7     		b	.L7
+ 194              	.L4:
+ 165:Src/hardware.c ****         ssd1306_WriteString("ORIG", Font_11x18,White);
+ 195              		.loc 1 165 9 view .LVU35
+ 196 00e2 0521     		movs	r1, #5
+ 197 00e4 0020     		movs	r0, #0
+ 198 00e6 FFF7FEFF 		bl	ssd1306_SetCursor
+ 199              	.LVL12:
+ 166:Src/hardware.c ****         ssd1306_SetCursor(56, 12); 
+ 200              		.loc 1 166 9 view .LVU36
+ 201 00ea 3B4A     		ldr	r2, .L15+32
+ 202 00ec 0123     		movs	r3, #1
+ 203 00ee 06CA     		ldm	r2, {r1, r2}
+ 204 00f0 3F48     		ldr	r0, .L15+56
+ 205 00f2 FFF7FEFF 		bl	ssd1306_WriteString
+ 206              	.LVL13:
+ 167:Src/hardware.c ****         ssd1306_WriteString("edid", Font_7x10,White);
+ 207              		.loc 1 167 9 view .LVU37
+ 208 00f6 0C21     		movs	r1, #12
+ 209 00f8 3820     		movs	r0, #56
+ 210 00fa FFF7FEFF 		bl	ssd1306_SetCursor
+ 211              	.LVL14:
+ 168:Src/hardware.c **** 
+ 212              		.loc 1 168 9 view .LVU38
+ 213 00fe 334C     		ldr	r4, .L15+20
+ 214 0100 0123     		movs	r3, #1
+ 215 0102 94E80600 		ldm	r4, {r1, r2}
+ 216 0106 3848     		ldr	r0, .L15+48
+ 217 0108 FFF7FEFF 		bl	ssd1306_WriteString
+ 218              	.LVL15:
+ 171:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_7x10,White);
+ 219              		.loc 1 171 9 view .LVU39
+ 220 010c 374B     		ldr	r3, .L15+52
+ 221 010e 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 222 0110 3049     		ldr	r1, .L15+28
+ 223 0112 03A8     		add	r0, sp, #12
+ 224 0114 FFF7FEFF 		bl	sprintf
+ 225              	.LVL16:
+ 172:Src/hardware.c ****         break;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 9
+
+
+ 226              		.loc 1 172 9 view .LVU40
+ 227 0118 0123     		movs	r3, #1
+ 228 011a 94E80600 		ldm	r4, {r1, r2}
+ 229 011e 03A8     		add	r0, sp, #12
+ 230 0120 FFF7FEFF 		bl	ssd1306_WriteString
+ 231              	.LVL17:
+ 173:Src/hardware.c ****         
+ 232              		.loc 1 173 9 view .LVU41
+ 233 0124 84E7     		b	.L7
+ 234              	.L6:
+ 176:Src/hardware.c ****         ssd1306_WriteString("CUST", Font_11x18,White);
+ 235              		.loc 1 176 9 view .LVU42
+ 236 0126 0521     		movs	r1, #5
+ 237 0128 0020     		movs	r0, #0
+ 238 012a FFF7FEFF 		bl	ssd1306_SetCursor
+ 239              	.LVL18:
+ 177:Src/hardware.c ****         ssd1306_SetCursor(56, 12); 
+ 240              		.loc 1 177 9 view .LVU43
+ 241 012e 2A4A     		ldr	r2, .L15+32
+ 242 0130 0123     		movs	r3, #1
+ 243 0132 06CA     		ldm	r2, {r1, r2}
+ 244 0134 2F48     		ldr	r0, .L15+60
+ 245 0136 FFF7FEFF 		bl	ssd1306_WriteString
+ 246              	.LVL19:
+ 178:Src/hardware.c ****         ssd1306_WriteString("edid", Font_7x10,White);
+ 247              		.loc 1 178 9 view .LVU44
+ 248 013a 0C21     		movs	r1, #12
+ 249 013c 3820     		movs	r0, #56
+ 250 013e FFF7FEFF 		bl	ssd1306_SetCursor
+ 251              	.LVL20:
+ 179:Src/hardware.c **** 
+ 252              		.loc 1 179 9 view .LVU45
+ 253 0142 224C     		ldr	r4, .L15+20
+ 254 0144 0123     		movs	r3, #1
+ 255 0146 94E80600 		ldm	r4, {r1, r2}
+ 256 014a 2748     		ldr	r0, .L15+48
+ 257 014c FFF7FEFF 		bl	ssd1306_WriteString
+ 258              	.LVL21:
+ 182:Src/hardware.c ****         ssd1306_WriteString(hex_status, Font_7x10,White);
+ 259              		.loc 1 182 9 view .LVU46
+ 260 0150 264B     		ldr	r3, .L15+52
+ 261 0152 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 262 0154 1F49     		ldr	r1, .L15+28
+ 263 0156 03A8     		add	r0, sp, #12
+ 264 0158 FFF7FEFF 		bl	sprintf
+ 265              	.LVL22:
+ 183:Src/hardware.c ****         break;
+ 266              		.loc 1 183 9 view .LVU47
+ 267 015c 0123     		movs	r3, #1
+ 268 015e 94E80600 		ldm	r4, {r1, r2}
+ 269 0162 03A8     		add	r0, sp, #12
+ 270 0164 FFF7FEFF 		bl	ssd1306_WriteString
+ 271              	.LVL23:
+ 184:Src/hardware.c **** 
+ 272              		.loc 1 184 9 view .LVU48
+ 273 0168 62E7     		b	.L7
+ 274              	.L8:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 10
+
+
+ 198:Src/hardware.c ****         ssd1306_WriteString("  ", Font_7x10,White); 
+ 275              		.loc 1 198 9 view .LVU49
+ 276 016a 0021     		movs	r1, #0
+ 277 016c 6420     		movs	r0, #100
+ 278 016e FFF7FEFF 		bl	ssd1306_SetCursor
+ 279              	.LVL24:
+ 199:Src/hardware.c ****         ssd1306_SetCursor(100, 10);
+ 280              		.loc 1 199 9 view .LVU50
+ 281 0172 164A     		ldr	r2, .L15+20
+ 282 0174 204C     		ldr	r4, .L15+64
+ 283 0176 0123     		movs	r3, #1
+ 284 0178 06CA     		ldm	r2, {r1, r2}
+ 285 017a 2046     		mov	r0, r4
+ 286 017c FFF7FEFF 		bl	ssd1306_WriteString
+ 287              	.LVL25:
+ 200:Src/hardware.c ****         ssd1306_WriteString("  ", Font_11x18,White);
+ 288              		.loc 1 200 9 view .LVU51
+ 289 0180 0A21     		movs	r1, #10
+ 290 0182 6420     		movs	r0, #100
+ 291 0184 FFF7FEFF 		bl	ssd1306_SetCursor
+ 292              	.LVL26:
+ 201:Src/hardware.c **** 
+ 293              		.loc 1 201 9 view .LVU52
+ 294 0188 134A     		ldr	r2, .L15+32
+ 295 018a 0123     		movs	r3, #1
+ 296 018c 06CA     		ldm	r2, {r1, r2}
+ 297 018e 2046     		mov	r0, r4
+ 298 0190 FFF7FEFF 		bl	ssd1306_WriteString
+ 299              	.LVL27:
+ 300 0194 6BE7     		b	.L9
+ 301              	.L14:
+ 302              	.LBE3:
+ 215:Src/hardware.c ****       ssd1306_UpdateScreen();
+ 303              		.loc 1 215 7 view .LVU53
+ 304 0196 194B     		ldr	r3, .L15+68
+ 305 0198 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 306 019a 02EB4202 		add	r2, r2, r2, lsl #1
+ 307 019e C2EBC202 		rsb	r2, r2, r2, lsl #3
+ 308 01a2 0123     		movs	r3, #1
+ 309 01a4 0093     		str	r3, [sp]
+ 310 01a6 1F23     		movs	r3, #31
+ 311 01a8 92B2     		uxth	r2, r2
+ 312 01aa 1946     		mov	r1, r3
+ 313 01ac 0020     		movs	r0, #0
+ 314 01ae FFF7FEFF 		bl	SSD1306_DrawLine
+ 315              	.LVL28:
+ 216:Src/hardware.c ****     }
+ 316              		.loc 1 216 7 view .LVU54
+ 317 01b2 FFF7FEFF 		bl	ssd1306_UpdateScreen
+ 318              	.LVL29:
+ 319              		.loc 1 218 1 is_stmt 0 view .LVU55
+ 320 01b6 6BE7     		b	.L1
+ 321              	.L16:
+ 322              		.align	2
+ 323              	.L15:
+ 324 01b8 00000000 		.word	status
+ 325 01bc 00000000 		.word	old_status
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 11
+
+
+ 326 01c0 30000000 		.word	.LC0
+ 327 01c4 00000000 		.word	target_edid
+ 328 01c8 00000000 		.word	.LANCHOR1
+ 329 01cc 00000000 		.word	Font_7x10
+ 330 01d0 28000000 		.word	.LC6
+ 331 01d4 10000000 		.word	.LC3
+ 332 01d8 00000000 		.word	Font_11x18
+ 333 01dc 00000000 		.word	.LANCHOR0
+ 334 01e0 00000000 		.word	.LANCHOR2
+ 335 01e4 00000000 		.word	.LC1
+ 336 01e8 08000000 		.word	.LC2
+ 337 01ec 00000000 		.word	mode
+ 338 01f0 18000000 		.word	.LC4
+ 339 01f4 20000000 		.word	.LC5
+ 340 01f8 2C000000 		.word	.LC7
+ 341 01fc 00000000 		.word	stage
+ 342              		.cfi_endproc
+ 343              	.LFE71:
+ 345              		.section	.text.Led_A_Blink,"ax",%progbits
+ 346              		.align	1
+ 347              		.global	Led_A_Blink
+ 348              		.syntax unified
+ 349              		.thumb
+ 350              		.thumb_func
+ 351              		.fpu softvfp
+ 353              	Led_A_Blink:
+ 354              	.LVL30:
+ 355              	.LFB74:
+ 219:Src/hardware.c **** 
+ 220:Src/hardware.c **** void InitHardware()
+ 221:Src/hardware.c **** {
+ 222:Src/hardware.c ****       status = TC358870_i2c_Read(0x8520); 
+ 223:Src/hardware.c **** 
+ 224:Src/hardware.c **** 
+ 225:Src/hardware.c ****     
+ 226:Src/hardware.c **** //0 - initial, 1 - powerstage1, 2 = 5V is ok, 3 - toshiba init, 4 - powerstage2, 5 - display init
+ 227:Src/hardware.c **** 
+ 228:Src/hardware.c ****     switch (stage)
+ 229:Src/hardware.c ****     {
+ 230:Src/hardware.c ****     case 0:
+ 231:Src/hardware.c ****     
+ 232:Src/hardware.c ****     MainPowerOn();    
+ 233:Src/hardware.c ****     Led_A_Blink(500, 2);
+ 234:Src/hardware.c ****     stage = 1;
+ 235:Src/hardware.c ****     
+ 236:Src/hardware.c ****       break;
+ 237:Src/hardware.c ****     case 1:
+ 238:Src/hardware.c ****     if((status & 0x01) == 1 ) stage = 2;
+ 239:Src/hardware.c ****   //  if(status == 1 ) stage = 2;
+ 240:Src/hardware.c ****     break;
+ 241:Src/hardware.c **** 
+ 242:Src/hardware.c ****     case 2:
+ 243:Src/hardware.c **** 
+ 244:Src/hardware.c ****        Toshiba_Init(target_edid);
+ 245:Src/hardware.c ****        Led_A_Blink(200, 2);
+ 246:Src/hardware.c ****        stage = 3;
+ 247:Src/hardware.c ****     break;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 12
+
+
+ 248:Src/hardware.c **** 
+ 249:Src/hardware.c ****     case 25:
+ 250:Src/hardware.c ****     if((status & 0x01) == 1 ) 
+ 251:Src/hardware.c ****     {
+ 252:Src/hardware.c ****       TOSHIBA_RESET_ON;
+ 253:Src/hardware.c ****       HAL_Delay(40);
+ 254:Src/hardware.c ****       stage = 1;
+ 255:Src/hardware.c ****     }
+ 256:Src/hardware.c ****     break;
+ 257:Src/hardware.c **** 
+ 258:Src/hardware.c **** 
+ 259:Src/hardware.c ****     case 3:
+ 260:Src/hardware.c ****     if (status == 0x9F)
+ 261:Src/hardware.c **** 
+ 262:Src/hardware.c ****     {
+ 263:Src/hardware.c ****         HAL_Delay(10);
+ 264:Src/hardware.c ****         stage = 4;
+ 265:Src/hardware.c ****     }
+ 266:Src/hardware.c ****     break;
+ 267:Src/hardware.c **** 
+ 268:Src/hardware.c ****     case 4:
+ 269:Src/hardware.c ****       DiasplayPowerOn();    
+ 270:Src/hardware.c ****       Led_A_Blink(50, 2);
+ 271:Src/hardware.c ****       stage = 5;
+ 272:Src/hardware.c ****     break;
+ 273:Src/hardware.c **** 
+ 274:Src/hardware.c ****     case 5:
+ 275:Src/hardware.c ****     Toshiba_TC358870_OLED_SetupChina(target_mode); //Mode: 0 split, 1 - double
+ 276:Src/hardware.c ****     HAL_Delay(240);
+ 277:Src/hardware.c ****     stage = 6;
+ 278:Src/hardware.c ****     mode = target_mode;
+ 279:Src/hardware.c ****     edid = target_edid;
+ 280:Src/hardware.c ****     Led_A_Blink(50, 1);
+ 281:Src/hardware.c ****     break;
+ 282:Src/hardware.c **** 
+ 283:Src/hardware.c ****     case 6:
+ 284:Src/hardware.c ****       lane_status = TC358870_i2c_Read(0x0290);
+ 285:Src/hardware.c ****       if(!HMDready)
+ 286:Src/hardware.c ****       {
+ 287:Src/hardware.c ****         if(OLED_OK) SSD1306_DrawLine(0, 31, 127, 31, 1);
+ 288:Src/hardware.c ****         OledNeedUpdate = true;
+ 289:Src/hardware.c ****         HMDready = true;
+ 290:Src/hardware.c **** 
+ 291:Src/hardware.c ****       }
+ 292:Src/hardware.c ****       
+ 293:Src/hardware.c **** 
+ 294:Src/hardware.c ****       
+ 295:Src/hardware.c ****     break;
+ 296:Src/hardware.c **** 
+ 297:Src/hardware.c ****     default:
+ 298:Src/hardware.c ****       break;
+ 299:Src/hardware.c ****     }
+ 300:Src/hardware.c ****     
+ 301:Src/hardware.c **** 
+ 302:Src/hardware.c **** 
+ 303:Src/hardware.c **** }
+ 304:Src/hardware.c **** void StatusControl()
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 13
+
+
+ 305:Src/hardware.c **** {
+ 306:Src/hardware.c **** 
+ 307:Src/hardware.c ****   if(stage == 6)
+ 308:Src/hardware.c ****     {
+ 309:Src/hardware.c ****       //switch (status & 0x80)
+ 310:Src/hardware.c ****       switch (status)
+ 311:Src/hardware.c ****       {
+ 312:Src/hardware.c ****       case 0: //Пропало 5в HDMI выдернули кабель 9F -> 1F -> 2F -> 3F -> 2F 
+ 313:Src/hardware.c ****       HMDready = false;
+ 314:Src/hardware.c ****       stage = 1;
+ 315:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 316:Src/hardware.c ****       Led_A_Blink(1000, 2);
+ 317:Src/hardware.c **** 
+ 318:Src/hardware.c ****         break;
+ 319:Src/hardware.c ****       case 0x01: //Пропало 5в HDMI выдернули кабель 9F -> 1F -> 2F -> 3F -> 
+ 320:Src/hardware.c ****       HMDready = false;      
+ 321:Src/hardware.c ****       stage = 1;
+ 322:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 323:Src/hardware.c ****       Led_A_Blink(500, 2);
+ 324:Src/hardware.c **** 
+ 325:Src/hardware.c **** 
+ 326:Src/hardware.c ****         break;
+ 327:Src/hardware.c ****       case 0x19: //Отключен программно
+ 328:Src/hardware.c ****       DisplaySleep();
+ 329:Src/hardware.c ****       HMDready = false;
+ 330:Src/hardware.c ****       stage = 3;
+ 331:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 332:Src/hardware.c ****       Led_A_Blink(100, 2);
+ 333:Src/hardware.c **** 
+ 334:Src/hardware.c ****         
+ 335:Src/hardware.c ****         break;
+ 336:Src/hardware.c ****         case 0x28: //выдернули кабель 9F -> 1F -> 2F -> 3F -> 2F -> 3F -> 39 -> 28 (
+ 337:Src/hardware.c ****         DisplaySleep();
+ 338:Src/hardware.c ****         HMDready = false;
+ 339:Src/hardware.c ****         stage = 3;
+ 340:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 341:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 342:Src/hardware.c **** 
+ 343:Src/hardware.c ****         break;
+ 344:Src/hardware.c ****                 break;
+ 345:Src/hardware.c ****         case 0x9F: //Нормальная работа
+ 346:Src/hardware.c ****         if(!HMDready)
+ 347:Src/hardware.c ****         HMDready = true;
+ 348:Src/hardware.c ****         
+ 349:Src/hardware.c ****         break;
+ 350:Src/hardware.c **** 
+ 351:Src/hardware.c ****         case 0x1F: 
+ 352:Src/hardware.c **** 
+ 353:Src/hardware.c ****         break;
+ 354:Src/hardware.c **** 
+ 355:Src/hardware.c ****         case 0x08: 
+ 356:Src/hardware.c ****         HMDready = false;
+ 357:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 358:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 359:Src/hardware.c **** 
+ 360:Src/hardware.c ****         break;
+ 361:Src/hardware.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 14
+
+
+ 362:Src/hardware.c ****         case 0x2F: 
+ 363:Src/hardware.c ****         HMDready = false;
+ 364:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 365:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 366:Src/hardware.c **** 
+ 367:Src/hardware.c ****         break;
+ 368:Src/hardware.c **** 
+ 369:Src/hardware.c ****         case 0x3F: 
+ 370:Src/hardware.c ****         HMDready = false;
+ 371:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 372:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 373:Src/hardware.c **** 
+ 374:Src/hardware.c ****         break;
+ 375:Src/hardware.c ****         
+ 376:Src/hardware.c **** 
+ 377:Src/hardware.c ****         case 0x39: 
+ 378:Src/hardware.c ****         HMDready = false;
+ 379:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 380:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 381:Src/hardware.c **** 
+ 382:Src/hardware.c ****         break;
+ 383:Src/hardware.c ****       
+ 384:Src/hardware.c ****       default:
+ 385:Src/hardware.c ****       DisplaySleep();
+ 386:Src/hardware.c ****       HMDready = false;
+ 387:Src/hardware.c ****       stage = 1;
+ 388:Src/hardware.c ****       Led_A_Blink(100, 2);
+ 389:Src/hardware.c ****     //  SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 390:Src/hardware.c **** 
+ 391:Src/hardware.c ****       break;
+ 392:Src/hardware.c ****       }
+ 393:Src/hardware.c **** 
+ 394:Src/hardware.c ****     }
+ 395:Src/hardware.c **** }
+ 396:Src/hardware.c **** 
+ 397:Src/hardware.c **** void Led_A_Blink(int cicle, int mode) //modes: 0 - off, 1 - on, 2 - blink
+ 398:Src/hardware.c **** {
+ 356              		.loc 1 398 1 is_stmt 1 view -0
+ 357              		.cfi_startproc
+ 358              		@ args = 0, pretend = 0, frame = 0
+ 359              		@ frame_needed = 0, uses_anonymous_args = 0
+ 360              		.loc 1 398 1 is_stmt 0 view .LVU57
+ 361 0000 08B5     		push	{r3, lr}
+ 362              	.LCFI4:
+ 363              		.cfi_def_cfa_offset 8
+ 364              		.cfi_offset 3, -8
+ 365              		.cfi_offset 14, -4
+ 399:Src/hardware.c ****   switch(mode)
+ 366              		.loc 1 399 3 is_stmt 1 view .LVU58
+ 367 0002 11B1     		cbz	r1, .L18
+ 368 0004 0129     		cmp	r1, #1
+ 369 0006 06D0     		beq	.L19
+ 370              	.LVL31:
+ 371              	.L17:
+ 400:Src/hardware.c ****   {
+ 401:Src/hardware.c ****     case 0:
+ 402:Src/hardware.c ****    // osTimerStop(LedTimerHandle);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 15
+
+
+ 403:Src/hardware.c ****     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+ 404:Src/hardware.c ****     break;
+ 405:Src/hardware.c **** 
+ 406:Src/hardware.c ****     case 1:
+ 407:Src/hardware.c ****    // osTimerStop(LedTimerHandle);
+ 408:Src/hardware.c ****     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+ 409:Src/hardware.c ****     break;
+ 410:Src/hardware.c ****     case 2:
+ 411:Src/hardware.c ****    // osTimerStop(LedTimerHandle);
+ 412:Src/hardware.c ****    // osTimerStart(LedTimerHandle, cicle);
+ 413:Src/hardware.c ****     
+ 414:Src/hardware.c ****     break;
+ 415:Src/hardware.c ****   }
+ 416:Src/hardware.c **** }
+ 372              		.loc 1 416 1 is_stmt 0 view .LVU59
+ 373 0008 08BD     		pop	{r3, pc}
+ 374              	.LVL32:
+ 375              	.L18:
+ 403:Src/hardware.c ****     break;
+ 376              		.loc 1 403 5 is_stmt 1 view .LVU60
+ 377 000a 0022     		movs	r2, #0
+ 378 000c 2021     		movs	r1, #32
+ 379              	.LVL33:
+ 403:Src/hardware.c ****     break;
+ 380              		.loc 1 403 5 is_stmt 0 view .LVU61
+ 381 000e 0548     		ldr	r0, .L22
+ 382              	.LVL34:
+ 403:Src/hardware.c ****     break;
+ 383              		.loc 1 403 5 view .LVU62
+ 384 0010 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 385              	.LVL35:
+ 404:Src/hardware.c **** 
+ 386              		.loc 1 404 5 is_stmt 1 view .LVU63
+ 387 0014 F8E7     		b	.L17
+ 388              	.LVL36:
+ 389              	.L19:
+ 408:Src/hardware.c ****     break;
+ 390              		.loc 1 408 5 view .LVU64
+ 391 0016 0122     		movs	r2, #1
+ 392 0018 2021     		movs	r1, #32
+ 393              	.LVL37:
+ 408:Src/hardware.c ****     break;
+ 394              		.loc 1 408 5 is_stmt 0 view .LVU65
+ 395 001a 0248     		ldr	r0, .L22
+ 396              	.LVL38:
+ 408:Src/hardware.c ****     break;
+ 397              		.loc 1 408 5 view .LVU66
+ 398 001c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 399              	.LVL39:
+ 409:Src/hardware.c ****     case 2:
+ 400              		.loc 1 409 5 is_stmt 1 view .LVU67
+ 401              		.loc 1 416 1 is_stmt 0 view .LVU68
+ 402 0020 F2E7     		b	.L17
+ 403              	.L23:
+ 404 0022 00BF     		.align	2
+ 405              	.L22:
+ 406 0024 00080140 		.word	1073809408
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 16
+
+
+ 407              		.cfi_endproc
+ 408              	.LFE74:
+ 410              		.section	.text.MainPowerOn,"ax",%progbits
+ 411              		.align	1
+ 412              		.global	MainPowerOn
+ 413              		.syntax unified
+ 414              		.thumb
+ 415              		.thumb_func
+ 416              		.fpu softvfp
+ 418              	MainPowerOn:
+ 419              	.LFB75:
+ 417:Src/hardware.c **** 
+ 418:Src/hardware.c **** void MainPowerOn(void)
+ 419:Src/hardware.c **** {
+ 420              		.loc 1 419 1 is_stmt 1 view -0
+ 421              		.cfi_startproc
+ 422              		@ args = 0, pretend = 0, frame = 0
+ 423              		@ frame_needed = 0, uses_anonymous_args = 0
+ 424 0000 10B5     		push	{r4, lr}
+ 425              	.LCFI5:
+ 426              		.cfi_def_cfa_offset 8
+ 427              		.cfi_offset 4, -8
+ 428              		.cfi_offset 14, -4
+ 420:Src/hardware.c **** 
+ 421:Src/hardware.c **** TOSHIBA_RESET_OFF;
+ 429              		.loc 1 421 1 view .LVU70
+ 430 0002 174C     		ldr	r4, .L26
+ 431 0004 0122     		movs	r2, #1
+ 432 0006 4FF40041 		mov	r1, #32768
+ 433 000a 2046     		mov	r0, r4
+ 434 000c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 435              	.LVL40:
+ 422:Src/hardware.c **** MAIN_POWER_ON;
+ 436              		.loc 1 422 1 view .LVU71
+ 437 0010 0122     		movs	r2, #1
+ 438 0012 4FF49161 		mov	r1, #1160
+ 439 0016 2046     		mov	r0, r4
+ 440 0018 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 441              	.LVL41:
+ 423:Src/hardware.c **** OLED_POWER_OFF;
+ 442              		.loc 1 423 1 view .LVU72
+ 443 001c 0022     		movs	r2, #0
+ 444 001e 4FF40471 		mov	r1, #528
+ 445 0022 2046     		mov	r0, r4
+ 446 0024 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 447              	.LVL42:
+ 448              		.loc 1 423 15 view .LVU73
+ 424:Src/hardware.c **** OLED_RESET;
+ 449              		.loc 1 424 1 view .LVU74
+ 450 0028 0122     		movs	r2, #1
+ 451 002a 4FF4C061 		mov	r1, #1536
+ 452 002e 0D48     		ldr	r0, .L26+4
+ 453 0030 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 454              	.LVL43:
+ 425:Src/hardware.c **** TOSHIBA_RESET_ON;
+ 455              		.loc 1 425 1 view .LVU75
+ 456 0034 0022     		movs	r2, #0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 17
+
+
+ 457 0036 4FF40041 		mov	r1, #32768
+ 458 003a 2046     		mov	r0, r4
+ 459 003c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 460              	.LVL44:
+ 426:Src/hardware.c **** USB_ON;
+ 461              		.loc 1 426 1 view .LVU76
+ 462 0040 0122     		movs	r2, #1
+ 463 0042 0421     		movs	r1, #4
+ 464 0044 2046     		mov	r0, r4
+ 465 0046 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 466              	.LVL45:
+ 467              		.loc 1 426 7 view .LVU77
+ 427:Src/hardware.c **** HAL_Delay(150);
+ 468              		.loc 1 427 1 view .LVU78
+ 469 004a 9620     		movs	r0, #150
+ 470 004c FFF7FEFF 		bl	HAL_Delay
+ 471              	.LVL46:
+ 428:Src/hardware.c **** ////LED_PWM_ON;
+ 429:Src/hardware.c **** TOSHIBA_RESET_OFF;
+ 472              		.loc 1 429 1 view .LVU79
+ 473 0050 0122     		movs	r2, #1
+ 474 0052 4FF40041 		mov	r1, #32768
+ 475 0056 2046     		mov	r0, r4
+ 476 0058 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 477              	.LVL47:
+ 430:Src/hardware.c **** 
+ 431:Src/hardware.c **** }
+ 478              		.loc 1 431 1 is_stmt 0 view .LVU80
+ 479 005c 10BD     		pop	{r4, pc}
+ 480              	.L27:
+ 481 005e 00BF     		.align	2
+ 482              	.L26:
+ 483 0060 00080140 		.word	1073809408
+ 484 0064 000C0140 		.word	1073810432
+ 485              		.cfi_endproc
+ 486              	.LFE75:
+ 488              		.section	.text.DiasplayPowerOn,"ax",%progbits
+ 489              		.align	1
+ 490              		.global	DiasplayPowerOn
+ 491              		.syntax unified
+ 492              		.thumb
+ 493              		.thumb_func
+ 494              		.fpu softvfp
+ 496              	DiasplayPowerOn:
+ 497              	.LFB76:
+ 432:Src/hardware.c **** 
+ 433:Src/hardware.c **** void DiasplayPowerOn(void)
+ 434:Src/hardware.c **** {
+ 498              		.loc 1 434 1 is_stmt 1 view -0
+ 499              		.cfi_startproc
+ 500              		@ args = 0, pretend = 0, frame = 0
+ 501              		@ frame_needed = 0, uses_anonymous_args = 0
+ 502 0000 10B5     		push	{r4, lr}
+ 503              	.LCFI6:
+ 504              		.cfi_def_cfa_offset 8
+ 505              		.cfi_offset 4, -8
+ 506              		.cfi_offset 14, -4
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 18
+
+
+ 435:Src/hardware.c **** HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+ 507              		.loc 1 435 1 view .LVU82
+ 508 0002 0B4C     		ldr	r4, .L30
+ 509 0004 0022     		movs	r2, #0
+ 510 0006 0821     		movs	r1, #8
+ 511 0008 2046     		mov	r0, r4
+ 512 000a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 513              	.LVL48:
+ 436:Src/hardware.c **** OLED_POWER_ON;
+ 514              		.loc 1 436 1 view .LVU83
+ 515 000e 0122     		movs	r2, #1
+ 516 0010 4FF40471 		mov	r1, #528
+ 517 0014 2046     		mov	r0, r4
+ 518 0016 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 519              	.LVL49:
+ 437:Src/hardware.c **** HAL_Delay(200);
+ 520              		.loc 1 437 1 view .LVU84
+ 521 001a C820     		movs	r0, #200
+ 522 001c FFF7FEFF 		bl	HAL_Delay
+ 523              	.LVL50:
+ 438:Src/hardware.c **** OLED_SET;
+ 524              		.loc 1 438 1 view .LVU85
+ 525 0020 0022     		movs	r2, #0
+ 526 0022 4FF4C061 		mov	r1, #1536
+ 527 0026 0348     		ldr	r0, .L30+4
+ 528 0028 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 529              	.LVL51:
+ 439:Src/hardware.c **** //HAL_Delay(20);
+ 440:Src/hardware.c ****  
+ 441:Src/hardware.c **** }
+ 530              		.loc 1 441 1 is_stmt 0 view .LVU86
+ 531 002c 10BD     		pop	{r4, pc}
+ 532              	.L31:
+ 533 002e 00BF     		.align	2
+ 534              	.L30:
+ 535 0030 00080140 		.word	1073809408
+ 536 0034 000C0140 		.word	1073810432
+ 537              		.cfi_endproc
+ 538              	.LFE76:
+ 540              		.section	.text.DisplaySleep,"ax",%progbits
+ 541              		.align	1
+ 542              		.global	DisplaySleep
+ 543              		.syntax unified
+ 544              		.thumb
+ 545              		.thumb_func
+ 546              		.fpu softvfp
+ 548              	DisplaySleep:
+ 549              	.LFB77:
+ 442:Src/hardware.c **** void DisplaySleep(void)
+ 443:Src/hardware.c **** {
+ 550              		.loc 1 443 1 is_stmt 1 view -0
+ 551              		.cfi_startproc
+ 552              		@ args = 0, pretend = 0, frame = 0
+ 553              		@ frame_needed = 0, uses_anonymous_args = 0
+ 554 0000 08B5     		push	{r3, lr}
+ 555              	.LCFI7:
+ 556              		.cfi_def_cfa_offset 8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 19
+
+
+ 557              		.cfi_offset 3, -8
+ 558              		.cfi_offset 14, -4
+ 444:Src/hardware.c **** OLED_RESET;
+ 559              		.loc 1 444 1 view .LVU88
+ 560 0002 0122     		movs	r2, #1
+ 561 0004 4FF4C061 		mov	r1, #1536
+ 562 0008 0548     		ldr	r0, .L34
+ 563 000a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 564              	.LVL52:
+ 445:Src/hardware.c **** Toshiba_TC358870_OLED_SleepChina();
+ 565              		.loc 1 445 1 view .LVU89
+ 566 000e FFF7FEFF 		bl	Toshiba_TC358870_OLED_SleepChina
+ 567              	.LVL53:
+ 446:Src/hardware.c **** OLED_POWER_OFF;
+ 568              		.loc 1 446 1 view .LVU90
+ 569 0012 0022     		movs	r2, #0
+ 570 0014 4FF40471 		mov	r1, #528
+ 571 0018 0248     		ldr	r0, .L34+4
+ 572 001a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 573              	.LVL54:
+ 574              		.loc 1 446 15 view .LVU91
+ 447:Src/hardware.c **** }
+ 575              		.loc 1 447 1 is_stmt 0 view .LVU92
+ 576 001e 08BD     		pop	{r3, pc}
+ 577              	.L35:
+ 578              		.align	2
+ 579              	.L34:
+ 580 0020 000C0140 		.word	1073810432
+ 581 0024 00080140 		.word	1073809408
+ 582              		.cfi_endproc
+ 583              	.LFE77:
+ 585              		.section	.text.StatusControl,"ax",%progbits
+ 586              		.align	1
+ 587              		.global	StatusControl
+ 588              		.syntax unified
+ 589              		.thumb
+ 590              		.thumb_func
+ 591              		.fpu softvfp
+ 593              	StatusControl:
+ 594              	.LFB73:
+ 305:Src/hardware.c **** 
+ 595              		.loc 1 305 1 is_stmt 1 view -0
+ 596              		.cfi_startproc
+ 597              		@ args = 0, pretend = 0, frame = 0
+ 598              		@ frame_needed = 0, uses_anonymous_args = 0
+ 599 0000 08B5     		push	{r3, lr}
+ 600              	.LCFI8:
+ 601              		.cfi_def_cfa_offset 8
+ 602              		.cfi_offset 3, -8
+ 603              		.cfi_offset 14, -4
+ 307:Src/hardware.c ****     {
+ 604              		.loc 1 307 3 view .LVU94
+ 307:Src/hardware.c ****     {
+ 605              		.loc 1 307 12 is_stmt 0 view .LVU95
+ 606 0002 424B     		ldr	r3, .L53
+ 607 0004 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 307:Src/hardware.c ****     {
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 20
+
+
+ 608              		.loc 1 307 5 view .LVU96
+ 609 0006 062B     		cmp	r3, #6
+ 610 0008 00D0     		beq	.L51
+ 611              	.L36:
+ 395:Src/hardware.c **** 
+ 612              		.loc 1 395 1 view .LVU97
+ 613 000a 08BD     		pop	{r3, pc}
+ 614              	.L51:
+ 310:Src/hardware.c ****       {
+ 615              		.loc 1 310 7 is_stmt 1 view .LVU98
+ 616 000c 404B     		ldr	r3, .L53+4
+ 617 000e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 618 0010 1F2B     		cmp	r3, #31
+ 619 0012 FAD0     		beq	.L36
+ 620 0014 0ED9     		bls	.L52
+ 621 0016 392B     		cmp	r3, #57
+ 622 0018 62D0     		beq	.L44
+ 623 001a 20D8     		bhi	.L45
+ 624 001c 282B     		cmp	r3, #40
+ 625 001e 42D0     		beq	.L46
+ 626 0020 2F2B     		cmp	r3, #47
+ 627 0022 65D1     		bne	.L43
+ 363:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 628              		.loc 1 363 9 view .LVU99
+ 363:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 629              		.loc 1 363 18 is_stmt 0 view .LVU100
+ 630 0024 3B4B     		ldr	r3, .L53+8
+ 631 0026 0022     		movs	r2, #0
+ 632 0028 1A70     		strb	r2, [r3]
+ 364:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 633              		.loc 1 364 9 is_stmt 1 view .LVU101
+ 634 002a 0221     		movs	r1, #2
+ 635 002c 6420     		movs	r0, #100
+ 636 002e FFF7FEFF 		bl	Led_A_Blink
+ 637              	.LVL55:
+ 367:Src/hardware.c **** 
+ 638              		.loc 1 367 9 view .LVU102
+ 639 0032 EAE7     		b	.L36
+ 640              	.L52:
+ 310:Src/hardware.c ****       {
+ 641              		.loc 1 310 7 is_stmt 0 view .LVU103
+ 642 0034 012B     		cmp	r3, #1
+ 643 0036 2AD0     		beq	.L39
+ 644 0038 5AB2     		sxtb	r2, r3
+ 645 003a E2B1     		cbz	r2, .L40
+ 646 003c 082B     		cmp	r3, #8
+ 647 003e 3FD0     		beq	.L41
+ 648 0040 192B     		cmp	r3, #25
+ 649 0042 55D1     		bne	.L43
+ 328:Src/hardware.c ****       HMDready = false;
+ 650              		.loc 1 328 7 is_stmt 1 view .LVU104
+ 651 0044 FFF7FEFF 		bl	DisplaySleep
+ 652              	.LVL56:
+ 329:Src/hardware.c ****       stage = 3;
+ 653              		.loc 1 329 7 view .LVU105
+ 329:Src/hardware.c ****       stage = 3;
+ 654              		.loc 1 329 16 is_stmt 0 view .LVU106
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 21
+
+
+ 655 0048 324B     		ldr	r3, .L53+8
+ 656 004a 0022     		movs	r2, #0
+ 657 004c 1A70     		strb	r2, [r3]
+ 330:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 658              		.loc 1 330 7 is_stmt 1 view .LVU107
+ 330:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 659              		.loc 1 330 13 is_stmt 0 view .LVU108
+ 660 004e 2F4B     		ldr	r3, .L53
+ 661 0050 0322     		movs	r2, #3
+ 662 0052 1A70     		strb	r2, [r3]
+ 332:Src/hardware.c **** 
+ 663              		.loc 1 332 7 is_stmt 1 view .LVU109
+ 664 0054 0221     		movs	r1, #2
+ 665 0056 6420     		movs	r0, #100
+ 666 0058 FFF7FEFF 		bl	Led_A_Blink
+ 667              	.LVL57:
+ 335:Src/hardware.c ****         case 0x28: //выдернули кабель 9F -> 1F -> 2F -> 3F -> 2F -> 3F -> 39 -> 28 (
+ 668              		.loc 1 335 9 view .LVU110
+ 669 005c D5E7     		b	.L36
+ 670              	.L45:
+ 310:Src/hardware.c ****       {
+ 671              		.loc 1 310 7 is_stmt 0 view .LVU111
+ 672 005e 3F2B     		cmp	r3, #63
+ 673 0060 36D0     		beq	.L48
+ 674 0062 9F2B     		cmp	r3, #159
+ 675 0064 44D1     		bne	.L43
+ 344:Src/hardware.c ****         case 0x9F: //Нормальная работа
+ 676              		.loc 1 344 17 is_stmt 1 view .LVU112
+ 346:Src/hardware.c ****         HMDready = true;
+ 677              		.loc 1 346 9 view .LVU113
+ 346:Src/hardware.c ****         HMDready = true;
+ 678              		.loc 1 346 12 is_stmt 0 view .LVU114
+ 679 0066 2B4B     		ldr	r3, .L53+8
+ 680 0068 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 346:Src/hardware.c ****         HMDready = true;
+ 681              		.loc 1 346 11 view .LVU115
+ 682 006a 002B     		cmp	r3, #0
+ 683 006c CDD1     		bne	.L36
+ 347:Src/hardware.c ****         
+ 684              		.loc 1 347 9 is_stmt 1 view .LVU116
+ 347:Src/hardware.c ****         
+ 685              		.loc 1 347 18 is_stmt 0 view .LVU117
+ 686 006e 294B     		ldr	r3, .L53+8
+ 687 0070 0122     		movs	r2, #1
+ 688 0072 1A70     		strb	r2, [r3]
+ 689 0074 C9E7     		b	.L36
+ 690              	.L40:
+ 313:Src/hardware.c ****       stage = 1;
+ 691              		.loc 1 313 7 is_stmt 1 view .LVU118
+ 313:Src/hardware.c ****       stage = 1;
+ 692              		.loc 1 313 16 is_stmt 0 view .LVU119
+ 693 0076 274B     		ldr	r3, .L53+8
+ 694 0078 0022     		movs	r2, #0
+ 695 007a 1A70     		strb	r2, [r3]
+ 314:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 696              		.loc 1 314 7 is_stmt 1 view .LVU120
+ 314:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 22
+
+
+ 697              		.loc 1 314 13 is_stmt 0 view .LVU121
+ 698 007c 234B     		ldr	r3, .L53
+ 699 007e 0122     		movs	r2, #1
+ 700 0080 1A70     		strb	r2, [r3]
+ 316:Src/hardware.c **** 
+ 701              		.loc 1 316 7 is_stmt 1 view .LVU122
+ 702 0082 0221     		movs	r1, #2
+ 703 0084 4FF47A70 		mov	r0, #1000
+ 704 0088 FFF7FEFF 		bl	Led_A_Blink
+ 705              	.LVL58:
+ 318:Src/hardware.c ****       case 0x01: //Пропало 5в HDMI выдернули кабель 9F -> 1F -> 2F -> 3F -> 
+ 706              		.loc 1 318 9 view .LVU123
+ 707 008c BDE7     		b	.L36
+ 708              	.L39:
+ 320:Src/hardware.c ****       stage = 1;
+ 709              		.loc 1 320 7 view .LVU124
+ 320:Src/hardware.c ****       stage = 1;
+ 710              		.loc 1 320 16 is_stmt 0 view .LVU125
+ 711 008e 214B     		ldr	r3, .L53+8
+ 712 0090 0022     		movs	r2, #0
+ 713 0092 1A70     		strb	r2, [r3]
+ 321:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 714              		.loc 1 321 7 is_stmt 1 view .LVU126
+ 321:Src/hardware.c ****    //   SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 715              		.loc 1 321 13 is_stmt 0 view .LVU127
+ 716 0094 1D4B     		ldr	r3, .L53
+ 717 0096 0122     		movs	r2, #1
+ 718 0098 1A70     		strb	r2, [r3]
+ 323:Src/hardware.c **** 
+ 719              		.loc 1 323 7 is_stmt 1 view .LVU128
+ 720 009a 0221     		movs	r1, #2
+ 721 009c 4FF4FA70 		mov	r0, #500
+ 722 00a0 FFF7FEFF 		bl	Led_A_Blink
+ 723              	.LVL59:
+ 326:Src/hardware.c ****       case 0x19: //Отключен программно
+ 724              		.loc 1 326 9 view .LVU129
+ 725 00a4 B1E7     		b	.L36
+ 726              	.L46:
+ 337:Src/hardware.c ****         HMDready = false;
+ 727              		.loc 1 337 9 view .LVU130
+ 728 00a6 FFF7FEFF 		bl	DisplaySleep
+ 729              	.LVL60:
+ 338:Src/hardware.c ****         stage = 3;
+ 730              		.loc 1 338 9 view .LVU131
+ 338:Src/hardware.c ****         stage = 3;
+ 731              		.loc 1 338 18 is_stmt 0 view .LVU132
+ 732 00aa 1A4B     		ldr	r3, .L53+8
+ 733 00ac 0022     		movs	r2, #0
+ 734 00ae 1A70     		strb	r2, [r3]
+ 339:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 735              		.loc 1 339 9 is_stmt 1 view .LVU133
+ 339:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 736              		.loc 1 339 15 is_stmt 0 view .LVU134
+ 737 00b0 164B     		ldr	r3, .L53
+ 738 00b2 0322     		movs	r2, #3
+ 739 00b4 1A70     		strb	r2, [r3]
+ 341:Src/hardware.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 23
+
+
+ 740              		.loc 1 341 9 is_stmt 1 view .LVU135
+ 741 00b6 0221     		movs	r1, #2
+ 742 00b8 6420     		movs	r0, #100
+ 743 00ba FFF7FEFF 		bl	Led_A_Blink
+ 744              	.LVL61:
+ 343:Src/hardware.c ****                 break;
+ 745              		.loc 1 343 9 view .LVU136
+ 746 00be A4E7     		b	.L36
+ 747              	.L41:
+ 356:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 748              		.loc 1 356 9 view .LVU137
+ 356:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 749              		.loc 1 356 18 is_stmt 0 view .LVU138
+ 750 00c0 144B     		ldr	r3, .L53+8
+ 751 00c2 0022     		movs	r2, #0
+ 752 00c4 1A70     		strb	r2, [r3]
+ 358:Src/hardware.c **** 
+ 753              		.loc 1 358 9 is_stmt 1 view .LVU139
+ 754 00c6 0221     		movs	r1, #2
+ 755 00c8 6420     		movs	r0, #100
+ 756 00ca FFF7FEFF 		bl	Led_A_Blink
+ 757              	.LVL62:
+ 360:Src/hardware.c **** 
+ 758              		.loc 1 360 9 view .LVU140
+ 759 00ce 9CE7     		b	.L36
+ 760              	.L48:
+ 370:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 761              		.loc 1 370 9 view .LVU141
+ 370:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 762              		.loc 1 370 18 is_stmt 0 view .LVU142
+ 763 00d0 104B     		ldr	r3, .L53+8
+ 764 00d2 0022     		movs	r2, #0
+ 765 00d4 1A70     		strb	r2, [r3]
+ 371:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 766              		.loc 1 371 9 is_stmt 1 view .LVU143
+ 767 00d6 0221     		movs	r1, #2
+ 768 00d8 6420     		movs	r0, #100
+ 769 00da FFF7FEFF 		bl	Led_A_Blink
+ 770              	.LVL63:
+ 374:Src/hardware.c ****         
+ 771              		.loc 1 374 9 view .LVU144
+ 772 00de 94E7     		b	.L36
+ 773              	.L44:
+ 378:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 774              		.loc 1 378 9 view .LVU145
+ 378:Src/hardware.c ****         Led_A_Blink(100, 2);
+ 775              		.loc 1 378 18 is_stmt 0 view .LVU146
+ 776 00e0 0C4B     		ldr	r3, .L53+8
+ 777 00e2 0022     		movs	r2, #0
+ 778 00e4 1A70     		strb	r2, [r3]
+ 379:Src/hardware.c ****     //    SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 779              		.loc 1 379 9 is_stmt 1 view .LVU147
+ 780 00e6 0221     		movs	r1, #2
+ 781 00e8 6420     		movs	r0, #100
+ 782 00ea FFF7FEFF 		bl	Led_A_Blink
+ 783              	.LVL64:
+ 382:Src/hardware.c ****       
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 24
+
+
+ 784              		.loc 1 382 9 view .LVU148
+ 785 00ee 8CE7     		b	.L36
+ 786              	.L43:
+ 385:Src/hardware.c ****       HMDready = false;
+ 787              		.loc 1 385 7 view .LVU149
+ 788 00f0 FFF7FEFF 		bl	DisplaySleep
+ 789              	.LVL65:
+ 386:Src/hardware.c ****       stage = 1;
+ 790              		.loc 1 386 7 view .LVU150
+ 386:Src/hardware.c ****       stage = 1;
+ 791              		.loc 1 386 16 is_stmt 0 view .LVU151
+ 792 00f4 074B     		ldr	r3, .L53+8
+ 793 00f6 0022     		movs	r2, #0
+ 794 00f8 1A70     		strb	r2, [r3]
+ 387:Src/hardware.c ****       Led_A_Blink(100, 2);
+ 795              		.loc 1 387 7 is_stmt 1 view .LVU152
+ 387:Src/hardware.c ****       Led_A_Blink(100, 2);
+ 796              		.loc 1 387 13 is_stmt 0 view .LVU153
+ 797 00fa 044B     		ldr	r3, .L53
+ 798 00fc 0122     		movs	r2, #1
+ 799 00fe 1A70     		strb	r2, [r3]
+ 388:Src/hardware.c ****     //  SSD1306_DrawLine(0, 31, 127, 31, 0);
+ 800              		.loc 1 388 7 is_stmt 1 view .LVU154
+ 801 0100 0221     		movs	r1, #2
+ 802 0102 6420     		movs	r0, #100
+ 803 0104 FFF7FEFF 		bl	Led_A_Blink
+ 804              	.LVL66:
+ 391:Src/hardware.c ****       }
+ 805              		.loc 1 391 7 view .LVU155
+ 395:Src/hardware.c **** 
+ 806              		.loc 1 395 1 is_stmt 0 view .LVU156
+ 807 0108 7FE7     		b	.L36
+ 808              	.L54:
+ 809 010a 00BF     		.align	2
+ 810              	.L53:
+ 811 010c 00000000 		.word	stage
+ 812 0110 00000000 		.word	status
+ 813 0114 00000000 		.word	.LANCHOR2
+ 814              		.cfi_endproc
+ 815              	.LFE73:
+ 817              		.section	.text.PowerOffStage2,"ax",%progbits
+ 818              		.align	1
+ 819              		.global	PowerOffStage2
+ 820              		.syntax unified
+ 821              		.thumb
+ 822              		.thumb_func
+ 823              		.fpu softvfp
+ 825              	PowerOffStage2:
+ 826              	.LFB78:
+ 448:Src/hardware.c **** 
+ 449:Src/hardware.c **** void PowerOffStage2(void)
+ 450:Src/hardware.c **** {
+ 827              		.loc 1 450 1 is_stmt 1 view -0
+ 828              		.cfi_startproc
+ 829              		@ args = 0, pretend = 0, frame = 0
+ 830              		@ frame_needed = 0, uses_anonymous_args = 0
+ 831 0000 10B5     		push	{r4, lr}
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 25
+
+
+ 832              	.LCFI9:
+ 833              		.cfi_def_cfa_offset 8
+ 834              		.cfi_offset 4, -8
+ 835              		.cfi_offset 14, -4
+ 451:Src/hardware.c **** 
+ 452:Src/hardware.c **** OLED_RESET;
+ 836              		.loc 1 452 1 view .LVU158
+ 837 0002 0122     		movs	r2, #1
+ 838 0004 4FF4C061 		mov	r1, #1536
+ 839 0008 0C48     		ldr	r0, .L57
+ 840 000a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 841              	.LVL67:
+ 453:Src/hardware.c **** HAL_Delay(10);
+ 842              		.loc 1 453 1 view .LVU159
+ 843 000e 0A20     		movs	r0, #10
+ 844 0010 FFF7FEFF 		bl	HAL_Delay
+ 845              	.LVL68:
+ 454:Src/hardware.c **** HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_9, GPIO_PIN_RESET);
+ 846              		.loc 1 454 1 view .LVU160
+ 847 0014 0A4C     		ldr	r4, .L57+4
+ 848 0016 0022     		movs	r2, #0
+ 849 0018 4FF40471 		mov	r1, #528
+ 850 001c 2046     		mov	r0, r4
+ 851 001e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 852              	.LVL69:
+ 455:Src/hardware.c **** HAL_Delay(10);
+ 853              		.loc 1 455 1 view .LVU161
+ 854 0022 0A20     		movs	r0, #10
+ 855 0024 FFF7FEFF 		bl	HAL_Delay
+ 856              	.LVL70:
+ 456:Src/hardware.c **** HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+ 857              		.loc 1 456 1 view .LVU162
+ 858 0028 0022     		movs	r2, #0
+ 859 002a 4FF40071 		mov	r1, #512
+ 860 002e 2046     		mov	r0, r4
+ 861 0030 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 862              	.LVL71:
+ 457:Src/hardware.c **** HAL_Delay(100);
+ 863              		.loc 1 457 1 view .LVU163
+ 864 0034 6420     		movs	r0, #100
+ 865 0036 FFF7FEFF 		bl	HAL_Delay
+ 866              	.LVL72:
+ 458:Src/hardware.c **** }
+ 867              		.loc 1 458 1 is_stmt 0 view .LVU164
+ 868 003a 10BD     		pop	{r4, pc}
+ 869              	.L58:
+ 870              		.align	2
+ 871              	.L57:
+ 872 003c 000C0140 		.word	1073810432
+ 873 0040 00080140 		.word	1073809408
+ 874              		.cfi_endproc
+ 875              	.LFE78:
+ 877              		.section	.text.ModesSwitch,"ax",%progbits
+ 878              		.align	1
+ 879              		.global	ModesSwitch
+ 880              		.syntax unified
+ 881              		.thumb
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 26
+
+
+ 882              		.thumb_func
+ 883              		.fpu softvfp
+ 885              	ModesSwitch:
+ 886              	.LFB68:
+  27:Src/hardware.c ****   if(target_mode != mode && stage == 6)
+ 887              		.loc 1 27 1 is_stmt 1 view -0
+ 888              		.cfi_startproc
+ 889              		@ args = 0, pretend = 0, frame = 0
+ 890              		@ frame_needed = 0, uses_anonymous_args = 0
+ 891 0000 08B5     		push	{r3, lr}
+ 892              	.LCFI10:
+ 893              		.cfi_def_cfa_offset 8
+ 894              		.cfi_offset 3, -8
+ 895              		.cfi_offset 14, -4
+  28:Src/hardware.c ****   {
+ 896              		.loc 1 28 3 view .LVU166
+  28:Src/hardware.c ****   {
+ 897              		.loc 1 28 18 is_stmt 0 view .LVU167
+ 898 0002 094B     		ldr	r3, .L63
+ 899 0004 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 900 0006 094B     		ldr	r3, .L63+4
+ 901 0008 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  28:Src/hardware.c ****   {
+ 902              		.loc 1 28 5 view .LVU168
+ 903 000a 9A42     		cmp	r2, r3
+ 904 000c 03D0     		beq	.L59
+  28:Src/hardware.c ****   {
+ 905              		.loc 1 28 35 discriminator 1 view .LVU169
+ 906 000e 084B     		ldr	r3, .L63+8
+ 907 0010 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  28:Src/hardware.c ****   {
+ 908              		.loc 1 28 26 discriminator 1 view .LVU170
+ 909 0012 062B     		cmp	r3, #6
+ 910 0014 00D0     		beq	.L62
+ 911              	.L59:
+  36:Src/hardware.c **** void EdidSwitch()
+ 912              		.loc 1 36 1 view .LVU171
+ 913 0016 08BD     		pop	{r3, pc}
+ 914              	.L62:
+  30:Src/hardware.c ****       PowerOffStage2();
+ 915              		.loc 1 30 7 is_stmt 1 view .LVU172
+ 916 0018 FFF7FEFF 		bl	DisplaySleep
+ 917              	.LVL73:
+  31:Src/hardware.c ****       stage = 0;
+ 918              		.loc 1 31 7 view .LVU173
+ 919 001c FFF7FEFF 		bl	PowerOffStage2
+ 920              	.LVL74:
+  32:Src/hardware.c ****          
+ 921              		.loc 1 32 7 view .LVU174
+  32:Src/hardware.c ****          
+ 922              		.loc 1 32 13 is_stmt 0 view .LVU175
+ 923 0020 034B     		ldr	r3, .L63+8
+ 924 0022 0022     		movs	r2, #0
+ 925 0024 1A70     		strb	r2, [r3]
+  35:Src/hardware.c **** }
+ 926              		.loc 1 35 3 is_stmt 1 view .LVU176
+ 927 0026 F6E7     		b	.L59
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 27
+
+
+ 928              	.L64:
+ 929              		.align	2
+ 930              	.L63:
+ 931 0028 00000000 		.word	target_mode
+ 932 002c 00000000 		.word	mode
+ 933 0030 00000000 		.word	stage
+ 934              		.cfi_endproc
+ 935              	.LFE68:
+ 937              		.section	.text.EdidSwitch,"ax",%progbits
+ 938              		.align	1
+ 939              		.global	EdidSwitch
+ 940              		.syntax unified
+ 941              		.thumb
+ 942              		.thumb_func
+ 943              		.fpu softvfp
+ 945              	EdidSwitch:
+ 946              	.LFB69:
+  38:Src/hardware.c ****     if(target_edid != edid && stage == 6)
+ 947              		.loc 1 38 1 view -0
+ 948              		.cfi_startproc
+ 949              		@ args = 0, pretend = 0, frame = 0
+ 950              		@ frame_needed = 0, uses_anonymous_args = 0
+ 951 0000 08B5     		push	{r3, lr}
+ 952              	.LCFI11:
+ 953              		.cfi_def_cfa_offset 8
+ 954              		.cfi_offset 3, -8
+ 955              		.cfi_offset 14, -4
+  39:Src/hardware.c ****   {
+ 956              		.loc 1 39 5 view .LVU178
+  39:Src/hardware.c ****   {
+ 957              		.loc 1 39 20 is_stmt 0 view .LVU179
+ 958 0002 094B     		ldr	r3, .L69
+ 959 0004 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 960 0006 094B     		ldr	r3, .L69+4
+ 961 0008 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  39:Src/hardware.c ****   {
+ 962              		.loc 1 39 7 view .LVU180
+ 963 000a 9A42     		cmp	r2, r3
+ 964 000c 03D0     		beq	.L65
+  39:Src/hardware.c ****   {
+ 965              		.loc 1 39 37 discriminator 1 view .LVU181
+ 966 000e 084B     		ldr	r3, .L69+8
+ 967 0010 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  39:Src/hardware.c ****   {
+ 968              		.loc 1 39 28 discriminator 1 view .LVU182
+ 969 0012 062B     		cmp	r3, #6
+ 970 0014 00D0     		beq	.L68
+ 971              	.L65:
+  47:Src/hardware.c **** 
+ 972              		.loc 1 47 1 view .LVU183
+ 973 0016 08BD     		pop	{r3, pc}
+ 974              	.L68:
+  41:Src/hardware.c ****       PowerOffStage2();
+ 975              		.loc 1 41 7 is_stmt 1 view .LVU184
+ 976 0018 FFF7FEFF 		bl	DisplaySleep
+ 977              	.LVL75:
+  42:Src/hardware.c ****       stage = 0;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 28
+
+
+ 978              		.loc 1 42 7 view .LVU185
+ 979 001c FFF7FEFF 		bl	PowerOffStage2
+ 980              	.LVL76:
+  43:Src/hardware.c ****   }
+ 981              		.loc 1 43 7 view .LVU186
+  43:Src/hardware.c ****   }
+ 982              		.loc 1 43 13 is_stmt 0 view .LVU187
+ 983 0020 034B     		ldr	r3, .L69+8
+ 984 0022 0022     		movs	r2, #0
+ 985 0024 1A70     		strb	r2, [r3]
+  45:Src/hardware.c **** 
+ 986              		.loc 1 45 3 is_stmt 1 view .LVU188
+ 987 0026 F6E7     		b	.L65
+ 988              	.L70:
+ 989              		.align	2
+ 990              	.L69:
+ 991 0028 00000000 		.word	target_edid
+ 992 002c 00000000 		.word	edid
+ 993 0030 00000000 		.word	stage
+ 994              		.cfi_endproc
+ 995              	.LFE69:
+ 997              		.section	.text.Buttons,"ax",%progbits
+ 998              		.align	1
+ 999              		.global	Buttons
+ 1000              		.syntax unified
+ 1001              		.thumb
+ 1002              		.thumb_func
+ 1003              		.fpu softvfp
+ 1005              	Buttons:
+ 1006              	.LFB70:
+  50:Src/hardware.c **** if(stage == 6)
+ 1007              		.loc 1 50 1 view -0
+ 1008              		.cfi_startproc
+ 1009              		@ args = 0, pretend = 0, frame = 0
+ 1010              		@ frame_needed = 0, uses_anonymous_args = 0
+  51:Src/hardware.c **** {
+ 1011              		.loc 1 51 1 view .LVU190
+  51:Src/hardware.c **** {
+ 1012              		.loc 1 51 10 is_stmt 0 view .LVU191
+ 1013 0000 3F4B     		ldr	r3, .L94
+ 1014 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  51:Src/hardware.c **** {
+ 1015              		.loc 1 51 3 view .LVU192
+ 1016 0004 062B     		cmp	r3, #6
+ 1017 0006 00D0     		beq	.L91
+ 1018 0008 7047     		bx	lr
+ 1019              	.L91:
+  50:Src/hardware.c **** if(stage == 6)
+ 1020              		.loc 1 50 1 view .LVU193
+ 1021 000a 00B5     		push	{lr}
+ 1022              	.LCFI12:
+ 1023              		.cfi_def_cfa_offset 4
+ 1024              		.cfi_offset 14, -4
+ 1025 000c 83B0     		sub	sp, sp, #12
+ 1026              	.LCFI13:
+ 1027              		.cfi_def_cfa_offset 16
+  53:Src/hardware.c ****     {
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 29
+
+
+ 1028              		.loc 1 53 3 is_stmt 1 view .LVU194
+  53:Src/hardware.c ****     {
+ 1029              		.loc 1 53 6 is_stmt 0 view .LVU195
+ 1030 000e 4FF48041 		mov	r1, #16384
+ 1031 0012 3C48     		ldr	r0, .L94+4
+ 1032 0014 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 1033              	.LVL77:
+  53:Src/hardware.c ****     {
+ 1034              		.loc 1 53 5 view .LVU196
+ 1035 0018 68B9     		cbnz	r0, .L73
+  55:Src/hardware.c ****       if(button_a_press_cntr >= BUTTON_PRESS_MAX_CNTR )
+ 1036              		.loc 1 55 7 is_stmt 1 view .LVU197
+  55:Src/hardware.c ****       if(button_a_press_cntr >= BUTTON_PRESS_MAX_CNTR )
+ 1037              		.loc 1 55 26 is_stmt 0 view .LVU198
+ 1038 001a 3B4A     		ldr	r2, .L94+8
+ 1039 001c 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 1040 001e 0133     		adds	r3, r3, #1
+ 1041 0020 DBB2     		uxtb	r3, r3
+ 1042 0022 1370     		strb	r3, [r2]
+  56:Src/hardware.c ****       {
+ 1043              		.loc 1 56 7 is_stmt 1 view .LVU199
+  56:Src/hardware.c ****       {
+ 1044              		.loc 1 56 9 is_stmt 0 view .LVU200
+ 1045 0024 092B     		cmp	r3, #9
+ 1046 0026 19D9     		bls	.L74
+  59:Src/hardware.c ****         button_a_is_pressed = 1;
+ 1047              		.loc 1 59 9 is_stmt 1 view .LVU201
+  59:Src/hardware.c ****         button_a_is_pressed = 1;
+ 1048              		.loc 1 59 29 is_stmt 0 view .LVU202
+ 1049 0028 1346     		mov	r3, r2
+ 1050 002a 0022     		movs	r2, #0
+ 1051 002c 1A70     		strb	r2, [r3]
+  60:Src/hardware.c ****         }
+ 1052              		.loc 1 60 9 is_stmt 1 view .LVU203
+  60:Src/hardware.c ****         }
+ 1053              		.loc 1 60 29 is_stmt 0 view .LVU204
+ 1054 002e 374B     		ldr	r3, .L94+12
+ 1055 0030 0122     		movs	r2, #1
+ 1056 0032 1A70     		strb	r2, [r3]
+ 1057 0034 12E0     		b	.L74
+ 1058              	.L73:
+  67:Src/hardware.c ****       {
+ 1059              		.loc 1 67 7 is_stmt 1 view .LVU205
+  67:Src/hardware.c ****       {
+ 1060              		.loc 1 67 10 is_stmt 0 view .LVU206
+ 1061 0036 354B     		ldr	r3, .L94+12
+ 1062 0038 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  67:Src/hardware.c ****       {
+ 1063              		.loc 1 67 9 view .LVU207
+ 1064 003a 63B1     		cbz	r3, .L75
+  70:Src/hardware.c ****         {
+ 1065              		.loc 1 70 9 is_stmt 1 view .LVU208
+ 1066 003c 344B     		ldr	r3, .L94+16
+ 1067 003e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1068 0040 03B3     		cbz	r3, .L76
+ 1069 0042 012B     		cmp	r3, #1
+ 1070 0044 22D0     		beq	.L77
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 30
+
+
+ 1071              	.L78:
+  88:Src/hardware.c ****         ModesSwitch();
+ 1072              		.loc 1 88 8 view .LVU209
+  88:Src/hardware.c ****         ModesSwitch();
+ 1073              		.loc 1 88 11 is_stmt 0 view .LVU210
+ 1074 0046 334B     		ldr	r3, .L94+20
+ 1075 0048 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  88:Src/hardware.c ****         ModesSwitch();
+ 1076              		.loc 1 88 10 view .LVU211
+ 1077 004a 1BBB     		cbnz	r3, .L92
+ 1078              	.L79:
+  89:Src/hardware.c ****         button_a_is_pressed = 0;
+ 1079              		.loc 1 89 9 is_stmt 1 view .LVU212
+ 1080 004c FFF7FEFF 		bl	ModesSwitch
+ 1081              	.LVL78:
+  90:Src/hardware.c **** 
+ 1082              		.loc 1 90 9 view .LVU213
+  90:Src/hardware.c **** 
+ 1083              		.loc 1 90 29 is_stmt 0 view .LVU214
+ 1084 0050 2E4B     		ldr	r3, .L94+12
+ 1085 0052 0022     		movs	r2, #0
+ 1086 0054 1A70     		strb	r2, [r3]
+ 1087              	.L75:
+  93:Src/hardware.c ****     }
+ 1088              		.loc 1 93 7 is_stmt 1 view .LVU215
+  93:Src/hardware.c ****     }
+ 1089              		.loc 1 93 27 is_stmt 0 view .LVU216
+ 1090 0056 2C4B     		ldr	r3, .L94+8
+ 1091 0058 0022     		movs	r2, #0
+ 1092 005a 1A70     		strb	r2, [r3]
+ 1093              	.L74:
+  95:Src/hardware.c ****     {
+ 1094              		.loc 1 95 5 is_stmt 1 view .LVU217
+  95:Src/hardware.c ****     {
+ 1095              		.loc 1 95 8 is_stmt 0 view .LVU218
+ 1096 005c 4FF40041 		mov	r1, #32768
+ 1097 0060 2848     		ldr	r0, .L94+4
+ 1098 0062 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 1099              	.LVL79:
+  95:Src/hardware.c ****     {
+ 1100              		.loc 1 95 7 view .LVU219
+ 1101 0066 E8B9     		cbnz	r0, .L80
+  97:Src/hardware.c ****       if(button_b_press_cntr >= BUTTON_PRESS_MAX_CNTR )
+ 1102              		.loc 1 97 7 is_stmt 1 view .LVU220
+  97:Src/hardware.c ****       if(button_b_press_cntr >= BUTTON_PRESS_MAX_CNTR )
+ 1103              		.loc 1 97 26 is_stmt 0 view .LVU221
+ 1104 0068 2B4A     		ldr	r2, .L94+24
+ 1105 006a 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 1106 006c 0133     		adds	r3, r3, #1
+ 1107 006e DBB2     		uxtb	r3, r3
+ 1108 0070 1370     		strb	r3, [r2]
+  98:Src/hardware.c ****       {
+ 1109              		.loc 1 98 7 is_stmt 1 view .LVU222
+  98:Src/hardware.c ****       {
+ 1110              		.loc 1 98 9 is_stmt 0 view .LVU223
+ 1111 0072 092B     		cmp	r3, #9
+ 1112 0074 2CD9     		bls	.L71
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 31
+
+
+ 101:Src/hardware.c ****         button_b_is_pressed = 1;
+ 1113              		.loc 1 101 9 is_stmt 1 view .LVU224
+ 101:Src/hardware.c ****         button_b_is_pressed = 1;
+ 1114              		.loc 1 101 29 is_stmt 0 view .LVU225
+ 1115 0076 1346     		mov	r3, r2
+ 1116 0078 0022     		movs	r2, #0
+ 1117 007a 1A70     		strb	r2, [r3]
+ 102:Src/hardware.c ****         }
+ 1118              		.loc 1 102 9 is_stmt 1 view .LVU226
+ 102:Src/hardware.c ****         }
+ 1119              		.loc 1 102 29 is_stmt 0 view .LVU227
+ 1120 007c 274B     		ldr	r3, .L94+28
+ 1121 007e 0122     		movs	r2, #1
+ 1122 0080 1A70     		strb	r2, [r3]
+ 1123 0082 25E0     		b	.L71
+ 1124              	.L76:
+  73:Src/hardware.c ****           break;
+ 1125              		.loc 1 73 11 is_stmt 1 view .LVU228
+  73:Src/hardware.c ****           break;
+ 1126              		.loc 1 73 23 is_stmt 0 view .LVU229
+ 1127 0084 224B     		ldr	r3, .L94+16
+ 1128 0086 0122     		movs	r2, #1
+ 1129 0088 1A70     		strb	r2, [r3]
+  74:Src/hardware.c ****           
+ 1130              		.loc 1 74 11 is_stmt 1 view .LVU230
+ 1131 008a DCE7     		b	.L78
+ 1132              	.L77:
+  77:Src/hardware.c ****           break;
+ 1133              		.loc 1 77 11 view .LVU231
+  77:Src/hardware.c ****           break;
+ 1134              		.loc 1 77 23 is_stmt 0 view .LVU232
+ 1135 008c 204B     		ldr	r3, .L94+16
+ 1136 008e 0022     		movs	r2, #0
+ 1137 0090 1A70     		strb	r2, [r3]
+  78:Src/hardware.c ****           
+ 1138              		.loc 1 78 11 is_stmt 1 view .LVU233
+ 1139 0092 D8E7     		b	.L78
+ 1140              	.L92:
+  88:Src/hardware.c ****         ModesSwitch();
+ 1141              		.loc 1 88 20 discriminator 1 view .LVU234
+ 1142 0094 0020     		movs	r0, #0
+ 1143 0096 0090     		str	r0, [sp]
+ 1144 0098 1F23     		movs	r3, #31
+ 1145 009a 7F22     		movs	r2, #127
+ 1146 009c 1946     		mov	r1, r3
+ 1147 009e FFF7FEFF 		bl	SSD1306_DrawLine
+ 1148              	.LVL80:
+ 1149 00a2 D3E7     		b	.L79
+ 1150              	.L80:
+ 109:Src/hardware.c ****       {
+ 1151              		.loc 1 109 7 view .LVU235
+ 109:Src/hardware.c ****       {
+ 1152              		.loc 1 109 10 is_stmt 0 view .LVU236
+ 1153 00a4 1D4B     		ldr	r3, .L94+28
+ 1154 00a6 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 109:Src/hardware.c ****       {
+ 1155              		.loc 1 109 9 view .LVU237
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 32
+
+
+ 1156 00a8 7BB1     		cbz	r3, .L81
+ 111:Src/hardware.c ****         {
+ 1157              		.loc 1 111 9 is_stmt 1 view .LVU238
+ 1158 00aa 1D4B     		ldr	r3, .L94+32
+ 1159 00ac 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1160 00ae 012B     		cmp	r3, #1
+ 1161 00b0 15D0     		beq	.L82
+ 1162 00b2 5AB2     		sxtb	r2, r3
+ 1163 00b4 7AB1     		cbz	r2, .L83
+ 1164 00b6 022B     		cmp	r3, #2
+ 1165 00b8 15D0     		beq	.L84
+ 1166              	.L85:
+ 132:Src/hardware.c ****         EdidSwitch();
+ 1167              		.loc 1 132 9 view .LVU239
+ 132:Src/hardware.c ****         EdidSwitch();
+ 1168              		.loc 1 132 12 is_stmt 0 view .LVU240
+ 1169 00ba 164B     		ldr	r3, .L94+20
+ 1170 00bc 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 132:Src/hardware.c ****         EdidSwitch();
+ 1171              		.loc 1 132 11 view .LVU241
+ 1172 00be B3B9     		cbnz	r3, .L93
+ 1173              	.L86:
+ 133:Src/hardware.c ****         button_b_is_pressed = 0;
+ 1174              		.loc 1 133 9 is_stmt 1 view .LVU242
+ 1175 00c0 FFF7FEFF 		bl	EdidSwitch
+ 1176              	.LVL81:
+ 134:Src/hardware.c **** 
+ 1177              		.loc 1 134 9 view .LVU243
+ 134:Src/hardware.c **** 
+ 1178              		.loc 1 134 29 is_stmt 0 view .LVU244
+ 1179 00c4 154B     		ldr	r3, .L94+28
+ 1180 00c6 0022     		movs	r2, #0
+ 1181 00c8 1A70     		strb	r2, [r3]
+ 1182              	.L81:
+ 137:Src/hardware.c ****     }
+ 1183              		.loc 1 137 7 is_stmt 1 view .LVU245
+ 137:Src/hardware.c ****     }
+ 1184              		.loc 1 137 27 is_stmt 0 view .LVU246
+ 1185 00ca 134B     		ldr	r3, .L94+24
+ 1186 00cc 0022     		movs	r2, #0
+ 1187 00ce 1A70     		strb	r2, [r3]
+ 1188              	.L71:
+ 143:Src/hardware.c **** void PrintScreen()
+ 1189              		.loc 1 143 1 view .LVU247
+ 1190 00d0 03B0     		add	sp, sp, #12
+ 1191              	.LCFI14:
+ 1192              		.cfi_remember_state
+ 1193              		.cfi_def_cfa_offset 4
+ 1194              		@ sp needed
+ 1195 00d2 5DF804FB 		ldr	pc, [sp], #4
+ 1196              	.L83:
+ 1197              	.LCFI15:
+ 1198              		.cfi_restore_state
+ 114:Src/hardware.c ****           break;
+ 1199              		.loc 1 114 11 is_stmt 1 view .LVU248
+ 114:Src/hardware.c ****           break;
+ 1200              		.loc 1 114 23 is_stmt 0 view .LVU249
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 33
+
+
+ 1201 00d6 124B     		ldr	r3, .L94+32
+ 1202 00d8 0122     		movs	r2, #1
+ 1203 00da 1A70     		strb	r2, [r3]
+ 115:Src/hardware.c **** 
+ 1204              		.loc 1 115 11 is_stmt 1 view .LVU250
+ 1205 00dc EDE7     		b	.L85
+ 1206              	.L82:
+ 118:Src/hardware.c ****           break;
+ 1207              		.loc 1 118 11 view .LVU251
+ 118:Src/hardware.c ****           break;
+ 1208              		.loc 1 118 23 is_stmt 0 view .LVU252
+ 1209 00de 104B     		ldr	r3, .L94+32
+ 1210 00e0 0222     		movs	r2, #2
+ 1211 00e2 1A70     		strb	r2, [r3]
+ 119:Src/hardware.c **** 
+ 1212              		.loc 1 119 11 is_stmt 1 view .LVU253
+ 1213 00e4 E9E7     		b	.L85
+ 1214              	.L84:
+ 122:Src/hardware.c ****           break;
+ 1215              		.loc 1 122 11 view .LVU254
+ 122:Src/hardware.c ****           break;
+ 1216              		.loc 1 122 23 is_stmt 0 view .LVU255
+ 1217 00e6 0E4B     		ldr	r3, .L94+32
+ 1218 00e8 0022     		movs	r2, #0
+ 1219 00ea 1A70     		strb	r2, [r3]
+ 123:Src/hardware.c ****           }
+ 1220              		.loc 1 123 11 is_stmt 1 view .LVU256
+ 1221 00ec E5E7     		b	.L85
+ 1222              	.L93:
+ 132:Src/hardware.c ****         EdidSwitch();
+ 1223              		.loc 1 132 21 discriminator 1 view .LVU257
+ 1224 00ee 0020     		movs	r0, #0
+ 1225 00f0 0090     		str	r0, [sp]
+ 1226 00f2 1F23     		movs	r3, #31
+ 1227 00f4 7F22     		movs	r2, #127
+ 1228 00f6 1946     		mov	r1, r3
+ 1229 00f8 FFF7FEFF 		bl	SSD1306_DrawLine
+ 1230              	.LVL82:
+ 1231 00fc E0E7     		b	.L86
+ 1232              	.L95:
+ 1233 00fe 00BF     		.align	2
+ 1234              	.L94:
+ 1235 0100 00000000 		.word	stage
+ 1236 0104 000C0140 		.word	1073810432
+ 1237 0108 00000000 		.word	.LANCHOR3
+ 1238 010c 00000000 		.word	.LANCHOR4
+ 1239 0110 00000000 		.word	target_mode
+ 1240 0114 00000000 		.word	OLED_OK
+ 1241 0118 00000000 		.word	.LANCHOR5
+ 1242 011c 00000000 		.word	.LANCHOR6
+ 1243 0120 00000000 		.word	target_edid
+ 1244              		.cfi_endproc
+ 1245              	.LFE70:
+ 1247              		.section	.text.MainPowerOff,"ax",%progbits
+ 1248              		.align	1
+ 1249              		.global	MainPowerOff
+ 1250              		.syntax unified
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 34
+
+
+ 1251              		.thumb
+ 1252              		.thumb_func
+ 1253              		.fpu softvfp
+ 1255              	MainPowerOff:
+ 1256              	.LFB79:
+ 459:Src/hardware.c **** 
+ 460:Src/hardware.c **** void MainPowerOff(void)
+ 461:Src/hardware.c **** {
+ 1257              		.loc 1 461 1 view -0
+ 1258              		.cfi_startproc
+ 1259              		@ args = 0, pretend = 0, frame = 0
+ 1260              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1261 0000 10B5     		push	{r4, lr}
+ 1262              	.LCFI16:
+ 1263              		.cfi_def_cfa_offset 8
+ 1264              		.cfi_offset 4, -8
+ 1265              		.cfi_offset 14, -4
+ 462:Src/hardware.c **** USB_OFF;
+ 1266              		.loc 1 462 1 view .LVU259
+ 1267 0002 064C     		ldr	r4, .L98
+ 1268 0004 0022     		movs	r2, #0
+ 1269 0006 0421     		movs	r1, #4
+ 1270 0008 2046     		mov	r0, r4
+ 1271 000a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1272              	.LVL83:
+ 1273              		.loc 1 462 8 view .LVU260
+ 463:Src/hardware.c **** MAIN_POWER_OFF;
+ 1274              		.loc 1 463 1 view .LVU261
+ 1275 000e 0022     		movs	r2, #0
+ 1276 0010 4FF49161 		mov	r1, #1160
+ 1277 0014 2046     		mov	r0, r4
+ 1278 0016 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1279              	.LVL84:
+ 464:Src/hardware.c **** }
+ 1280              		.loc 1 464 1 is_stmt 0 view .LVU262
+ 1281 001a 10BD     		pop	{r4, pc}
+ 1282              	.L99:
+ 1283              		.align	2
+ 1284              	.L98:
+ 1285 001c 00080140 		.word	1073809408
+ 1286              		.cfi_endproc
+ 1287              	.LFE79:
+ 1289              		.section	.text.Toshiba_Init,"ax",%progbits
+ 1290              		.align	1
+ 1291              		.global	Toshiba_Init
+ 1292              		.syntax unified
+ 1293              		.thumb
+ 1294              		.thumb_func
+ 1295              		.fpu softvfp
+ 1297              	Toshiba_Init:
+ 1298              	.LVL85:
+ 1299              	.LFB80:
+ 465:Src/hardware.c **** 
+ 466:Src/hardware.c ****  void Toshiba_Init(int edid_var)
+ 467:Src/hardware.c **** {
+ 1300              		.loc 1 467 1 is_stmt 1 view -0
+ 1301              		.cfi_startproc
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 35
+
+
+ 1302              		@ args = 0, pretend = 0, frame = 0
+ 1303              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1304              		.loc 1 467 1 is_stmt 0 view .LVU264
+ 1305 0000 38B5     		push	{r3, r4, r5, lr}
+ 1306              	.LCFI17:
+ 1307              		.cfi_def_cfa_offset 16
+ 1308              		.cfi_offset 3, -16
+ 1309              		.cfi_offset 4, -12
+ 1310              		.cfi_offset 5, -8
+ 1311              		.cfi_offset 14, -4
+ 1312 0002 0546     		mov	r5, r0
+ 468:Src/hardware.c **** /*
+ 469:Src/hardware.c ****   EDID_ORIGINAL 2
+ 470:Src/hardware.c ****   EDID_OCULUS 1
+ 471:Src/hardware.c ****   EDID_OSVR 3
+ 472:Src/hardware.c ****   */
+ 473:Src/hardware.c **** 
+ 474:Src/hardware.c **** HAL_Delay(20);
+ 1313              		.loc 1 474 1 is_stmt 1 view .LVU265
+ 1314 0004 1420     		movs	r0, #20
+ 1315              	.LVL86:
+ 1316              		.loc 1 474 1 is_stmt 0 view .LVU266
+ 1317 0006 FFF7FEFF 		bl	HAL_Delay
+ 1318              	.LVL87:
+ 475:Src/hardware.c **** TOSHIBA_RESET_ON;
+ 1319              		.loc 1 475 1 is_stmt 1 view .LVU267
+ 1320 000a 0C4C     		ldr	r4, .L102
+ 1321 000c 0022     		movs	r2, #0
+ 1322 000e 4FF40041 		mov	r1, #32768
+ 1323 0012 2046     		mov	r0, r4
+ 1324 0014 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1325              	.LVL88:
+ 476:Src/hardware.c **** HAL_Delay(40);
+ 1326              		.loc 1 476 1 view .LVU268
+ 1327 0018 2820     		movs	r0, #40
+ 1328 001a FFF7FEFF 		bl	HAL_Delay
+ 1329              	.LVL89:
+ 477:Src/hardware.c **** TOSHIBA_RESET_OFF;
+ 1330              		.loc 1 477 1 view .LVU269
+ 1331 001e 0122     		movs	r2, #1
+ 1332 0020 4FF40041 		mov	r1, #32768
+ 1333 0024 2046     		mov	r0, r4
+ 1334 0026 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1335              	.LVL90:
+ 478:Src/hardware.c **** HAL_Delay(4);
+ 1336              		.loc 1 478 1 view .LVU270
+ 1337 002a 0420     		movs	r0, #4
+ 1338 002c FFF7FEFF 		bl	HAL_Delay
+ 1339              	.LVL91:
+ 479:Src/hardware.c **** Toshiba_TC358870_HDMI_SetupChina();
+ 1340              		.loc 1 479 1 view .LVU271
+ 1341 0030 FFF7FEFF 		bl	Toshiba_TC358870_HDMI_SetupChina
+ 1342              	.LVL92:
+ 480:Src/hardware.c **** EDID_Write(edid_var);
+ 1343              		.loc 1 480 1 view .LVU272
+ 1344 0034 2846     		mov	r0, r5
+ 1345 0036 FFF7FEFF 		bl	EDID_Write
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 36
+
+
+ 1346              	.LVL93:
+ 481:Src/hardware.c **** }
+ 1347              		.loc 1 481 1 is_stmt 0 view .LVU273
+ 1348 003a 38BD     		pop	{r3, r4, r5, pc}
+ 1349              	.LVL94:
+ 1350              	.L103:
+ 1351              		.loc 1 481 1 view .LVU274
+ 1352              		.align	2
+ 1353              	.L102:
+ 1354 003c 00080140 		.word	1073809408
+ 1355              		.cfi_endproc
+ 1356              	.LFE80:
+ 1358              		.section	.text.InitHardware,"ax",%progbits
+ 1359              		.align	1
+ 1360              		.global	InitHardware
+ 1361              		.syntax unified
+ 1362              		.thumb
+ 1363              		.thumb_func
+ 1364              		.fpu softvfp
+ 1366              	InitHardware:
+ 1367              	.LFB72:
+ 221:Src/hardware.c ****       status = TC358870_i2c_Read(0x8520); 
+ 1368              		.loc 1 221 1 is_stmt 1 view -0
+ 1369              		.cfi_startproc
+ 1370              		@ args = 0, pretend = 0, frame = 0
+ 1371              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1372 0000 10B5     		push	{r4, lr}
+ 1373              	.LCFI18:
+ 1374              		.cfi_def_cfa_offset 8
+ 1375              		.cfi_offset 4, -8
+ 1376              		.cfi_offset 14, -4
+ 1377 0002 82B0     		sub	sp, sp, #8
+ 1378              	.LCFI19:
+ 1379              		.cfi_def_cfa_offset 16
+ 222:Src/hardware.c **** 
+ 1380              		.loc 1 222 7 view .LVU276
+ 222:Src/hardware.c **** 
+ 1381              		.loc 1 222 16 is_stmt 0 view .LVU277
+ 1382 0004 48F22050 		movw	r0, #34080
+ 1383 0008 FFF7FEFF 		bl	TC358870_i2c_Read
+ 1384              	.LVL95:
+ 222:Src/hardware.c **** 
+ 1385              		.loc 1 222 14 view .LVU278
+ 1386 000c 444B     		ldr	r3, .L118
+ 1387 000e 1870     		strb	r0, [r3]
+ 228:Src/hardware.c ****     {
+ 1388              		.loc 1 228 5 is_stmt 1 view .LVU279
+ 1389 0010 444B     		ldr	r3, .L118+4
+ 1390 0012 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1391 0014 192B     		cmp	r3, #25
+ 1392 0016 18D8     		bhi	.L104
+ 1393 0018 DFE803F0 		tbb	[pc, r3]
+ 1394              	.L107:
+ 1395 001c 0D       		.byte	(.L114-.L107)/2
+ 1396 001d 19       		.byte	(.L113-.L107)/2
+ 1397 001e 20       		.byte	(.L112-.L107)/2
+ 1398 001f 3C       		.byte	(.L111-.L107)/2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 37
+
+
+ 1399 0020 45       		.byte	(.L110-.L107)/2
+ 1400 0021 4F       		.byte	(.L109-.L107)/2
+ 1401 0022 65       		.byte	(.L108-.L107)/2
+ 1402 0023 17       		.byte	(.L104-.L107)/2
+ 1403 0024 17       		.byte	(.L104-.L107)/2
+ 1404 0025 17       		.byte	(.L104-.L107)/2
+ 1405 0026 17       		.byte	(.L104-.L107)/2
+ 1406 0027 17       		.byte	(.L104-.L107)/2
+ 1407 0028 17       		.byte	(.L104-.L107)/2
+ 1408 0029 17       		.byte	(.L104-.L107)/2
+ 1409 002a 17       		.byte	(.L104-.L107)/2
+ 1410 002b 17       		.byte	(.L104-.L107)/2
+ 1411 002c 17       		.byte	(.L104-.L107)/2
+ 1412 002d 17       		.byte	(.L104-.L107)/2
+ 1413 002e 17       		.byte	(.L104-.L107)/2
+ 1414 002f 17       		.byte	(.L104-.L107)/2
+ 1415 0030 17       		.byte	(.L104-.L107)/2
+ 1416 0031 17       		.byte	(.L104-.L107)/2
+ 1417 0032 17       		.byte	(.L104-.L107)/2
+ 1418 0033 17       		.byte	(.L104-.L107)/2
+ 1419 0034 17       		.byte	(.L104-.L107)/2
+ 1420 0035 2C       		.byte	(.L106-.L107)/2
+ 1421              		.p2align 1
+ 1422              	.L114:
+ 232:Src/hardware.c ****     Led_A_Blink(500, 2);
+ 1423              		.loc 1 232 5 view .LVU280
+ 1424 0036 FFF7FEFF 		bl	MainPowerOn
+ 1425              	.LVL96:
+ 233:Src/hardware.c ****     stage = 1;
+ 1426              		.loc 1 233 5 view .LVU281
+ 1427 003a 0221     		movs	r1, #2
+ 1428 003c 4FF4FA70 		mov	r0, #500
+ 1429 0040 FFF7FEFF 		bl	Led_A_Blink
+ 1430              	.LVL97:
+ 234:Src/hardware.c ****     
+ 1431              		.loc 1 234 5 view .LVU282
+ 234:Src/hardware.c ****     
+ 1432              		.loc 1 234 11 is_stmt 0 view .LVU283
+ 1433 0044 374B     		ldr	r3, .L118+4
+ 1434 0046 0122     		movs	r2, #1
+ 1435 0048 1A70     		strb	r2, [r3]
+ 236:Src/hardware.c ****     case 1:
+ 1436              		.loc 1 236 7 is_stmt 1 view .LVU284
+ 1437              	.L104:
+ 303:Src/hardware.c **** void StatusControl()
+ 1438              		.loc 1 303 1 is_stmt 0 view .LVU285
+ 1439 004a 02B0     		add	sp, sp, #8
+ 1440              	.LCFI20:
+ 1441              		.cfi_remember_state
+ 1442              		.cfi_def_cfa_offset 8
+ 1443              		@ sp needed
+ 1444 004c 10BD     		pop	{r4, pc}
+ 1445              	.L113:
+ 1446              	.LCFI21:
+ 1447              		.cfi_restore_state
+ 238:Src/hardware.c ****   //  if(status == 1 ) stage = 2;
+ 1448              		.loc 1 238 5 is_stmt 1 view .LVU286
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 38
+
+
+ 238:Src/hardware.c ****   //  if(status == 1 ) stage = 2;
+ 1449              		.loc 1 238 7 is_stmt 0 view .LVU287
+ 1450 004e 10F0010F 		tst	r0, #1
+ 1451 0052 FAD0     		beq	.L104
+ 238:Src/hardware.c ****   //  if(status == 1 ) stage = 2;
+ 1452              		.loc 1 238 31 is_stmt 1 discriminator 1 view .LVU288
+ 238:Src/hardware.c ****   //  if(status == 1 ) stage = 2;
+ 1453              		.loc 1 238 37 is_stmt 0 discriminator 1 view .LVU289
+ 1454 0054 334B     		ldr	r3, .L118+4
+ 1455 0056 0222     		movs	r2, #2
+ 1456 0058 1A70     		strb	r2, [r3]
+ 1457 005a F6E7     		b	.L104
+ 1458              	.L112:
+ 244:Src/hardware.c ****        Led_A_Blink(200, 2);
+ 1459              		.loc 1 244 8 is_stmt 1 view .LVU290
+ 1460 005c 324B     		ldr	r3, .L118+8
+ 1461 005e 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 1462 0060 FFF7FEFF 		bl	Toshiba_Init
+ 1463              	.LVL98:
+ 245:Src/hardware.c ****        stage = 3;
+ 1464              		.loc 1 245 8 view .LVU291
+ 1465 0064 0221     		movs	r1, #2
+ 1466 0066 C820     		movs	r0, #200
+ 1467 0068 FFF7FEFF 		bl	Led_A_Blink
+ 1468              	.LVL99:
+ 246:Src/hardware.c ****     break;
+ 1469              		.loc 1 246 8 view .LVU292
+ 246:Src/hardware.c ****     break;
+ 1470              		.loc 1 246 14 is_stmt 0 view .LVU293
+ 1471 006c 2D4B     		ldr	r3, .L118+4
+ 1472 006e 0322     		movs	r2, #3
+ 1473 0070 1A70     		strb	r2, [r3]
+ 247:Src/hardware.c **** 
+ 1474              		.loc 1 247 5 is_stmt 1 view .LVU294
+ 1475 0072 EAE7     		b	.L104
+ 1476              	.L106:
+ 250:Src/hardware.c ****     {
+ 1477              		.loc 1 250 5 view .LVU295
+ 250:Src/hardware.c ****     {
+ 1478              		.loc 1 250 7 is_stmt 0 view .LVU296
+ 1479 0074 10F0010F 		tst	r0, #1
+ 1480 0078 E7D0     		beq	.L104
+ 252:Src/hardware.c ****       HAL_Delay(40);
+ 1481              		.loc 1 252 7 is_stmt 1 view .LVU297
+ 1482 007a 0022     		movs	r2, #0
+ 1483 007c 4FF40041 		mov	r1, #32768
+ 1484 0080 2A48     		ldr	r0, .L118+12
+ 1485 0082 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1486              	.LVL100:
+ 253:Src/hardware.c ****       stage = 1;
+ 1487              		.loc 1 253 7 view .LVU298
+ 1488 0086 2820     		movs	r0, #40
+ 1489 0088 FFF7FEFF 		bl	HAL_Delay
+ 1490              	.LVL101:
+ 254:Src/hardware.c ****     }
+ 1491              		.loc 1 254 7 view .LVU299
+ 254:Src/hardware.c ****     }
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 39
+
+
+ 1492              		.loc 1 254 13 is_stmt 0 view .LVU300
+ 1493 008c 254B     		ldr	r3, .L118+4
+ 1494 008e 0122     		movs	r2, #1
+ 1495 0090 1A70     		strb	r2, [r3]
+ 1496 0092 DAE7     		b	.L104
+ 1497              	.L111:
+ 260:Src/hardware.c **** 
+ 1498              		.loc 1 260 5 is_stmt 1 view .LVU301
+ 260:Src/hardware.c **** 
+ 1499              		.loc 1 260 8 is_stmt 0 view .LVU302
+ 1500 0094 9F28     		cmp	r0, #159
+ 1501 0096 D8D1     		bne	.L104
+ 263:Src/hardware.c ****         stage = 4;
+ 1502              		.loc 1 263 9 is_stmt 1 view .LVU303
+ 1503 0098 0A20     		movs	r0, #10
+ 1504 009a FFF7FEFF 		bl	HAL_Delay
+ 1505              	.LVL102:
+ 264:Src/hardware.c ****     }
+ 1506              		.loc 1 264 9 view .LVU304
+ 264:Src/hardware.c ****     }
+ 1507              		.loc 1 264 15 is_stmt 0 view .LVU305
+ 1508 009e 214B     		ldr	r3, .L118+4
+ 1509 00a0 0422     		movs	r2, #4
+ 1510 00a2 1A70     		strb	r2, [r3]
+ 1511 00a4 D1E7     		b	.L104
+ 1512              	.L110:
+ 269:Src/hardware.c ****       Led_A_Blink(50, 2);
+ 1513              		.loc 1 269 7 is_stmt 1 view .LVU306
+ 1514 00a6 FFF7FEFF 		bl	DiasplayPowerOn
+ 1515              	.LVL103:
+ 270:Src/hardware.c ****       stage = 5;
+ 1516              		.loc 1 270 7 view .LVU307
+ 1517 00aa 0221     		movs	r1, #2
+ 1518 00ac 3220     		movs	r0, #50
+ 1519 00ae FFF7FEFF 		bl	Led_A_Blink
+ 1520              	.LVL104:
+ 271:Src/hardware.c ****     break;
+ 1521              		.loc 1 271 7 view .LVU308
+ 271:Src/hardware.c ****     break;
+ 1522              		.loc 1 271 13 is_stmt 0 view .LVU309
+ 1523 00b2 1C4B     		ldr	r3, .L118+4
+ 1524 00b4 0522     		movs	r2, #5
+ 1525 00b6 1A70     		strb	r2, [r3]
+ 272:Src/hardware.c **** 
+ 1526              		.loc 1 272 5 is_stmt 1 view .LVU310
+ 1527 00b8 C7E7     		b	.L104
+ 1528              	.L109:
+ 275:Src/hardware.c ****     HAL_Delay(240);
+ 1529              		.loc 1 275 5 view .LVU311
+ 1530 00ba 1D4C     		ldr	r4, .L118+16
+ 1531 00bc 2078     		ldrb	r0, [r4]	@ zero_extendqisi2
+ 1532 00be FFF7FEFF 		bl	Toshiba_TC358870_OLED_SetupChina
+ 1533              	.LVL105:
+ 276:Src/hardware.c ****     stage = 6;
+ 1534              		.loc 1 276 5 view .LVU312
+ 1535 00c2 F020     		movs	r0, #240
+ 1536 00c4 FFF7FEFF 		bl	HAL_Delay
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 40
+
+
+ 1537              	.LVL106:
+ 277:Src/hardware.c ****     mode = target_mode;
+ 1538              		.loc 1 277 5 view .LVU313
+ 277:Src/hardware.c ****     mode = target_mode;
+ 1539              		.loc 1 277 11 is_stmt 0 view .LVU314
+ 1540 00c8 164B     		ldr	r3, .L118+4
+ 1541 00ca 0622     		movs	r2, #6
+ 1542 00cc 1A70     		strb	r2, [r3]
+ 278:Src/hardware.c ****     edid = target_edid;
+ 1543              		.loc 1 278 5 is_stmt 1 view .LVU315
+ 278:Src/hardware.c ****     edid = target_edid;
+ 1544              		.loc 1 278 10 is_stmt 0 view .LVU316
+ 1545 00ce 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 1546 00d0 184B     		ldr	r3, .L118+20
+ 1547 00d2 1A70     		strb	r2, [r3]
+ 279:Src/hardware.c ****     Led_A_Blink(50, 1);
+ 1548              		.loc 1 279 5 is_stmt 1 view .LVU317
+ 279:Src/hardware.c ****     Led_A_Blink(50, 1);
+ 1549              		.loc 1 279 10 is_stmt 0 view .LVU318
+ 1550 00d4 144B     		ldr	r3, .L118+8
+ 1551 00d6 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 1552 00d8 174B     		ldr	r3, .L118+24
+ 1553 00da 1A70     		strb	r2, [r3]
+ 280:Src/hardware.c ****     break;
+ 1554              		.loc 1 280 5 is_stmt 1 view .LVU319
+ 1555 00dc 0121     		movs	r1, #1
+ 1556 00de 3220     		movs	r0, #50
+ 1557 00e0 FFF7FEFF 		bl	Led_A_Blink
+ 1558              	.LVL107:
+ 281:Src/hardware.c **** 
+ 1559              		.loc 1 281 5 view .LVU320
+ 1560 00e4 B1E7     		b	.L104
+ 1561              	.L108:
+ 284:Src/hardware.c ****       if(!HMDready)
+ 1562              		.loc 1 284 7 view .LVU321
+ 284:Src/hardware.c ****       if(!HMDready)
+ 1563              		.loc 1 284 21 is_stmt 0 view .LVU322
+ 1564 00e6 4FF42470 		mov	r0, #656
+ 1565 00ea FFF7FEFF 		bl	TC358870_i2c_Read
+ 1566              	.LVL108:
+ 284:Src/hardware.c ****       if(!HMDready)
+ 1567              		.loc 1 284 19 view .LVU323
+ 1568 00ee 134B     		ldr	r3, .L118+28
+ 1569 00f0 1870     		strb	r0, [r3]
+ 285:Src/hardware.c ****       {
+ 1570              		.loc 1 285 7 is_stmt 1 view .LVU324
+ 285:Src/hardware.c ****       {
+ 1571              		.loc 1 285 10 is_stmt 0 view .LVU325
+ 1572 00f2 134B     		ldr	r3, .L118+32
+ 1573 00f4 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 285:Src/hardware.c ****       {
+ 1574              		.loc 1 285 9 view .LVU326
+ 1575 00f6 002B     		cmp	r3, #0
+ 1576 00f8 A7D1     		bne	.L104
+ 287:Src/hardware.c ****         OledNeedUpdate = true;
+ 1577              		.loc 1 287 9 is_stmt 1 view .LVU327
+ 287:Src/hardware.c ****         OledNeedUpdate = true;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 41
+
+
+ 1578              		.loc 1 287 12 is_stmt 0 view .LVU328
+ 1579 00fa 124B     		ldr	r3, .L118+36
+ 1580 00fc 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 287:Src/hardware.c ****         OledNeedUpdate = true;
+ 1581              		.loc 1 287 11 view .LVU329
+ 1582 00fe 2BB9     		cbnz	r3, .L117
+ 1583              	.L115:
+ 288:Src/hardware.c ****         HMDready = true;
+ 1584              		.loc 1 288 9 is_stmt 1 view .LVU330
+ 288:Src/hardware.c ****         HMDready = true;
+ 1585              		.loc 1 288 24 is_stmt 0 view .LVU331
+ 1586 0100 0123     		movs	r3, #1
+ 1587 0102 114A     		ldr	r2, .L118+40
+ 1588 0104 1370     		strb	r3, [r2]
+ 289:Src/hardware.c **** 
+ 1589              		.loc 1 289 9 is_stmt 1 view .LVU332
+ 289:Src/hardware.c **** 
+ 1590              		.loc 1 289 18 is_stmt 0 view .LVU333
+ 1591 0106 0E4A     		ldr	r2, .L118+32
+ 1592 0108 1370     		strb	r3, [r2]
+ 303:Src/hardware.c **** void StatusControl()
+ 1593              		.loc 1 303 1 view .LVU334
+ 1594 010a 9EE7     		b	.L104
+ 1595              	.L117:
+ 287:Src/hardware.c ****         OledNeedUpdate = true;
+ 1596              		.loc 1 287 21 is_stmt 1 discriminator 1 view .LVU335
+ 1597 010c 0123     		movs	r3, #1
+ 1598 010e 0093     		str	r3, [sp]
+ 1599 0110 1F23     		movs	r3, #31
+ 1600 0112 7F22     		movs	r2, #127
+ 1601 0114 1946     		mov	r1, r3
+ 1602 0116 0020     		movs	r0, #0
+ 1603 0118 FFF7FEFF 		bl	SSD1306_DrawLine
+ 1604              	.LVL109:
+ 1605 011c F0E7     		b	.L115
+ 1606              	.L119:
+ 1607 011e 00BF     		.align	2
+ 1608              	.L118:
+ 1609 0120 00000000 		.word	status
+ 1610 0124 00000000 		.word	stage
+ 1611 0128 00000000 		.word	target_edid
+ 1612 012c 00080140 		.word	1073809408
+ 1613 0130 00000000 		.word	target_mode
+ 1614 0134 00000000 		.word	mode
+ 1615 0138 00000000 		.word	edid
+ 1616 013c 00000000 		.word	lane_status
+ 1617 0140 00000000 		.word	.LANCHOR2
+ 1618 0144 00000000 		.word	OLED_OK
+ 1619 0148 00000000 		.word	.LANCHOR0
+ 1620              		.cfi_endproc
+ 1621              	.LFE72:
+ 1623              		.section	.text.Stage2InitSplit,"ax",%progbits
+ 1624              		.align	1
+ 1625              		.global	Stage2InitSplit
+ 1626              		.syntax unified
+ 1627              		.thumb
+ 1628              		.thumb_func
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 42
+
+
+ 1629              		.fpu softvfp
+ 1631              	Stage2InitSplit:
+ 1632              	.LFB81:
+ 482:Src/hardware.c **** 
+ 483:Src/hardware.c **** void Stage2InitSplit(void)
+ 484:Src/hardware.c **** {
+ 1633              		.loc 1 484 1 view -0
+ 1634              		.cfi_startproc
+ 1635              		@ args = 0, pretend = 0, frame = 0
+ 1636              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1637 0000 08B5     		push	{r3, lr}
+ 1638              	.LCFI22:
+ 1639              		.cfi_def_cfa_offset 8
+ 1640              		.cfi_offset 3, -8
+ 1641              		.cfi_offset 14, -4
+ 485:Src/hardware.c **** 
+ 486:Src/hardware.c **** //LED1_OFF;
+ 487:Src/hardware.c **** //Toshiba_TC358870_OLED_SetupChina();
+ 488:Src/hardware.c **** HAL_Delay(120);
+ 1642              		.loc 1 488 1 view .LVU337
+ 1643 0002 7820     		movs	r0, #120
+ 1644 0004 FFF7FEFF 		bl	HAL_Delay
+ 1645              	.LVL110:
+ 489:Src/hardware.c **** Toshiba_TC358870_OLED_SetupChina(0);
+ 1646              		.loc 1 489 1 view .LVU338
+ 1647 0008 0020     		movs	r0, #0
+ 1648 000a FFF7FEFF 		bl	Toshiba_TC358870_OLED_SetupChina
+ 1649              	.LVL111:
+ 490:Src/hardware.c **** //HAL_Delay(40);
+ 491:Src/hardware.c **** HAL_Delay(10);
+ 1650              		.loc 1 491 1 view .LVU339
+ 1651 000e 0A20     		movs	r0, #10
+ 1652 0010 FFF7FEFF 		bl	HAL_Delay
+ 1653              	.LVL112:
+ 492:Src/hardware.c **** }
+ 1654              		.loc 1 492 1 is_stmt 0 view .LVU340
+ 1655 0014 08BD     		pop	{r3, pc}
+ 1656              		.cfi_endproc
+ 1657              	.LFE81:
+ 1659              		.global	OledNeedUpdate
+ 1660              		.global	DisplayStatus
+ 1661              		.global	HMDready
+ 1662              		.global	button_b_press_cntr
+ 1663              		.global	button_a_press_cntr
+ 1664              		.global	button_b_is_pressed
+ 1665              		.global	button_a_is_pressed
+ 1666              		.comm	QuatW,4,4
+ 1667              		.comm	QuatZ,4,4
+ 1668              		.comm	QuatY,4,4
+ 1669              		.comm	QuatX,4,4
+ 1670              		.comm	f_report,16,4
+ 1671              		.comm	send_report,16,4
+ 1672              		.comm	packet_num,1,1
+ 1673              		.comm	video_detected,1,1
+ 1674              		.comm	hid_ver,1,1
+ 1675              		.comm	edid,1,1
+ 1676              		.comm	mode,1,1
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 43
+
+
+ 1677              		.comm	stage,1,1
+ 1678              		.comm	old_status,1,1
+ 1679              		.comm	lane_status,1,1
+ 1680              		.comm	status,1,1
+ 1681              		.section	.bss.HMDready,"aw",%nobits
+ 1682              		.set	.LANCHOR2,. + 0
+ 1685              	HMDready:
+ 1686 0000 00       		.space	1
+ 1687              		.section	.bss.OledNeedUpdate,"aw",%nobits
+ 1688              		.set	.LANCHOR0,. + 0
+ 1691              	OledNeedUpdate:
+ 1692 0000 00       		.space	1
+ 1693              		.section	.bss.button_a_is_pressed,"aw",%nobits
+ 1694              		.set	.LANCHOR4,. + 0
+ 1697              	button_a_is_pressed:
+ 1698 0000 00       		.space	1
+ 1699              		.section	.bss.button_a_press_cntr,"aw",%nobits
+ 1700              		.set	.LANCHOR3,. + 0
+ 1703              	button_a_press_cntr:
+ 1704 0000 00       		.space	1
+ 1705              		.section	.bss.button_b_is_pressed,"aw",%nobits
+ 1706              		.set	.LANCHOR6,. + 0
+ 1709              	button_b_is_pressed:
+ 1710 0000 00       		.space	1
+ 1711              		.section	.bss.button_b_press_cntr,"aw",%nobits
+ 1712              		.set	.LANCHOR5,. + 0
+ 1715              	button_b_press_cntr:
+ 1716 0000 00       		.space	1
+ 1717              		.section	.data.DisplayStatus,"aw"
+ 1718              		.set	.LANCHOR1,. + 0
+ 1721              	DisplayStatus:
+ 1722 0000 01       		.byte	1
+ 1723              		.section	.rodata.PrintScreen.str1.4,"aMS",%progbits,1
+ 1724              		.align	2
+ 1725              	.LC1:
+ 1726 0000 4F535652 		.ascii	"OSVR\000"
+ 1726      00
+ 1727 0005 000000   		.space	3
+ 1728              	.LC2:
+ 1729 0008 65646964 		.ascii	"edid\000"
+ 1729      00
+ 1730 000d 000000   		.space	3
+ 1731              	.LC3:
+ 1732 0010 25303258 		.ascii	"%02X\000"
+ 1732      00
+ 1733 0015 000000   		.space	3
+ 1734              	.LC4:
+ 1735 0018 4F524947 		.ascii	"ORIG\000"
+ 1735      00
+ 1736 001d 000000   		.space	3
+ 1737              	.LC5:
+ 1738 0020 43555354 		.ascii	"CUST\000"
+ 1738      00
+ 1739 0025 000000   		.space	3
+ 1740              	.LC6:
+ 1741 0028 737200   		.ascii	"sr\000"
+ 1742 002b 00       		.space	1
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 44
+
+
+ 1743              	.LC7:
+ 1744 002c 202000   		.ascii	"  \000"
+ 1745 002f 00       		.space	1
+ 1746              	.LC0:
+ 1747 0030 6E6100   		.ascii	"na\000"
+ 1748              		.text
+ 1749              	.Letext0:
+ 1750              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1751              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1752              		.file 4 "Inc/hardware.h"
+ 1753              		.file 5 "Drivers/CMSIS/Include/core_cm3.h"
+ 1754              		.file 6 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 1755              		.file 7 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 1756              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
+ 1757              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 1758              		.file 10 "Inc/main.h"
+ 1759              		.file 11 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1760              		.file 12 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1761              		.file 13 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-non
+ 1762              		.file 14 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1763              		.file 15 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1764              		.file 16 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 1765              		.file 17 "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h"
+ 1766              		.file 18 "Inc/usbd_cdc_if.h"
+ 1767              		.file 19 "Drivers/Ssd1306/Inc/fonts.h"
+ 1768              		.file 20 "Drivers/Ssd1306/Inc/ssd1306.h"
+ 1769              		.file 21 "Drivers/Tc358870/Inc/Toshiba_TC358870_china.h"
+ 1770              		.file 22 "Inc/SerialTrans.h"
+ 1771              		.file 23 "Drivers/SoftI2C/Inc/i2cSoft.h"
+ 1772              		.file 24 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 45
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 hardware.c
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:16     .text.PrintScreen:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:24     .text.PrintScreen:0000000000000000 PrintScreen
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:324    .text.PrintScreen:00000000000001b8 $d
+                            *COM*:0000000000000001 status
+                            *COM*:0000000000000001 old_status
+                            *COM*:0000000000000001 mode
+                            *COM*:0000000000000001 stage
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:346    .text.Led_A_Blink:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:353    .text.Led_A_Blink:0000000000000000 Led_A_Blink
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:406    .text.Led_A_Blink:0000000000000024 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:411    .text.MainPowerOn:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:418    .text.MainPowerOn:0000000000000000 MainPowerOn
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:483    .text.MainPowerOn:0000000000000060 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:489    .text.DiasplayPowerOn:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:496    .text.DiasplayPowerOn:0000000000000000 DiasplayPowerOn
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:535    .text.DiasplayPowerOn:0000000000000030 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:541    .text.DisplaySleep:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:548    .text.DisplaySleep:0000000000000000 DisplaySleep
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:580    .text.DisplaySleep:0000000000000020 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:586    .text.StatusControl:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:593    .text.StatusControl:0000000000000000 StatusControl
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:811    .text.StatusControl:000000000000010c $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:818    .text.PowerOffStage2:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:825    .text.PowerOffStage2:0000000000000000 PowerOffStage2
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:872    .text.PowerOffStage2:000000000000003c $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:878    .text.ModesSwitch:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:885    .text.ModesSwitch:0000000000000000 ModesSwitch
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:931    .text.ModesSwitch:0000000000000028 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:938    .text.EdidSwitch:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:945    .text.EdidSwitch:0000000000000000 EdidSwitch
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:991    .text.EdidSwitch:0000000000000028 $d
+                            *COM*:0000000000000001 edid
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:998    .text.Buttons:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1005   .text.Buttons:0000000000000000 Buttons
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1235   .text.Buttons:0000000000000100 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1248   .text.MainPowerOff:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1255   .text.MainPowerOff:0000000000000000 MainPowerOff
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1285   .text.MainPowerOff:000000000000001c $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1290   .text.Toshiba_Init:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1297   .text.Toshiba_Init:0000000000000000 Toshiba_Init
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1354   .text.Toshiba_Init:000000000000003c $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1359   .text.InitHardware:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1366   .text.InitHardware:0000000000000000 InitHardware
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1395   .text.InitHardware:000000000000001c $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1421   .text.InitHardware:0000000000000036 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1609   .text.InitHardware:0000000000000120 $d
+                            *COM*:0000000000000001 lane_status
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1624   .text.Stage2InitSplit:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1631   .text.Stage2InitSplit:0000000000000000 Stage2InitSplit
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1691   .bss.OledNeedUpdate:0000000000000000 OledNeedUpdate
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1721   .data.DisplayStatus:0000000000000000 DisplayStatus
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1685   .bss.HMDready:0000000000000000 HMDready
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1715   .bss.button_b_press_cntr:0000000000000000 button_b_press_cntr
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1703   .bss.button_a_press_cntr:0000000000000000 button_a_press_cntr
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1709   .bss.button_b_is_pressed:0000000000000000 button_b_is_pressed
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s 			page 46
+
+
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1697   .bss.button_a_is_pressed:0000000000000000 button_a_is_pressed
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+                            *COM*:0000000000000010 send_report
+                            *COM*:0000000000000001 packet_num
+                            *COM*:0000000000000001 video_detected
+                            *COM*:0000000000000001 hid_ver
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1686   .bss.HMDready:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1692   .bss.OledNeedUpdate:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1698   .bss.button_a_is_pressed:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1704   .bss.button_a_press_cntr:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1710   .bss.button_b_is_pressed:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1716   .bss.button_b_press_cntr:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccd6V47S.s:1724   .rodata.PrintScreen.str1.4:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+ssd1306_SetCursor
+ssd1306_WriteString
+sprintf
+ssd1306_UpdateScreen
+SSD1306_DrawLine
+target_edid
+Font_7x10
+Font_11x18
+HAL_GPIO_WritePin
+HAL_Delay
+Toshiba_TC358870_OLED_SleepChina
+target_mode
+HAL_GPIO_ReadPin
+OLED_OK
+Toshiba_TC358870_HDMI_SetupChina
+EDID_Write
+TC358870_i2c_Read
+Toshiba_TC358870_OLED_SetupChina

@@ -1,0 +1,2367 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"bno055.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.getQuat,"ax",%progbits
+  16              		.align	1
+  17              		.global	getQuat
+  18              		.arch armv7-m
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	getQuat:
+  25              	.LVL0:
+  26              	.LFB72:
+  27              		.file 1 "Drivers/Bno055/Src/bno055.c"
+   1:Drivers/Bno055/Src/bno055.c **** /*
+   2:Drivers/Bno055/Src/bno055.c ****  * BNO055.c
+   3:Drivers/Bno055/Src/bno055.c ****  *
+   4:Drivers/Bno055/Src/bno055.c ****  *  Created on: 23 Oca 2018
+   5:Drivers/Bno055/Src/bno055.c ****  *      Author: bugra
+   6:Drivers/Bno055/Src/bno055.c ****  */
+   7:Drivers/Bno055/Src/bno055.c **** #include "BNO055.h"
+   8:Drivers/Bno055/Src/bno055.c **** #include "i2cSoft.h"
+   9:Drivers/Bno055/Src/bno055.c **** #include "main.h"
+  10:Drivers/Bno055/Src/bno055.c **** #include <string.h>
+  11:Drivers/Bno055/Src/bno055.c **** //#include "cmsis_os.h"
+  12:Drivers/Bno055/Src/bno055.c **** //extern I2C_HandleTypeDef hi2c2;
+  13:Drivers/Bno055/Src/bno055.c **** uint8_t bno_mode = OPERATION_MODE_NDOF;
+  14:Drivers/Bno055/Src/bno055.c **** uint8_t buffer[6];
+  15:Drivers/Bno055/Src/bno055.c **** uint8_t bufferquat[8];
+  16:Drivers/Bno055/Src/bno055.c **** 
+  17:Drivers/Bno055/Src/bno055.c **** 
+  18:Drivers/Bno055/Src/bno055.c **** 
+  19:Drivers/Bno055/Src/bno055.c **** uint8_t const scd[] = {
+  20:Drivers/Bno055/Src/bno055.c **** //#include "bno-hostif/SCD-Bosch-BNO070-8G-lowGyroNoise.c"
+  21:Drivers/Bno055/Src/bno055.c **** //#include "bno-hostif/SCD-Bosch-BNO070-8G.c"
+  22:Drivers/Bno055/Src/bno055.c **** #include "SCD-Bosch-BNO070-sqtsNoise.c"
+  23:Drivers/Bno055/Src/bno055.c **** };
+  24:Drivers/Bno055/Src/bno055.c **** 
+  25:Drivers/Bno055/Src/bno055.c **** int8_t begin( void ){
+  26:Drivers/Bno055/Src/bno055.c **** 	/*
+  27:Drivers/Bno055/Src/bno055.c **** 	 * IMU Begin function
+  28:Drivers/Bno055/Src/bno055.c **** 	 */
+  29:Drivers/Bno055/Src/bno055.c **** 	uint8_t id = I2C_read8(BNO055_ADDRESS_A, BNO055_CHIP_ID_ADDR);
+  30:Drivers/Bno055/Src/bno055.c **** 	if(id != BNO055_ID){
+  31:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20); // hold on for boot
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 2
+
+
+  32:Drivers/Bno055/Src/bno055.c **** 		id = I2C_read8(BNO055_ADDRESS_A, BNO055_CHIP_ID_ADDR);
+  33:Drivers/Bno055/Src/bno055.c **** 		if(id != BNO055_ID) {
+  34:Drivers/Bno055/Src/bno055.c **** 			return -1;  // still not? ok bail
+  35:Drivers/Bno055/Src/bno055.c **** 		}
+  36:Drivers/Bno055/Src/bno055.c **** 	}
+  37:Drivers/Bno055/Src/bno055.c **** 	setMode(OPERATION_MODE_CONFIG);
+  38:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x20);
+  39:Drivers/Bno055/Src/bno055.c **** 	while (I2C_read8(BNO055_ADDRESS_A, BNO055_CHIP_ID_ADDR) != (int8_t)BNO055_ID){
+  40:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+  41:Drivers/Bno055/Src/bno055.c **** 	}
+  42:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+  43:Drivers/Bno055/Src/bno055.c **** 	/* Set to normal power mode */
+  44:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PWR_MODE_ADDR, POWER_MODE_NORMAL); 
+  45:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+  46:Drivers/Bno055/Src/bno055.c **** 	uint8_t unit = I2C_read8(BNO055_ADDRESS_A, BNO055_UNIT_SEL_ADDR);
+  47:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+  48:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_UNIT_SEL_ADDR, unit | 0x02); 
+  49:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+  50:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+  51:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+  52:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x0);
+  53:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+  54:Drivers/Bno055/Src/bno055.c **** 	/* Set the requested operating mode (see section 3.3) */
+  55:Drivers/Bno055/Src/bno055.c **** 	setMode(bno_mode);
+  56:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+  57:Drivers/Bno055/Src/bno055.c **** 	return 0;
+  58:Drivers/Bno055/Src/bno055.c **** }
+  59:Drivers/Bno055/Src/bno055.c **** 
+  60:Drivers/Bno055/Src/bno055.c **** void setMode(uint8_t mode){
+  61:Drivers/Bno055/Src/bno055.c **** 	/*
+  62:Drivers/Bno055/Src/bno055.c **** 	 * To change operation mode
+  63:Drivers/Bno055/Src/bno055.c **** 	 *
+  64:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION MODES:
+  65:Drivers/Bno055/Src/bno055.c **** 	 *
+  66:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_CONFIG
+  67:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_ACCONLY
+  68:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_MAGONLY
+  69:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_GYRONLY
+  70:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_ACCMAG
+  71:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_ACCGYRO
+  72:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_MAGGYRO
+  73:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_AMG
+  74:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_IMUPLUS
+  75:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_COMPASS
+  76:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_M4G
+  77:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_NDOF_FMC_OFF
+  78:Drivers/Bno055/Src/bno055.c **** 	 * OPERATION_MODE_NDOF
+  79:Drivers/Bno055/Src/bno055.c **** 	 */
+  80:Drivers/Bno055/Src/bno055.c **** 
+  81:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_OPR_MODE_ADDR, mode);
+  82:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+  83:Drivers/Bno055/Src/bno055.c **** }
+  84:Drivers/Bno055/Src/bno055.c **** 
+  85:Drivers/Bno055/Src/bno055.c **** void setExtCrystalUse(uint8_t usextal){
+  86:Drivers/Bno055/Src/bno055.c **** 	/*
+  87:Drivers/Bno055/Src/bno055.c **** 	 * !!!UNAPPROVED!!!
+  88:Drivers/Bno055/Src/bno055.c **** 	 */
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 3
+
+
+  89:Drivers/Bno055/Src/bno055.c **** 	setMode(OPERATION_MODE_CONFIG);
+  90:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(25);
+  91:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+  92:Drivers/Bno055/Src/bno055.c **** 	if (usextal == 1) {
+  93:Drivers/Bno055/Src/bno055.c **** 		I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x80);
+  94:Drivers/Bno055/Src/bno055.c **** 	}
+  95:Drivers/Bno055/Src/bno055.c **** 	else {
+  96:Drivers/Bno055/Src/bno055.c **** 		I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x00);
+  97:Drivers/Bno055/Src/bno055.c **** 	}
+  98:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+  99:Drivers/Bno055/Src/bno055.c **** 	/* Set the requested operating mode (see section 3.3) */
+ 100:Drivers/Bno055/Src/bno055.c **** 	setMode(bno_mode);
+ 101:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 102:Drivers/Bno055/Src/bno055.c **** }
+ 103:Drivers/Bno055/Src/bno055.c **** 
+ 104:Drivers/Bno055/Src/bno055.c **** int8_t getTemp(void){
+ 105:Drivers/Bno055/Src/bno055.c **** 	/*
+ 106:Drivers/Bno055/Src/bno055.c **** 	 * return uint8_t temp data
+ 107:Drivers/Bno055/Src/bno055.c **** 	 */
+ 108:Drivers/Bno055/Src/bno055.c **** 	int8_t temp = (int8_t)(I2C_read8(BNO055_ADDRESS_A, BNO055_TEMP_ADDR));
+ 109:Drivers/Bno055/Src/bno055.c **** 	return temp;
+ 110:Drivers/Bno055/Src/bno055.c **** }
+ 111:Drivers/Bno055/Src/bno055.c **** 
+ 112:Drivers/Bno055/Src/bno055.c **** 
+ 113:Drivers/Bno055/Src/bno055.c **** 
+ 114:Drivers/Bno055/Src/bno055.c **** void getCalibration(uint8_t* sys, uint8_t* gyro, uint8_t* accel, uint8_t* mag){
+ 115:Drivers/Bno055/Src/bno055.c **** 	uint8_t calData = I2C_read8(BNO055_ADDRESS_A, BNO055_CALIB_STAT_ADDR);
+ 116:Drivers/Bno055/Src/bno055.c **** 	if (sys != 0) {
+ 117:Drivers/Bno055/Src/bno055.c **** 		*sys = (calData >> 6) & 0x03;
+ 118:Drivers/Bno055/Src/bno055.c **** 	}
+ 119:Drivers/Bno055/Src/bno055.c **** 	if (gyro != 0) {
+ 120:Drivers/Bno055/Src/bno055.c **** 		*gyro = (calData >> 4) & 0x03;
+ 121:Drivers/Bno055/Src/bno055.c **** 	}
+ 122:Drivers/Bno055/Src/bno055.c **** 	if (accel != 0) {
+ 123:Drivers/Bno055/Src/bno055.c **** 		*accel = (calData >> 2) & 0x03;
+ 124:Drivers/Bno055/Src/bno055.c **** 	}
+ 125:Drivers/Bno055/Src/bno055.c **** 	if (mag != 0) {
+ 126:Drivers/Bno055/Src/bno055.c **** 		*mag = calData & 0x03;
+ 127:Drivers/Bno055/Src/bno055.c **** 	}
+ 128:Drivers/Bno055/Src/bno055.c **** }
+ 129:Drivers/Bno055/Src/bno055.c **** 
+ 130:Drivers/Bno055/Src/bno055.c **** void getSystemStatus(uint8_t *system_status, uint8_t *self_test_result, uint8_t *system_error){
+ 131:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+ 132:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 133:Drivers/Bno055/Src/bno055.c **** 	/* System Status (see section 4.3.58)
+ 134:Drivers/Bno055/Src/bno055.c ****      ---------------------------------
+ 135:Drivers/Bno055/Src/bno055.c ****      0 = Idle
+ 136:Drivers/Bno055/Src/bno055.c ****      1 = System Error
+ 137:Drivers/Bno055/Src/bno055.c ****      2 = Initializing Peripherals
+ 138:Drivers/Bno055/Src/bno055.c ****      3 = System Iniitalization
+ 139:Drivers/Bno055/Src/bno055.c ****      4 = Executing Self-Test
+ 140:Drivers/Bno055/Src/bno055.c ****      5 = Sensor fusio algorithm running
+ 141:Drivers/Bno055/Src/bno055.c ****      6 = System running without fusion algorithms */
+ 142:Drivers/Bno055/Src/bno055.c **** 
+ 143:Drivers/Bno055/Src/bno055.c **** 	if (system_status != 0){
+ 144:Drivers/Bno055/Src/bno055.c **** 		*system_status    = I2C_read8(BNO055_ADDRESS_A, BNO055_SYS_STAT_ADDR);
+ 145:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 4
+
+
+ 146:Drivers/Bno055/Src/bno055.c **** 	}
+ 147:Drivers/Bno055/Src/bno055.c **** 
+ 148:Drivers/Bno055/Src/bno055.c **** 	/* Self Test Results (see section )
+ 149:Drivers/Bno055/Src/bno055.c ****      --------------------------------
+ 150:Drivers/Bno055/Src/bno055.c ****      1 = test passed, 0 = test failed
+ 151:Drivers/Bno055/Src/bno055.c **** 
+ 152:Drivers/Bno055/Src/bno055.c ****      Bit 0 = Accelerometer self test
+ 153:Drivers/Bno055/Src/bno055.c ****      Bit 1 = Magnetometer self test
+ 154:Drivers/Bno055/Src/bno055.c ****      Bit 2 = Gyroscope self test
+ 155:Drivers/Bno055/Src/bno055.c ****      Bit 3 = MCU self test
+ 156:Drivers/Bno055/Src/bno055.c **** 
+ 157:Drivers/Bno055/Src/bno055.c ****      0x0F = all good! */
+ 158:Drivers/Bno055/Src/bno055.c **** 
+ 159:Drivers/Bno055/Src/bno055.c **** 	if (self_test_result != 0){
+ 160:Drivers/Bno055/Src/bno055.c **** 		*self_test_result = I2C_read8(BNO055_ADDRESS_A, BNO055_SELFTEST_RESULT_ADDR);
+ 161:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 162:Drivers/Bno055/Src/bno055.c **** 	}
+ 163:Drivers/Bno055/Src/bno055.c **** 
+ 164:Drivers/Bno055/Src/bno055.c **** 	/* System Error (see section 4.3.59)
+ 165:Drivers/Bno055/Src/bno055.c ****      ---------------------------------
+ 166:Drivers/Bno055/Src/bno055.c ****      0 = No error
+ 167:Drivers/Bno055/Src/bno055.c ****      1 = Peripheral initialization error
+ 168:Drivers/Bno055/Src/bno055.c ****      2 = System initialization error
+ 169:Drivers/Bno055/Src/bno055.c ****      3 = Self test result failed
+ 170:Drivers/Bno055/Src/bno055.c ****      4 = Register map value out of range
+ 171:Drivers/Bno055/Src/bno055.c ****      5 = Register map address out of range
+ 172:Drivers/Bno055/Src/bno055.c ****      6 = Register map write error
+ 173:Drivers/Bno055/Src/bno055.c ****      7 = BNO low power mode not available for selected operat ion mode
+ 174:Drivers/Bno055/Src/bno055.c ****      8 = Accelerometer power mode not available
+ 175:Drivers/Bno055/Src/bno055.c ****      9 = Fusion algorithm configuration error
+ 176:Drivers/Bno055/Src/bno055.c ****      A = Sensor configuration error */
+ 177:Drivers/Bno055/Src/bno055.c **** 
+ 178:Drivers/Bno055/Src/bno055.c **** 	if (system_error != 0){
+ 179:Drivers/Bno055/Src/bno055.c **** 		*system_error     = I2C_read8(BNO055_ADDRESS_A, BNO055_SYS_ERR_ADDR);
+ 180:Drivers/Bno055/Src/bno055.c **** 	}
+ 181:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(200);
+ 182:Drivers/Bno055/Src/bno055.c **** }
+ 183:Drivers/Bno055/Src/bno055.c **** 
+ 184:Drivers/Bno055/Src/bno055.c **** void getVector(uint8_t vector_type, float* xyz){
+ 185:Drivers/Bno055/Src/bno055.c **** 	/*
+ 186:Drivers/Bno055/Src/bno055.c **** 	 * xyz = The address of xyz data array ( double xyz[3] )
+ 187:Drivers/Bno055/Src/bno055.c **** 	 * vector types:
+ 188:Drivers/Bno055/Src/bno055.c **** 	 * VECTOR_ACCELEROMETER
+ 189:Drivers/Bno055/Src/bno055.c **** 	 * VECTOR_MAGNETOMETER
+ 190:Drivers/Bno055/Src/bno055.c **** 	 * VECTOR_GYROSCOPE
+ 191:Drivers/Bno055/Src/bno055.c **** 	 * VECTOR_EULER
+ 192:Drivers/Bno055/Src/bno055.c **** 	 * VECTOR_LINEARACCEL
+ 193:Drivers/Bno055/Src/bno055.c **** 	 * VECTOR_GRAVITY
+ 194:Drivers/Bno055/Src/bno055.c **** 	 */
+ 195:Drivers/Bno055/Src/bno055.c **** 	int16_t x, y, z;
+ 196:Drivers/Bno055/Src/bno055.c **** 	x = y = z = 0;
+ 197:Drivers/Bno055/Src/bno055.c **** 
+ 198:Drivers/Bno055/Src/bno055.c **** 	/* Read vector data (6 bytes) */
+ 199:Drivers/Bno055/Src/bno055.c **** 	x = I2C_read16(BNO055_ADDRESS_A, vector_type);
+ 200:Drivers/Bno055/Src/bno055.c **** 	y = I2C_read16(BNO055_ADDRESS_A, vector_type+2);
+ 201:Drivers/Bno055/Src/bno055.c **** 	z = I2C_read16(BNO055_ADDRESS_A, vector_type+4);
+ 202:Drivers/Bno055/Src/bno055.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 5
+
+
+ 203:Drivers/Bno055/Src/bno055.c **** 	switch(vector_type){
+ 204:Drivers/Bno055/Src/bno055.c ****     	case VECTOR_MAGNETOMETER:
+ 205:Drivers/Bno055/Src/bno055.c ****     		/* 1uT = 16 LSB */
+ 206:Drivers/Bno055/Src/bno055.c ****     		xyz[0] = ((float)x)/16.0;
+ 207:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 208:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 209:Drivers/Bno055/Src/bno055.c ****     		break;
+ 210:Drivers/Bno055/Src/bno055.c ****     	case VECTOR_GYROSCOPE:
+ 211:Drivers/Bno055/Src/bno055.c ****     		/* 1dps = 16 LSB */
+ 212:Drivers/Bno055/Src/bno055.c ****     		xyz[0] = ((float)x)/16.0;
+ 213:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 214:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 215:Drivers/Bno055/Src/bno055.c ****     		break;
+ 216:Drivers/Bno055/Src/bno055.c ****     	case VECTOR_EULER:
+ 217:Drivers/Bno055/Src/bno055.c ****     		/* 1 degree = 16 LSB */
+ 218:Drivers/Bno055/Src/bno055.c ****     		xyz[0] = ((float)x)/16.0;
+ 219:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 220:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 221:Drivers/Bno055/Src/bno055.c ****     		break;
+ 222:Drivers/Bno055/Src/bno055.c **** 		case VECTOR_ACCELEROMETER:
+ 223:Drivers/Bno055/Src/bno055.c **** 			/* 1m/s^2 = 100 LSB */
+ 224:Drivers/Bno055/Src/bno055.c **** 			xyz[0] = ((float)x)/100.0;
+ 225:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 226:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 227:Drivers/Bno055/Src/bno055.c **** 			break;
+ 228:Drivers/Bno055/Src/bno055.c **** 		case VECTOR_LINEARACCEL:
+ 229:Drivers/Bno055/Src/bno055.c **** 			/* 1m/s^2 = 100 LSB */
+ 230:Drivers/Bno055/Src/bno055.c **** 			xyz[0] = ((float)x)/100.0;
+ 231:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 232:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 233:Drivers/Bno055/Src/bno055.c **** 			break;
+ 234:Drivers/Bno055/Src/bno055.c **** 		case VECTOR_GRAVITY:
+ 235:Drivers/Bno055/Src/bno055.c **** 			/* 1m/s^2 = 100 LSB */
+ 236:Drivers/Bno055/Src/bno055.c **** 			xyz[0] = ((float)x)/100.0;
+ 237:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 238:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 239:Drivers/Bno055/Src/bno055.c **** 			break;
+ 240:Drivers/Bno055/Src/bno055.c **** 	}
+ 241:Drivers/Bno055/Src/bno055.c **** }
+ 242:Drivers/Bno055/Src/bno055.c **** /*
+ 243:Drivers/Bno055/Src/bno055.c ****  * UNDER CONSTRUCTION!!!
+ 244:Drivers/Bno055/Src/bno055.c ****  * getRevInfo
+ 245:Drivers/Bno055/Src/bno055.c ****  * getQuat
+ 246:Drivers/Bno055/Src/bno055.c ****  * getSensor
+ 247:Drivers/Bno055/Src/bno055.c ****  * getEvent
+ 248:Drivers/Bno055/Src/bno055.c ****  * getSensorOffsets
+ 249:Drivers/Bno055/Src/bno055.c ****  * getSensorOffsets
+ 250:Drivers/Bno055/Src/bno055.c ****  * setSensorOffsets
+ 251:Drivers/Bno055/Src/bno055.c ****  * setSensorOffsets
+ 252:Drivers/Bno055/Src/bno055.c ****  * isFullyCalibrated
+ 253:Drivers/Bno055/Src/bno055.c ****  */
+ 254:Drivers/Bno055/Src/bno055.c **** void getQuat(uint8_t vector_type, int16_t* xyzw){
+  28              		.loc 1 254 49 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 254 49 is_stmt 0 view .LVU1
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 6
+
+
+  33 0000 38B5     		push	{r3, r4, r5, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 16
+  36              		.cfi_offset 3, -16
+  37              		.cfi_offset 4, -12
+  38              		.cfi_offset 5, -8
+  39              		.cfi_offset 14, -4
+  40 0002 0D46     		mov	r5, r1
+ 255:Drivers/Bno055/Src/bno055.c **** 	/*
+ 256:Drivers/Bno055/Src/bno055.c **** 	 * wxyz = The address of wxyz data array ( double wxyz[4] )
+ 257:Drivers/Bno055/Src/bno055.c **** 
+ 258:Drivers/Bno055/Src/bno055.c **** 	 */
+ 259:Drivers/Bno055/Src/bno055.c **** 	//HAL_I2C_Mem_Read(&hi2c2,BNO055_ADDRESS_A<<1,vector_type, 1, bufferquat, 8, 100);
+ 260:Drivers/Bno055/Src/bno055.c **** 	i2cSoft_Mem_Read ( BNO055_ADDRESS_A, vector_type,  bufferquat, 8 );
+  41              		.loc 1 260 2 is_stmt 1 view .LVU2
+  42 0004 184C     		ldr	r4, .L3
+  43 0006 0823     		movs	r3, #8
+  44 0008 2246     		mov	r2, r4
+  45 000a 0146     		mov	r1, r0
+  46              	.LVL1:
+  47              		.loc 1 260 2 is_stmt 0 view .LVU3
+  48 000c 2920     		movs	r0, #41
+  49              	.LVL2:
+  50              		.loc 1 260 2 view .LVU4
+  51 000e FFF7FEFF 		bl	i2cSoft_Mem_Read
+  52              	.LVL3:
+ 261:Drivers/Bno055/Src/bno055.c **** 
+ 262:Drivers/Bno055/Src/bno055.c **** 	xyzw[3] = (uint16_t)bufferquat[0] | (uint16_t)bufferquat[1] << 8;
+  53              		.loc 1 262 2 is_stmt 1 view .LVU5
+  54              		.loc 1 262 32 is_stmt 0 view .LVU6
+  55 0012 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+  56              		.loc 1 262 58 view .LVU7
+  57 0014 6278     		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+  58              		.loc 1 262 36 view .LVU8
+  59 0016 43EA0223 		orr	r3, r3, r2, lsl #8
+  60              		.loc 1 262 10 view .LVU9
+  61 001a EB80     		strh	r3, [r5, #6]	@ movhi
+ 263:Drivers/Bno055/Src/bno055.c **** 	xyzw[0] = (uint16_t)bufferquat[2] | (uint16_t)bufferquat[3] << 8;
+  62              		.loc 1 263 2 is_stmt 1 view .LVU10
+  63              		.loc 1 263 32 is_stmt 0 view .LVU11
+  64 001c A378     		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+  65              		.loc 1 263 58 view .LVU12
+  66 001e E278     		ldrb	r2, [r4, #3]	@ zero_extendqisi2
+  67              		.loc 1 263 36 view .LVU13
+  68 0020 43EA0223 		orr	r3, r3, r2, lsl #8
+  69              		.loc 1 263 10 view .LVU14
+  70 0024 2B80     		strh	r3, [r5]	@ movhi
+ 264:Drivers/Bno055/Src/bno055.c **** 	xyzw[1] = (uint16_t)bufferquat[4] | (uint16_t)bufferquat[5] << 8;
+  71              		.loc 1 264 2 is_stmt 1 view .LVU15
+  72              		.loc 1 264 32 is_stmt 0 view .LVU16
+  73 0026 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+  74              		.loc 1 264 58 view .LVU17
+  75 0028 6279     		ldrb	r2, [r4, #5]	@ zero_extendqisi2
+  76              		.loc 1 264 36 view .LVU18
+  77 002a 43EA0223 		orr	r3, r3, r2, lsl #8
+  78              		.loc 1 264 10 view .LVU19
+  79 002e 6B80     		strh	r3, [r5, #2]	@ movhi
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 7
+
+
+ 265:Drivers/Bno055/Src/bno055.c **** 	xyzw[2] = (uint16_t)bufferquat[6] | (uint16_t)bufferquat[7] << 8;
+  80              		.loc 1 265 2 is_stmt 1 view .LVU20
+  81              		.loc 1 265 32 is_stmt 0 view .LVU21
+  82 0030 A379     		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+  83              		.loc 1 265 58 view .LVU22
+  84 0032 E279     		ldrb	r2, [r4, #7]	@ zero_extendqisi2
+  85              		.loc 1 265 36 view .LVU23
+  86 0034 43EA0223 		orr	r3, r3, r2, lsl #8
+  87              		.loc 1 265 10 view .LVU24
+  88 0038 AB80     		strh	r3, [r5, #4]	@ movhi
+ 266:Drivers/Bno055/Src/bno055.c **** 
+ 267:Drivers/Bno055/Src/bno055.c **** 	 // 	char str0[100];
+ 268:Drivers/Bno055/Src/bno055.c **** 	  	//sprintf(str0,"%08d, %08d, %08d, %08d\r\n", (int16_t *) xyzw[0] , (int16_t *) xyzw[1] , (int16
+ 269:Drivers/Bno055/Src/bno055.c **** 	//	sprintf(str0,"%d, %d, %d, %d\r\n",  xyzw[0] , xyzw[1] , xyzw[2], xyzw[3]  );
+ 270:Drivers/Bno055/Src/bno055.c **** 		//  sprintf(str0,"%d\r\n", (uint16_t *) (xyzw[0] >> 1 ));
+ 271:Drivers/Bno055/Src/bno055.c **** 	//  CDC_Transmit_FS((unsigned char*)str0, strlen(str0));
+ 272:Drivers/Bno055/Src/bno055.c **** /*
+ 273:Drivers/Bno055/Src/bno055.c **** 	for(int i = 2; i < 8; i++)
+ 274:Drivers/Bno055/Src/bno055.c **** 	send_report[i+2] = bufferquat[i] ;
+ 275:Drivers/Bno055/Src/bno055.c **** 
+ 276:Drivers/Bno055/Src/bno055.c **** 	send_report[0] = bufferquat[0] ;
+ 277:Drivers/Bno055/Src/bno055.c **** 	send_report[1] = bufferquat[1] ;
+ 278:Drivers/Bno055/Src/bno055.c **** 
+ 279:Drivers/Bno055/Src/bno055.c **** */	
+ 280:Drivers/Bno055/Src/bno055.c **** 	i2cSoft_Mem_Read ( BNO055_ADDRESS_A, 0x14,  bufferquat, 6 );
+  89              		.loc 1 280 2 is_stmt 1 view .LVU25
+  90 003a 0623     		movs	r3, #6
+  91 003c 2246     		mov	r2, r4
+  92 003e 1421     		movs	r1, #20
+  93 0040 2920     		movs	r0, #41
+  94 0042 FFF7FEFF 		bl	i2cSoft_Mem_Read
+  95              	.LVL4:
+ 281:Drivers/Bno055/Src/bno055.c **** 	/*
+ 282:Drivers/Bno055/Src/bno055.c **** 		for(int i = 0; i < 6; i++)
+ 283:Drivers/Bno055/Src/bno055.c **** 	send_report[i+10] = bufferquat[i] * 56;
+ 284:Drivers/Bno055/Src/bno055.c **** 	*/
+ 285:Drivers/Bno055/Src/bno055.c **** xyzw[4] = (uint16_t)bufferquat[0] | (uint16_t)bufferquat[1] << 8;
+  96              		.loc 1 285 1 view .LVU26
+  97              		.loc 1 285 31 is_stmt 0 view .LVU27
+  98 0046 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+  99              		.loc 1 285 57 view .LVU28
+ 100 0048 6278     		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+ 101              		.loc 1 285 35 view .LVU29
+ 102 004a 43EA0223 		orr	r3, r3, r2, lsl #8
+ 103              		.loc 1 285 9 view .LVU30
+ 104 004e 2B81     		strh	r3, [r5, #8]	@ movhi
+ 286:Drivers/Bno055/Src/bno055.c **** xyzw[5] = (uint16_t)bufferquat[2] | (uint16_t)bufferquat[3] << 8;
+ 105              		.loc 1 286 1 is_stmt 1 view .LVU31
+ 106              		.loc 1 286 31 is_stmt 0 view .LVU32
+ 107 0050 A378     		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 108              		.loc 1 286 57 view .LVU33
+ 109 0052 E278     		ldrb	r2, [r4, #3]	@ zero_extendqisi2
+ 110              		.loc 1 286 35 view .LVU34
+ 111 0054 43EA0223 		orr	r3, r3, r2, lsl #8
+ 112              		.loc 1 286 9 view .LVU35
+ 113 0058 6B81     		strh	r3, [r5, #10]	@ movhi
+ 287:Drivers/Bno055/Src/bno055.c **** xyzw[6] = (uint16_t)bufferquat[4] | (uint16_t)bufferquat[5] << 8;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 8
+
+
+ 114              		.loc 1 287 1 is_stmt 1 view .LVU36
+ 115              		.loc 1 287 31 is_stmt 0 view .LVU37
+ 116 005a 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+ 117              		.loc 1 287 57 view .LVU38
+ 118 005c 6279     		ldrb	r2, [r4, #5]	@ zero_extendqisi2
+ 119              		.loc 1 287 35 view .LVU39
+ 120 005e 43EA0223 		orr	r3, r3, r2, lsl #8
+ 121              		.loc 1 287 9 view .LVU40
+ 122 0062 AB81     		strh	r3, [r5, #12]	@ movhi
+ 288:Drivers/Bno055/Src/bno055.c **** 
+ 289:Drivers/Bno055/Src/bno055.c **** 	  //	char str0[100];
+ 290:Drivers/Bno055/Src/bno055.c **** 	 // 	sprintf(str0,"%08d, %08d, %08d\r\n", (int16_t *) xyzw[4] , (int16_t *) xyzw[5] , (int16_t *)x
+ 291:Drivers/Bno055/Src/bno055.c **** 	//	sprintf(str0,"%d, %d, %d, %d\r\n",  xyzw[0] , xyzw[1] , xyzw[2], xyzw[3]  );
+ 292:Drivers/Bno055/Src/bno055.c **** 		//  sprintf(str0,"%d\r\n", (uint16_t *) (xyzw[0] >> 1 ));
+ 293:Drivers/Bno055/Src/bno055.c **** 	//  CDC_Transmit_FS((unsigned char*)str0, strlen(str0));
+ 294:Drivers/Bno055/Src/bno055.c **** 
+ 295:Drivers/Bno055/Src/bno055.c **** 	
+ 296:Drivers/Bno055/Src/bno055.c **** }
+ 123              		.loc 1 296 1 view .LVU41
+ 124 0064 38BD     		pop	{r3, r4, r5, pc}
+ 125              	.LVL5:
+ 126              	.L4:
+ 127              		.loc 1 296 1 view .LVU42
+ 128 0066 00BF     		.align	2
+ 129              	.L3:
+ 130 0068 00000000 		.word	bufferquat
+ 131              		.cfi_endproc
+ 132              	.LFE72:
+ 134              		.global	__aeabi_i2f
+ 135              		.global	__aeabi_fmul
+ 136              		.section	.text.getEuler,"ax",%progbits
+ 137              		.align	1
+ 138              		.global	getEuler
+ 139              		.syntax unified
+ 140              		.thumb
+ 141              		.thumb_func
+ 142              		.fpu softvfp
+ 144              	getEuler:
+ 145              	.LVL6:
+ 146              	.LFB73:
+ 297:Drivers/Bno055/Src/bno055.c **** 
+ 298:Drivers/Bno055/Src/bno055.c **** void getEuler(uint8_t vector_type, float* xyz){
+ 147              		.loc 1 298 47 is_stmt 1 view -0
+ 148              		.cfi_startproc
+ 149              		@ args = 0, pretend = 0, frame = 0
+ 150              		@ frame_needed = 0, uses_anonymous_args = 0
+ 151              		.loc 1 298 47 is_stmt 0 view .LVU44
+ 152 0000 70B5     		push	{r4, r5, r6, lr}
+ 153              	.LCFI1:
+ 154              		.cfi_def_cfa_offset 16
+ 155              		.cfi_offset 4, -16
+ 156              		.cfi_offset 5, -12
+ 157              		.cfi_offset 6, -8
+ 158              		.cfi_offset 14, -4
+ 159 0002 0446     		mov	r4, r0
+ 160 0004 0E46     		mov	r6, r1
+ 299:Drivers/Bno055/Src/bno055.c **** 	/*
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 9
+
+
+ 300:Drivers/Bno055/Src/bno055.c **** 	 * wxyz = The address of wxyz data array ( double wxyz[4] )
+ 301:Drivers/Bno055/Src/bno055.c **** 
+ 302:Drivers/Bno055/Src/bno055.c **** 	 */
+ 303:Drivers/Bno055/Src/bno055.c **** 
+ 304:Drivers/Bno055/Src/bno055.c **** 
+ 305:Drivers/Bno055/Src/bno055.c **** 	//HAL_I2C_Mem_Read(&hi2c2,BNO055_ADDRESS_A<<1,vector_type, 1, buffer, 6, 100);
+ 306:Drivers/Bno055/Src/bno055.c **** 	i2cSoft_Mem_Read ( BNO055_ADDRESS_A, vector_type,  buffer, 6 );
+ 161              		.loc 1 306 2 is_stmt 1 view .LVU45
+ 162 0006 0623     		movs	r3, #6
+ 163 0008 174A     		ldr	r2, .L9
+ 164 000a 0146     		mov	r1, r0
+ 165              	.LVL7:
+ 166              		.loc 1 306 2 is_stmt 0 view .LVU46
+ 167 000c 2920     		movs	r0, #41
+ 168              	.LVL8:
+ 169              		.loc 1 306 2 view .LVU47
+ 170 000e FFF7FEFF 		bl	i2cSoft_Mem_Read
+ 171              	.LVL9:
+ 307:Drivers/Bno055/Src/bno055.c **** 
+ 308:Drivers/Bno055/Src/bno055.c **** 	int16_t temp[3];
+ 172              		.loc 1 308 2 is_stmt 1 view .LVU48
+ 309:Drivers/Bno055/Src/bno055.c **** 
+ 310:Drivers/Bno055/Src/bno055.c **** 
+ 311:Drivers/Bno055/Src/bno055.c **** 	switch(vector_type){
+ 173              		.loc 1 311 2 view .LVU49
+ 174 0012 1A2C     		cmp	r4, #26
+ 175 0014 00D0     		beq	.L8
+ 176              	.L5:
+ 312:Drivers/Bno055/Src/bno055.c **** 
+ 313:Drivers/Bno055/Src/bno055.c **** 	case VECTOR_EULER:
+ 314:Drivers/Bno055/Src/bno055.c **** 	    		/* 1 degree = 16 LSB */
+ 315:Drivers/Bno055/Src/bno055.c **** 		temp[0] = (((int16_t)buffer[0]) | (buffer[1]) << 8);
+ 316:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 317:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 318:Drivers/Bno055/Src/bno055.c **** 
+ 319:Drivers/Bno055/Src/bno055.c **** 	    xyz[0] = ((float)(temp[0])/16.0f);
+ 320:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/16.0f);
+ 321:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/16.0f);
+ 322:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 323:Drivers/Bno055/Src/bno055.c **** 
+ 324:Drivers/Bno055/Src/bno055.c **** 	}
+ 325:Drivers/Bno055/Src/bno055.c **** }
+ 177              		.loc 1 325 1 is_stmt 0 view .LVU50
+ 178 0016 70BD     		pop	{r4, r5, r6, pc}
+ 179              	.LVL10:
+ 180              	.L8:
+ 315:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 181              		.loc 1 315 3 is_stmt 1 view .LVU51
+ 315:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 182              		.loc 1 315 30 is_stmt 0 view .LVU52
+ 183 0018 134B     		ldr	r3, .L9
+ 184 001a 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 315:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 185              		.loc 1 315 44 view .LVU53
+ 186 001c 5A78     		ldrb	r2, [r3, #1]	@ zero_extendqisi2
+ 315:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 187              		.loc 1 315 35 view .LVU54
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 10
+
+
+ 188 001e 40EA0220 		orr	r0, r0, r2, lsl #8
+ 316:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 189              		.loc 1 316 3 is_stmt 1 view .LVU55
+ 316:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 190              		.loc 1 316 30 is_stmt 0 view .LVU56
+ 191 0022 9D78     		ldrb	r5, [r3, #2]	@ zero_extendqisi2
+ 316:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 192              		.loc 1 316 44 view .LVU57
+ 193 0024 DA78     		ldrb	r2, [r3, #3]	@ zero_extendqisi2
+ 316:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 194              		.loc 1 316 35 view .LVU58
+ 195 0026 45EA0225 		orr	r5, r5, r2, lsl #8
+ 196 002a 2DB2     		sxth	r5, r5
+ 317:Drivers/Bno055/Src/bno055.c **** 
+ 197              		.loc 1 317 3 is_stmt 1 view .LVU59
+ 317:Drivers/Bno055/Src/bno055.c **** 
+ 198              		.loc 1 317 30 is_stmt 0 view .LVU60
+ 199 002c 1C79     		ldrb	r4, [r3, #4]	@ zero_extendqisi2
+ 317:Drivers/Bno055/Src/bno055.c **** 
+ 200              		.loc 1 317 44 view .LVU61
+ 201 002e 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 317:Drivers/Bno055/Src/bno055.c **** 
+ 202              		.loc 1 317 35 view .LVU62
+ 203 0030 44EA0324 		orr	r4, r4, r3, lsl #8
+ 204 0034 24B2     		sxth	r4, r4
+ 319:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/16.0f);
+ 205              		.loc 1 319 6 is_stmt 1 view .LVU63
+ 319:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/16.0f);
+ 206              		.loc 1 319 16 is_stmt 0 view .LVU64
+ 207 0036 00B2     		sxth	r0, r0
+ 208 0038 FFF7FEFF 		bl	__aeabi_i2f
+ 209              	.LVL11:
+ 319:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/16.0f);
+ 210              		.loc 1 319 32 view .LVU65
+ 211 003c 4FF07651 		mov	r1, #1031798784
+ 212 0040 FFF7FEFF 		bl	__aeabi_fmul
+ 213              	.LVL12:
+ 319:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/16.0f);
+ 214              		.loc 1 319 13 view .LVU66
+ 215 0044 3060     		str	r0, [r6]	@ float
+ 320:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/16.0f);
+ 216              		.loc 1 320 6 is_stmt 1 view .LVU67
+ 320:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/16.0f);
+ 217              		.loc 1 320 16 is_stmt 0 view .LVU68
+ 218 0046 2846     		mov	r0, r5
+ 219 0048 FFF7FEFF 		bl	__aeabi_i2f
+ 220              	.LVL13:
+ 320:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/16.0f);
+ 221              		.loc 1 320 32 view .LVU69
+ 222 004c 4FF07651 		mov	r1, #1031798784
+ 223 0050 FFF7FEFF 		bl	__aeabi_fmul
+ 224              	.LVL14:
+ 320:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/16.0f);
+ 225              		.loc 1 320 13 view .LVU70
+ 226 0054 7060     		str	r0, [r6, #4]	@ float
+ 321:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 227              		.loc 1 321 6 is_stmt 1 view .LVU71
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 11
+
+
+ 321:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 228              		.loc 1 321 16 is_stmt 0 view .LVU72
+ 229 0056 2046     		mov	r0, r4
+ 230 0058 FFF7FEFF 		bl	__aeabi_i2f
+ 231              	.LVL15:
+ 321:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 232              		.loc 1 321 32 view .LVU73
+ 233 005c 4FF07651 		mov	r1, #1031798784
+ 234 0060 FFF7FEFF 		bl	__aeabi_fmul
+ 235              	.LVL16:
+ 321:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 236              		.loc 1 321 13 view .LVU74
+ 237 0064 B060     		str	r0, [r6, #8]	@ float
+ 322:Drivers/Bno055/Src/bno055.c **** 
+ 238              		.loc 1 322 6 is_stmt 1 view .LVU75
+ 239              		.loc 1 325 1 is_stmt 0 view .LVU76
+ 240 0066 D6E7     		b	.L5
+ 241              	.L10:
+ 242              		.align	2
+ 243              	.L9:
+ 244 0068 00000000 		.word	buffer
+ 245              		.cfi_endproc
+ 246              	.LFE73:
+ 248              		.global	__aeabi_fdiv
+ 249              		.section	.text.getLinear,"ax",%progbits
+ 250              		.align	1
+ 251              		.global	getLinear
+ 252              		.syntax unified
+ 253              		.thumb
+ 254              		.thumb_func
+ 255              		.fpu softvfp
+ 257              	getLinear:
+ 258              	.LVL17:
+ 259              	.LFB74:
+ 326:Drivers/Bno055/Src/bno055.c **** 
+ 327:Drivers/Bno055/Src/bno055.c **** void getLinear(uint8_t vector_type, float* xyz){
+ 260              		.loc 1 327 48 is_stmt 1 view -0
+ 261              		.cfi_startproc
+ 262              		@ args = 0, pretend = 0, frame = 0
+ 263              		@ frame_needed = 0, uses_anonymous_args = 0
+ 264              		.loc 1 327 48 is_stmt 0 view .LVU78
+ 265 0000 70B5     		push	{r4, r5, r6, lr}
+ 266              	.LCFI2:
+ 267              		.cfi_def_cfa_offset 16
+ 268              		.cfi_offset 4, -16
+ 269              		.cfi_offset 5, -12
+ 270              		.cfi_offset 6, -8
+ 271              		.cfi_offset 14, -4
+ 272 0002 0446     		mov	r4, r0
+ 273 0004 0E46     		mov	r6, r1
+ 328:Drivers/Bno055/Src/bno055.c **** 	/*
+ 329:Drivers/Bno055/Src/bno055.c **** 	 * xyz = The address of xyz data array ( double xyz[4] )
+ 330:Drivers/Bno055/Src/bno055.c **** 
+ 331:Drivers/Bno055/Src/bno055.c **** 	 */
+ 332:Drivers/Bno055/Src/bno055.c **** 
+ 333:Drivers/Bno055/Src/bno055.c **** 
+ 334:Drivers/Bno055/Src/bno055.c **** //	HAL_I2C_Mem_Read(&hi2c2,BNO055_ADDRESS_A<<1,vector_type, 1, buffer, 6, 100);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 12
+
+
+ 335:Drivers/Bno055/Src/bno055.c ****     i2cSoft_Mem_Read ( BNO055_ADDRESS_A, vector_type,  buffer, 6 );
+ 274              		.loc 1 335 5 is_stmt 1 view .LVU79
+ 275 0006 0623     		movs	r3, #6
+ 276 0008 164A     		ldr	r2, .L15
+ 277 000a 0146     		mov	r1, r0
+ 278              	.LVL18:
+ 279              		.loc 1 335 5 is_stmt 0 view .LVU80
+ 280 000c 2920     		movs	r0, #41
+ 281              	.LVL19:
+ 282              		.loc 1 335 5 view .LVU81
+ 283 000e FFF7FEFF 		bl	i2cSoft_Mem_Read
+ 284              	.LVL20:
+ 336:Drivers/Bno055/Src/bno055.c **** 	int16_t temp[3];
+ 285              		.loc 1 336 2 is_stmt 1 view .LVU82
+ 337:Drivers/Bno055/Src/bno055.c **** 
+ 338:Drivers/Bno055/Src/bno055.c **** 
+ 339:Drivers/Bno055/Src/bno055.c **** 	switch(vector_type){
+ 286              		.loc 1 339 2 view .LVU83
+ 287 0012 282C     		cmp	r4, #40
+ 288 0014 00D0     		beq	.L14
+ 289              	.L11:
+ 340:Drivers/Bno055/Src/bno055.c **** 
+ 341:Drivers/Bno055/Src/bno055.c **** 	case VECTOR_LINEARACCEL:
+ 342:Drivers/Bno055/Src/bno055.c **** 		/* 1m/s^2 = 100 LSB */
+ 343:Drivers/Bno055/Src/bno055.c **** 		temp[0] = (((int16_t)buffer[0]) | (buffer[1]) << 8);
+ 344:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 345:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 346:Drivers/Bno055/Src/bno055.c **** 
+ 347:Drivers/Bno055/Src/bno055.c **** 	    xyz[0] = ((float)(temp[0])/100);
+ 348:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/100);
+ 349:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/100);
+ 350:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 351:Drivers/Bno055/Src/bno055.c **** 
+ 352:Drivers/Bno055/Src/bno055.c **** 	}
+ 353:Drivers/Bno055/Src/bno055.c **** }
+ 290              		.loc 1 353 1 is_stmt 0 view .LVU84
+ 291 0016 70BD     		pop	{r4, r5, r6, pc}
+ 292              	.LVL21:
+ 293              	.L14:
+ 343:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 294              		.loc 1 343 3 is_stmt 1 view .LVU85
+ 343:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 295              		.loc 1 343 30 is_stmt 0 view .LVU86
+ 296 0018 124B     		ldr	r3, .L15
+ 297 001a 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 343:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 298              		.loc 1 343 44 view .LVU87
+ 299 001c 5A78     		ldrb	r2, [r3, #1]	@ zero_extendqisi2
+ 343:Drivers/Bno055/Src/bno055.c **** 		temp[1] = (((int16_t)buffer[2]) | (buffer[3]) << 8);
+ 300              		.loc 1 343 35 view .LVU88
+ 301 001e 40EA0220 		orr	r0, r0, r2, lsl #8
+ 344:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 302              		.loc 1 344 3 is_stmt 1 view .LVU89
+ 344:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 303              		.loc 1 344 30 is_stmt 0 view .LVU90
+ 304 0022 9D78     		ldrb	r5, [r3, #2]	@ zero_extendqisi2
+ 344:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 13
+
+
+ 305              		.loc 1 344 44 view .LVU91
+ 306 0024 DA78     		ldrb	r2, [r3, #3]	@ zero_extendqisi2
+ 344:Drivers/Bno055/Src/bno055.c **** 		temp[2] = (((int16_t)buffer[4]) | (buffer[5]) << 8);
+ 307              		.loc 1 344 35 view .LVU92
+ 308 0026 45EA0225 		orr	r5, r5, r2, lsl #8
+ 309 002a 2DB2     		sxth	r5, r5
+ 345:Drivers/Bno055/Src/bno055.c **** 
+ 310              		.loc 1 345 3 is_stmt 1 view .LVU93
+ 345:Drivers/Bno055/Src/bno055.c **** 
+ 311              		.loc 1 345 30 is_stmt 0 view .LVU94
+ 312 002c 1C79     		ldrb	r4, [r3, #4]	@ zero_extendqisi2
+ 345:Drivers/Bno055/Src/bno055.c **** 
+ 313              		.loc 1 345 44 view .LVU95
+ 314 002e 5B79     		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 345:Drivers/Bno055/Src/bno055.c **** 
+ 315              		.loc 1 345 35 view .LVU96
+ 316 0030 44EA0324 		orr	r4, r4, r3, lsl #8
+ 317 0034 24B2     		sxth	r4, r4
+ 347:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/100);
+ 318              		.loc 1 347 6 is_stmt 1 view .LVU97
+ 347:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/100);
+ 319              		.loc 1 347 16 is_stmt 0 view .LVU98
+ 320 0036 00B2     		sxth	r0, r0
+ 321 0038 FFF7FEFF 		bl	__aeabi_i2f
+ 322              	.LVL22:
+ 347:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/100);
+ 323              		.loc 1 347 32 view .LVU99
+ 324 003c 0A49     		ldr	r1, .L15+4
+ 325 003e FFF7FEFF 		bl	__aeabi_fdiv
+ 326              	.LVL23:
+ 347:Drivers/Bno055/Src/bno055.c **** 	    xyz[1] = ((float)(temp[1])/100);
+ 327              		.loc 1 347 13 view .LVU100
+ 328 0042 3060     		str	r0, [r6]	@ float
+ 348:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/100);
+ 329              		.loc 1 348 6 is_stmt 1 view .LVU101
+ 348:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/100);
+ 330              		.loc 1 348 16 is_stmt 0 view .LVU102
+ 331 0044 2846     		mov	r0, r5
+ 332 0046 FFF7FEFF 		bl	__aeabi_i2f
+ 333              	.LVL24:
+ 348:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/100);
+ 334              		.loc 1 348 32 view .LVU103
+ 335 004a 0749     		ldr	r1, .L15+4
+ 336 004c FFF7FEFF 		bl	__aeabi_fdiv
+ 337              	.LVL25:
+ 348:Drivers/Bno055/Src/bno055.c **** 	    xyz[2] = ((float)(temp[2])/100);
+ 338              		.loc 1 348 13 view .LVU104
+ 339 0050 7060     		str	r0, [r6, #4]	@ float
+ 349:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 340              		.loc 1 349 6 is_stmt 1 view .LVU105
+ 349:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 341              		.loc 1 349 16 is_stmt 0 view .LVU106
+ 342 0052 2046     		mov	r0, r4
+ 343 0054 FFF7FEFF 		bl	__aeabi_i2f
+ 344              	.LVL26:
+ 349:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 345              		.loc 1 349 32 view .LVU107
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 14
+
+
+ 346 0058 0349     		ldr	r1, .L15+4
+ 347 005a FFF7FEFF 		bl	__aeabi_fdiv
+ 348              	.LVL27:
+ 349:Drivers/Bno055/Src/bno055.c **** 	    break;
+ 349              		.loc 1 349 13 view .LVU108
+ 350 005e B060     		str	r0, [r6, #8]	@ float
+ 350:Drivers/Bno055/Src/bno055.c **** 
+ 351              		.loc 1 350 6 is_stmt 1 view .LVU109
+ 352              		.loc 1 353 1 is_stmt 0 view .LVU110
+ 353 0060 D9E7     		b	.L11
+ 354              	.L16:
+ 355 0062 00BF     		.align	2
+ 356              	.L15:
+ 357 0064 00000000 		.word	buffer
+ 358 0068 0000C842 		.word	1120403456
+ 359              		.cfi_endproc
+ 360              	.LFE74:
+ 362              		.section	.text.I2C_read8,"ax",%progbits
+ 363              		.align	1
+ 364              		.global	I2C_read8
+ 365              		.syntax unified
+ 366              		.thumb
+ 367              		.thumb_func
+ 368              		.fpu softvfp
+ 370              	I2C_read8:
+ 371              	.LVL28:
+ 372              	.LFB75:
+ 354:Drivers/Bno055/Src/bno055.c **** 
+ 355:Drivers/Bno055/Src/bno055.c **** 
+ 356:Drivers/Bno055/Src/bno055.c **** int8_t I2C_read8(uint8_t address, uint8_t reg){
+ 373              		.loc 1 356 47 is_stmt 1 view -0
+ 374              		.cfi_startproc
+ 375              		@ args = 0, pretend = 0, frame = 0
+ 376              		@ frame_needed = 0, uses_anonymous_args = 0
+ 377              		.loc 1 356 47 is_stmt 0 view .LVU112
+ 378 0000 08B5     		push	{r3, lr}
+ 379              	.LCFI3:
+ 380              		.cfi_def_cfa_offset 8
+ 381              		.cfi_offset 3, -8
+ 382              		.cfi_offset 14, -4
+ 357:Drivers/Bno055/Src/bno055.c **** 	uint8_t val = i2cSoft_Read(reg);
+ 383              		.loc 1 357 2 is_stmt 1 view .LVU113
+ 384              		.loc 1 357 16 is_stmt 0 view .LVU114
+ 385 0002 0846     		mov	r0, r1
+ 386              	.LVL29:
+ 387              		.loc 1 357 16 view .LVU115
+ 388 0004 FFF7FEFF 		bl	i2cSoft_Read
+ 389              	.LVL30:
+ 358:Drivers/Bno055/Src/bno055.c **** 	return val;
+ 390              		.loc 1 358 2 is_stmt 1 view .LVU116
+ 359:Drivers/Bno055/Src/bno055.c **** }
+ 391              		.loc 1 359 1 is_stmt 0 view .LVU117
+ 392 0008 40B2     		sxtb	r0, r0
+ 393              		.loc 1 359 1 view .LVU118
+ 394 000a 08BD     		pop	{r3, pc}
+ 395              		.cfi_endproc
+ 396              	.LFE75:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 15
+
+
+ 398              		.section	.text.getTemp,"ax",%progbits
+ 399              		.align	1
+ 400              		.global	getTemp
+ 401              		.syntax unified
+ 402              		.thumb
+ 403              		.thumb_func
+ 404              		.fpu softvfp
+ 406              	getTemp:
+ 407              	.LFB68:
+ 104:Drivers/Bno055/Src/bno055.c **** 	/*
+ 408              		.loc 1 104 21 is_stmt 1 view -0
+ 409              		.cfi_startproc
+ 410              		@ args = 0, pretend = 0, frame = 0
+ 411              		@ frame_needed = 0, uses_anonymous_args = 0
+ 412 0000 08B5     		push	{r3, lr}
+ 413              	.LCFI4:
+ 414              		.cfi_def_cfa_offset 8
+ 415              		.cfi_offset 3, -8
+ 416              		.cfi_offset 14, -4
+ 108:Drivers/Bno055/Src/bno055.c **** 	return temp;
+ 417              		.loc 1 108 2 view .LVU120
+ 108:Drivers/Bno055/Src/bno055.c **** 	return temp;
+ 418              		.loc 1 108 25 is_stmt 0 view .LVU121
+ 419 0002 3421     		movs	r1, #52
+ 420 0004 2920     		movs	r0, #41
+ 421 0006 FFF7FEFF 		bl	I2C_read8
+ 422              	.LVL31:
+ 109:Drivers/Bno055/Src/bno055.c **** }
+ 423              		.loc 1 109 2 is_stmt 1 view .LVU122
+ 110:Drivers/Bno055/Src/bno055.c **** 
+ 424              		.loc 1 110 1 is_stmt 0 view .LVU123
+ 425 000a 08BD     		pop	{r3, pc}
+ 426              		.cfi_endproc
+ 427              	.LFE68:
+ 429              		.section	.text.getCalibration,"ax",%progbits
+ 430              		.align	1
+ 431              		.global	getCalibration
+ 432              		.syntax unified
+ 433              		.thumb
+ 434              		.thumb_func
+ 435              		.fpu softvfp
+ 437              	getCalibration:
+ 438              	.LVL32:
+ 439              	.LFB69:
+ 114:Drivers/Bno055/Src/bno055.c **** 	uint8_t calData = I2C_read8(BNO055_ADDRESS_A, BNO055_CALIB_STAT_ADDR);
+ 440              		.loc 1 114 79 is_stmt 1 view -0
+ 441              		.cfi_startproc
+ 442              		@ args = 0, pretend = 0, frame = 0
+ 443              		@ frame_needed = 0, uses_anonymous_args = 0
+ 114:Drivers/Bno055/Src/bno055.c **** 	uint8_t calData = I2C_read8(BNO055_ADDRESS_A, BNO055_CALIB_STAT_ADDR);
+ 444              		.loc 1 114 79 is_stmt 0 view .LVU125
+ 445 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 446              	.LCFI5:
+ 447              		.cfi_def_cfa_offset 24
+ 448              		.cfi_offset 3, -24
+ 449              		.cfi_offset 4, -20
+ 450              		.cfi_offset 5, -16
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 16
+
+
+ 451              		.cfi_offset 6, -12
+ 452              		.cfi_offset 7, -8
+ 453              		.cfi_offset 14, -4
+ 454 0002 0746     		mov	r7, r0
+ 455 0004 0E46     		mov	r6, r1
+ 456 0006 1546     		mov	r5, r2
+ 457 0008 1C46     		mov	r4, r3
+ 115:Drivers/Bno055/Src/bno055.c **** 	if (sys != 0) {
+ 458              		.loc 1 115 2 is_stmt 1 view .LVU126
+ 115:Drivers/Bno055/Src/bno055.c **** 	if (sys != 0) {
+ 459              		.loc 1 115 20 is_stmt 0 view .LVU127
+ 460 000a 3521     		movs	r1, #53
+ 461              	.LVL33:
+ 115:Drivers/Bno055/Src/bno055.c **** 	if (sys != 0) {
+ 462              		.loc 1 115 20 view .LVU128
+ 463 000c 2920     		movs	r0, #41
+ 464              	.LVL34:
+ 115:Drivers/Bno055/Src/bno055.c **** 	if (sys != 0) {
+ 465              		.loc 1 115 20 view .LVU129
+ 466 000e FFF7FEFF 		bl	I2C_read8
+ 467              	.LVL35:
+ 115:Drivers/Bno055/Src/bno055.c **** 	if (sys != 0) {
+ 468              		.loc 1 115 10 view .LVU130
+ 469 0012 C0B2     		uxtb	r0, r0
+ 470              	.LVL36:
+ 116:Drivers/Bno055/Src/bno055.c **** 		*sys = (calData >> 6) & 0x03;
+ 471              		.loc 1 116 2 is_stmt 1 view .LVU131
+ 116:Drivers/Bno055/Src/bno055.c **** 		*sys = (calData >> 6) & 0x03;
+ 472              		.loc 1 116 5 is_stmt 0 view .LVU132
+ 473 0014 0FB1     		cbz	r7, .L22
+ 117:Drivers/Bno055/Src/bno055.c **** 	}
+ 474              		.loc 1 117 3 is_stmt 1 view .LVU133
+ 117:Drivers/Bno055/Src/bno055.c **** 	}
+ 475              		.loc 1 117 8 is_stmt 0 view .LVU134
+ 476 0016 8309     		lsrs	r3, r0, #6
+ 477 0018 3B70     		strb	r3, [r7]
+ 478              	.L22:
+ 119:Drivers/Bno055/Src/bno055.c **** 		*gyro = (calData >> 4) & 0x03;
+ 479              		.loc 1 119 2 is_stmt 1 view .LVU135
+ 119:Drivers/Bno055/Src/bno055.c **** 		*gyro = (calData >> 4) & 0x03;
+ 480              		.loc 1 119 5 is_stmt 0 view .LVU136
+ 481 001a 16B1     		cbz	r6, .L23
+ 120:Drivers/Bno055/Src/bno055.c **** 	}
+ 482              		.loc 1 120 3 is_stmt 1 view .LVU137
+ 120:Drivers/Bno055/Src/bno055.c **** 	}
+ 483              		.loc 1 120 26 is_stmt 0 view .LVU138
+ 484 001c C0F30113 		ubfx	r3, r0, #4, #2
+ 120:Drivers/Bno055/Src/bno055.c **** 	}
+ 485              		.loc 1 120 9 view .LVU139
+ 486 0020 3370     		strb	r3, [r6]
+ 487              	.L23:
+ 122:Drivers/Bno055/Src/bno055.c **** 		*accel = (calData >> 2) & 0x03;
+ 488              		.loc 1 122 2 is_stmt 1 view .LVU140
+ 122:Drivers/Bno055/Src/bno055.c **** 		*accel = (calData >> 2) & 0x03;
+ 489              		.loc 1 122 5 is_stmt 0 view .LVU141
+ 490 0022 15B1     		cbz	r5, .L24
+ 123:Drivers/Bno055/Src/bno055.c **** 	}
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 17
+
+
+ 491              		.loc 1 123 3 is_stmt 1 view .LVU142
+ 123:Drivers/Bno055/Src/bno055.c **** 	}
+ 492              		.loc 1 123 27 is_stmt 0 view .LVU143
+ 493 0024 C0F38103 		ubfx	r3, r0, #2, #2
+ 123:Drivers/Bno055/Src/bno055.c **** 	}
+ 494              		.loc 1 123 10 view .LVU144
+ 495 0028 2B70     		strb	r3, [r5]
+ 496              	.L24:
+ 125:Drivers/Bno055/Src/bno055.c **** 		*mag = calData & 0x03;
+ 497              		.loc 1 125 2 is_stmt 1 view .LVU145
+ 125:Drivers/Bno055/Src/bno055.c **** 		*mag = calData & 0x03;
+ 498              		.loc 1 125 5 is_stmt 0 view .LVU146
+ 499 002a 14B1     		cbz	r4, .L21
+ 126:Drivers/Bno055/Src/bno055.c **** 	}
+ 500              		.loc 1 126 3 is_stmt 1 view .LVU147
+ 126:Drivers/Bno055/Src/bno055.c **** 	}
+ 501              		.loc 1 126 18 is_stmt 0 view .LVU148
+ 502 002c 00F00300 		and	r0, r0, #3
+ 503              	.LVL37:
+ 126:Drivers/Bno055/Src/bno055.c **** 	}
+ 504              		.loc 1 126 8 view .LVU149
+ 505 0030 2070     		strb	r0, [r4]
+ 506              	.L21:
+ 128:Drivers/Bno055/Src/bno055.c **** 
+ 507              		.loc 1 128 1 view .LVU150
+ 508 0032 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 128:Drivers/Bno055/Src/bno055.c **** 
+ 509              		.loc 1 128 1 view .LVU151
+ 510              		.cfi_endproc
+ 511              	.LFE69:
+ 513              		.section	.text.I2C_write8,"ax",%progbits
+ 514              		.align	1
+ 515              		.global	I2C_write8
+ 516              		.syntax unified
+ 517              		.thumb
+ 518              		.thumb_func
+ 519              		.fpu softvfp
+ 521              	I2C_write8:
+ 522              	.LVL38:
+ 523              	.LFB76:
+ 360:Drivers/Bno055/Src/bno055.c **** 
+ 361:Drivers/Bno055/Src/bno055.c **** 
+ 362:Drivers/Bno055/Src/bno055.c **** void I2C_write8(uint8_t address, uint8_t reg, uint8_t data){
+ 524              		.loc 1 362 60 is_stmt 1 view -0
+ 525              		.cfi_startproc
+ 526              		@ args = 0, pretend = 0, frame = 0
+ 527              		@ frame_needed = 0, uses_anonymous_args = 0
+ 528              		.loc 1 362 60 is_stmt 0 view .LVU153
+ 529 0000 08B5     		push	{r3, lr}
+ 530              	.LCFI6:
+ 531              		.cfi_def_cfa_offset 8
+ 532              		.cfi_offset 3, -8
+ 533              		.cfi_offset 14, -4
+ 363:Drivers/Bno055/Src/bno055.c **** 	static uint8_t buffer[2];
+ 534              		.loc 1 363 2 is_stmt 1 view .LVU154
+ 364:Drivers/Bno055/Src/bno055.c **** 	buffer[0]=reg;
+ 535              		.loc 1 364 2 view .LVU155
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 18
+
+
+ 536              		.loc 1 364 11 is_stmt 0 view .LVU156
+ 537 0002 054B     		ldr	r3, .L29
+ 538 0004 1970     		strb	r1, [r3]
+ 365:Drivers/Bno055/Src/bno055.c **** 	buffer[1]=data;
+ 539              		.loc 1 365 2 is_stmt 1 view .LVU157
+ 540              		.loc 1 365 11 is_stmt 0 view .LVU158
+ 541 0006 5A70     		strb	r2, [r3, #1]
+ 366:Drivers/Bno055/Src/bno055.c **** 	i2cSoft_WriteBuffer( address, buffer, 2);
+ 542              		.loc 1 366 2 is_stmt 1 view .LVU159
+ 543 0008 0222     		movs	r2, #2
+ 544              	.LVL39:
+ 545              		.loc 1 366 2 is_stmt 0 view .LVU160
+ 546 000a 1946     		mov	r1, r3
+ 547              	.LVL40:
+ 548              		.loc 1 366 2 view .LVU161
+ 549 000c FFF7FEFF 		bl	i2cSoft_WriteBuffer
+ 550              	.LVL41:
+ 367:Drivers/Bno055/Src/bno055.c ****     HAL_Delay(20);
+ 551              		.loc 1 367 5 is_stmt 1 view .LVU162
+ 552 0010 1420     		movs	r0, #20
+ 553 0012 FFF7FEFF 		bl	HAL_Delay
+ 554              	.LVL42:
+ 368:Drivers/Bno055/Src/bno055.c **** }
+ 555              		.loc 1 368 1 is_stmt 0 view .LVU163
+ 556 0016 08BD     		pop	{r3, pc}
+ 557              	.L30:
+ 558              		.align	2
+ 559              	.L29:
+ 560 0018 00000000 		.word	.LANCHOR0
+ 561              		.cfi_endproc
+ 562              	.LFE76:
+ 564              		.section	.text.setMode,"ax",%progbits
+ 565              		.align	1
+ 566              		.global	setMode
+ 567              		.syntax unified
+ 568              		.thumb
+ 569              		.thumb_func
+ 570              		.fpu softvfp
+ 572              	setMode:
+ 573              	.LVL43:
+ 574              	.LFB66:
+  60:Drivers/Bno055/Src/bno055.c **** 	/*
+ 575              		.loc 1 60 27 is_stmt 1 view -0
+ 576              		.cfi_startproc
+ 577              		@ args = 0, pretend = 0, frame = 0
+ 578              		@ frame_needed = 0, uses_anonymous_args = 0
+  60:Drivers/Bno055/Src/bno055.c **** 	/*
+ 579              		.loc 1 60 27 is_stmt 0 view .LVU165
+ 580 0000 08B5     		push	{r3, lr}
+ 581              	.LCFI7:
+ 582              		.cfi_def_cfa_offset 8
+ 583              		.cfi_offset 3, -8
+ 584              		.cfi_offset 14, -4
+  81:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 585              		.loc 1 81 2 is_stmt 1 view .LVU166
+ 586 0002 0246     		mov	r2, r0
+ 587 0004 3D21     		movs	r1, #61
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 19
+
+
+ 588 0006 2920     		movs	r0, #41
+ 589              	.LVL44:
+  81:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 590              		.loc 1 81 2 is_stmt 0 view .LVU167
+ 591 0008 FFF7FEFF 		bl	I2C_write8
+ 592              	.LVL45:
+  82:Drivers/Bno055/Src/bno055.c **** }
+ 593              		.loc 1 82 2 is_stmt 1 view .LVU168
+ 594 000c 1420     		movs	r0, #20
+ 595 000e FFF7FEFF 		bl	HAL_Delay
+ 596              	.LVL46:
+  83:Drivers/Bno055/Src/bno055.c **** 
+ 597              		.loc 1 83 1 is_stmt 0 view .LVU169
+ 598 0012 08BD     		pop	{r3, pc}
+ 599              		.cfi_endproc
+ 600              	.LFE66:
+ 602              		.section	.text.begin,"ax",%progbits
+ 603              		.align	1
+ 604              		.global	begin
+ 605              		.syntax unified
+ 606              		.thumb
+ 607              		.thumb_func
+ 608              		.fpu softvfp
+ 610              	begin:
+ 611              	.LFB65:
+  25:Drivers/Bno055/Src/bno055.c **** 	/*
+ 612              		.loc 1 25 21 is_stmt 1 view -0
+ 613              		.cfi_startproc
+ 614              		@ args = 0, pretend = 0, frame = 0
+ 615              		@ frame_needed = 0, uses_anonymous_args = 0
+ 616 0000 10B5     		push	{r4, lr}
+ 617              	.LCFI8:
+ 618              		.cfi_def_cfa_offset 8
+ 619              		.cfi_offset 4, -8
+ 620              		.cfi_offset 14, -4
+  29:Drivers/Bno055/Src/bno055.c **** 	if(id != BNO055_ID){
+ 621              		.loc 1 29 2 view .LVU171
+  29:Drivers/Bno055/Src/bno055.c **** 	if(id != BNO055_ID){
+ 622              		.loc 1 29 15 is_stmt 0 view .LVU172
+ 623 0002 0021     		movs	r1, #0
+ 624 0004 2920     		movs	r0, #41
+ 625 0006 FFF7FEFF 		bl	I2C_read8
+ 626              	.LVL47:
+  30:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20); // hold on for boot
+ 627              		.loc 1 30 2 is_stmt 1 view .LVU173
+  30:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20); // hold on for boot
+ 628              		.loc 1 30 4 is_stmt 0 view .LVU174
+ 629 000a 10F1600F 		cmn	r0, #96
+ 630 000e 09D0     		beq	.L34
+  31:Drivers/Bno055/Src/bno055.c **** 		id = I2C_read8(BNO055_ADDRESS_A, BNO055_CHIP_ID_ADDR);
+ 631              		.loc 1 31 3 is_stmt 1 view .LVU175
+ 632 0010 1420     		movs	r0, #20
+ 633              	.LVL48:
+  31:Drivers/Bno055/Src/bno055.c **** 		id = I2C_read8(BNO055_ADDRESS_A, BNO055_CHIP_ID_ADDR);
+ 634              		.loc 1 31 3 is_stmt 0 view .LVU176
+ 635 0012 FFF7FEFF 		bl	HAL_Delay
+ 636              	.LVL49:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 20
+
+
+  32:Drivers/Bno055/Src/bno055.c **** 		if(id != BNO055_ID) {
+ 637              		.loc 1 32 3 is_stmt 1 view .LVU177
+  32:Drivers/Bno055/Src/bno055.c **** 		if(id != BNO055_ID) {
+ 638              		.loc 1 32 8 is_stmt 0 view .LVU178
+ 639 0016 0021     		movs	r1, #0
+ 640 0018 2920     		movs	r0, #41
+ 641 001a FFF7FEFF 		bl	I2C_read8
+ 642              	.LVL50:
+  33:Drivers/Bno055/Src/bno055.c **** 			return -1;  // still not? ok bail
+ 643              		.loc 1 33 3 is_stmt 1 view .LVU179
+  33:Drivers/Bno055/Src/bno055.c **** 			return -1;  // still not? ok bail
+ 644              		.loc 1 33 5 is_stmt 0 view .LVU180
+ 645 001e 10F1600F 		cmn	r0, #96
+ 646 0022 47D1     		bne	.L38
+ 647              	.L34:
+  37:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x20);
+ 648              		.loc 1 37 2 is_stmt 1 view .LVU181
+ 649 0024 0020     		movs	r0, #0
+ 650              	.LVL51:
+  37:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x20);
+ 651              		.loc 1 37 2 is_stmt 0 view .LVU182
+ 652 0026 FFF7FEFF 		bl	setMode
+ 653              	.LVL52:
+  38:Drivers/Bno055/Src/bno055.c **** 	while (I2C_read8(BNO055_ADDRESS_A, BNO055_CHIP_ID_ADDR) != (int8_t)BNO055_ID){
+ 654              		.loc 1 38 2 is_stmt 1 view .LVU183
+ 655 002a 2022     		movs	r2, #32
+ 656 002c 3F21     		movs	r1, #63
+ 657 002e 2920     		movs	r0, #41
+ 658 0030 FFF7FEFF 		bl	I2C_write8
+ 659              	.LVL53:
+  39:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 660              		.loc 1 39 2 view .LVU184
+ 661              	.L36:
+  39:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 662              		.loc 1 39 9 is_stmt 0 view .LVU185
+ 663 0034 0021     		movs	r1, #0
+ 664 0036 2920     		movs	r0, #41
+ 665 0038 FFF7FEFF 		bl	I2C_read8
+ 666              	.LVL54:
+  39:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 667              		.loc 1 39 8 view .LVU186
+ 668 003c 10F1600F 		cmn	r0, #96
+ 669 0040 03D0     		beq	.L40
+  40:Drivers/Bno055/Src/bno055.c **** 	}
+ 670              		.loc 1 40 3 is_stmt 1 view .LVU187
+ 671 0042 1420     		movs	r0, #20
+ 672 0044 FFF7FEFF 		bl	HAL_Delay
+ 673              	.LVL55:
+ 674 0048 F4E7     		b	.L36
+ 675              	.L40:
+  42:Drivers/Bno055/Src/bno055.c **** 	/* Set to normal power mode */
+ 676              		.loc 1 42 2 view .LVU188
+ 677 004a 1420     		movs	r0, #20
+ 678 004c FFF7FEFF 		bl	HAL_Delay
+ 679              	.LVL56:
+  44:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 680              		.loc 1 44 2 view .LVU189
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 21
+
+
+ 681 0050 0022     		movs	r2, #0
+ 682 0052 3E21     		movs	r1, #62
+ 683 0054 2920     		movs	r0, #41
+ 684 0056 FFF7FEFF 		bl	I2C_write8
+ 685              	.LVL57:
+  45:Drivers/Bno055/Src/bno055.c **** 	uint8_t unit = I2C_read8(BNO055_ADDRESS_A, BNO055_UNIT_SEL_ADDR);
+ 686              		.loc 1 45 2 view .LVU190
+ 687 005a 0A20     		movs	r0, #10
+ 688 005c FFF7FEFF 		bl	HAL_Delay
+ 689              	.LVL58:
+  46:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 690              		.loc 1 46 2 view .LVU191
+  46:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 691              		.loc 1 46 17 is_stmt 0 view .LVU192
+ 692 0060 3B21     		movs	r1, #59
+ 693 0062 2920     		movs	r0, #41
+ 694 0064 FFF7FEFF 		bl	I2C_read8
+ 695              	.LVL59:
+  46:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 696              		.loc 1 46 10 view .LVU193
+ 697 0068 C4B2     		uxtb	r4, r0
+ 698              	.LVL60:
+  47:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_UNIT_SEL_ADDR, unit | 0x02); 
+ 699              		.loc 1 47 2 is_stmt 1 view .LVU194
+ 700 006a 0A20     		movs	r0, #10
+ 701 006c FFF7FEFF 		bl	HAL_Delay
+ 702              	.LVL61:
+  48:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 703              		.loc 1 48 2 view .LVU195
+ 704 0070 44F00202 		orr	r2, r4, #2
+ 705 0074 3B21     		movs	r1, #59
+ 706 0076 2920     		movs	r0, #41
+ 707 0078 FFF7FEFF 		bl	I2C_write8
+ 708              	.LVL62:
+  49:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+ 709              		.loc 1 49 2 view .LVU196
+ 710 007c 0A20     		movs	r0, #10
+ 711 007e FFF7FEFF 		bl	HAL_Delay
+ 712              	.LVL63:
+  50:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 713              		.loc 1 50 2 view .LVU197
+ 714 0082 0022     		movs	r2, #0
+ 715 0084 0721     		movs	r1, #7
+ 716 0086 2920     		movs	r0, #41
+ 717 0088 FFF7FEFF 		bl	I2C_write8
+ 718              	.LVL64:
+  51:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x0);
+ 719              		.loc 1 51 2 view .LVU198
+ 720 008c 1420     		movs	r0, #20
+ 721 008e FFF7FEFF 		bl	HAL_Delay
+ 722              	.LVL65:
+  52:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 723              		.loc 1 52 2 view .LVU199
+ 724 0092 0022     		movs	r2, #0
+ 725 0094 3F21     		movs	r1, #63
+ 726 0096 2920     		movs	r0, #41
+ 727 0098 FFF7FEFF 		bl	I2C_write8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 22
+
+
+ 728              	.LVL66:
+  53:Drivers/Bno055/Src/bno055.c **** 	/* Set the requested operating mode (see section 3.3) */
+ 729              		.loc 1 53 2 view .LVU200
+ 730 009c 1420     		movs	r0, #20
+ 731 009e FFF7FEFF 		bl	HAL_Delay
+ 732              	.LVL67:
+  55:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 733              		.loc 1 55 2 view .LVU201
+ 734 00a2 064B     		ldr	r3, .L41
+ 735 00a4 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 736 00a6 FFF7FEFF 		bl	setMode
+ 737              	.LVL68:
+  56:Drivers/Bno055/Src/bno055.c **** 	return 0;
+ 738              		.loc 1 56 2 view .LVU202
+ 739 00aa 1420     		movs	r0, #20
+ 740 00ac FFF7FEFF 		bl	HAL_Delay
+ 741              	.LVL69:
+  57:Drivers/Bno055/Src/bno055.c **** }
+ 742              		.loc 1 57 2 view .LVU203
+  57:Drivers/Bno055/Src/bno055.c **** }
+ 743              		.loc 1 57 9 is_stmt 0 view .LVU204
+ 744 00b0 0020     		movs	r0, #0
+ 745              	.LVL70:
+ 746              	.L35:
+  58:Drivers/Bno055/Src/bno055.c **** 
+ 747              		.loc 1 58 1 view .LVU205
+ 748 00b2 10BD     		pop	{r4, pc}
+ 749              	.LVL71:
+ 750              	.L38:
+  34:Drivers/Bno055/Src/bno055.c **** 		}
+ 751              		.loc 1 34 11 view .LVU206
+ 752 00b4 4FF0FF30 		mov	r0, #-1
+ 753              	.LVL72:
+  34:Drivers/Bno055/Src/bno055.c **** 		}
+ 754              		.loc 1 34 11 view .LVU207
+ 755 00b8 FBE7     		b	.L35
+ 756              	.L42:
+ 757 00ba 00BF     		.align	2
+ 758              	.L41:
+ 759 00bc 00000000 		.word	.LANCHOR1
+ 760              		.cfi_endproc
+ 761              	.LFE65:
+ 763              		.section	.text.setExtCrystalUse,"ax",%progbits
+ 764              		.align	1
+ 765              		.global	setExtCrystalUse
+ 766              		.syntax unified
+ 767              		.thumb
+ 768              		.thumb_func
+ 769              		.fpu softvfp
+ 771              	setExtCrystalUse:
+ 772              	.LVL73:
+ 773              	.LFB67:
+  85:Drivers/Bno055/Src/bno055.c **** 	/*
+ 774              		.loc 1 85 39 is_stmt 1 view -0
+ 775              		.cfi_startproc
+ 776              		@ args = 0, pretend = 0, frame = 0
+ 777              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 23
+
+
+  85:Drivers/Bno055/Src/bno055.c **** 	/*
+ 778              		.loc 1 85 39 is_stmt 0 view .LVU209
+ 779 0000 10B5     		push	{r4, lr}
+ 780              	.LCFI9:
+ 781              		.cfi_def_cfa_offset 8
+ 782              		.cfi_offset 4, -8
+ 783              		.cfi_offset 14, -4
+ 784 0002 0446     		mov	r4, r0
+  89:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(25);
+ 785              		.loc 1 89 2 is_stmt 1 view .LVU210
+ 786 0004 0020     		movs	r0, #0
+ 787              	.LVL74:
+  89:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(25);
+ 788              		.loc 1 89 2 is_stmt 0 view .LVU211
+ 789 0006 FFF7FEFF 		bl	setMode
+ 790              	.LVL75:
+  90:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+ 791              		.loc 1 90 2 is_stmt 1 view .LVU212
+ 792 000a 1920     		movs	r0, #25
+ 793 000c FFF7FEFF 		bl	HAL_Delay
+ 794              	.LVL76:
+  91:Drivers/Bno055/Src/bno055.c **** 	if (usextal == 1) {
+ 795              		.loc 1 91 2 view .LVU213
+ 796 0010 0022     		movs	r2, #0
+ 797 0012 0721     		movs	r1, #7
+ 798 0014 2920     		movs	r0, #41
+ 799 0016 FFF7FEFF 		bl	I2C_write8
+ 800              	.LVL77:
+  92:Drivers/Bno055/Src/bno055.c **** 		I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x80);
+ 801              		.loc 1 92 2 view .LVU214
+  92:Drivers/Bno055/Src/bno055.c **** 		I2C_write8(BNO055_ADDRESS_A, BNO055_SYS_TRIGGER_ADDR, 0x80);
+ 802              		.loc 1 92 5 is_stmt 0 view .LVU215
+ 803 001a 012C     		cmp	r4, #1
+ 804 001c 0FD0     		beq	.L47
+  96:Drivers/Bno055/Src/bno055.c **** 	}
+ 805              		.loc 1 96 3 is_stmt 1 view .LVU216
+ 806 001e 0022     		movs	r2, #0
+ 807 0020 3F21     		movs	r1, #63
+ 808 0022 2920     		movs	r0, #41
+ 809 0024 FFF7FEFF 		bl	I2C_write8
+ 810              	.LVL78:
+ 811              	.L45:
+  98:Drivers/Bno055/Src/bno055.c **** 	/* Set the requested operating mode (see section 3.3) */
+ 812              		.loc 1 98 2 view .LVU217
+ 813 0028 0A20     		movs	r0, #10
+ 814 002a FFF7FEFF 		bl	HAL_Delay
+ 815              	.LVL79:
+ 100:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(20);
+ 816              		.loc 1 100 2 view .LVU218
+ 817 002e 074B     		ldr	r3, .L48
+ 818 0030 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 819 0032 FFF7FEFF 		bl	setMode
+ 820              	.LVL80:
+ 101:Drivers/Bno055/Src/bno055.c **** }
+ 821              		.loc 1 101 2 view .LVU219
+ 822 0036 1420     		movs	r0, #20
+ 823 0038 FFF7FEFF 		bl	HAL_Delay
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 24
+
+
+ 824              	.LVL81:
+ 102:Drivers/Bno055/Src/bno055.c **** 
+ 825              		.loc 1 102 1 is_stmt 0 view .LVU220
+ 826 003c 10BD     		pop	{r4, pc}
+ 827              	.L47:
+  93:Drivers/Bno055/Src/bno055.c **** 	}
+ 828              		.loc 1 93 3 is_stmt 1 view .LVU221
+ 829 003e 8022     		movs	r2, #128
+ 830 0040 3F21     		movs	r1, #63
+ 831 0042 2920     		movs	r0, #41
+ 832 0044 FFF7FEFF 		bl	I2C_write8
+ 833              	.LVL82:
+ 834 0048 EEE7     		b	.L45
+ 835              	.L49:
+ 836 004a 00BF     		.align	2
+ 837              	.L48:
+ 838 004c 00000000 		.word	.LANCHOR1
+ 839              		.cfi_endproc
+ 840              	.LFE67:
+ 842              		.section	.text.getSystemStatus,"ax",%progbits
+ 843              		.align	1
+ 844              		.global	getSystemStatus
+ 845              		.syntax unified
+ 846              		.thumb
+ 847              		.thumb_func
+ 848              		.fpu softvfp
+ 850              	getSystemStatus:
+ 851              	.LVL83:
+ 852              	.LFB70:
+ 130:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+ 853              		.loc 1 130 95 view -0
+ 854              		.cfi_startproc
+ 855              		@ args = 0, pretend = 0, frame = 0
+ 856              		@ frame_needed = 0, uses_anonymous_args = 0
+ 130:Drivers/Bno055/Src/bno055.c **** 	I2C_write8(BNO055_ADDRESS_A, BNO055_PAGE_ID_ADDR, 0);
+ 857              		.loc 1 130 95 is_stmt 0 view .LVU223
+ 858 0000 70B5     		push	{r4, r5, r6, lr}
+ 859              	.LCFI10:
+ 860              		.cfi_def_cfa_offset 16
+ 861              		.cfi_offset 4, -16
+ 862              		.cfi_offset 5, -12
+ 863              		.cfi_offset 6, -8
+ 864              		.cfi_offset 14, -4
+ 865 0002 0646     		mov	r6, r0
+ 866 0004 0D46     		mov	r5, r1
+ 867 0006 1446     		mov	r4, r2
+ 131:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 868              		.loc 1 131 2 is_stmt 1 view .LVU224
+ 869 0008 0022     		movs	r2, #0
+ 870              	.LVL84:
+ 131:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 871              		.loc 1 131 2 is_stmt 0 view .LVU225
+ 872 000a 0721     		movs	r1, #7
+ 873              	.LVL85:
+ 131:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 874              		.loc 1 131 2 view .LVU226
+ 875 000c 2920     		movs	r0, #41
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 25
+
+
+ 876              	.LVL86:
+ 131:Drivers/Bno055/Src/bno055.c **** 	HAL_Delay(10);
+ 877              		.loc 1 131 2 view .LVU227
+ 878 000e FFF7FEFF 		bl	I2C_write8
+ 879              	.LVL87:
+ 132:Drivers/Bno055/Src/bno055.c **** 	/* System Status (see section 4.3.58)
+ 880              		.loc 1 132 2 is_stmt 1 view .LVU228
+ 881 0012 0A20     		movs	r0, #10
+ 882 0014 FFF7FEFF 		bl	HAL_Delay
+ 883              	.LVL88:
+ 143:Drivers/Bno055/Src/bno055.c **** 		*system_status    = I2C_read8(BNO055_ADDRESS_A, BNO055_SYS_STAT_ADDR);
+ 884              		.loc 1 143 2 view .LVU229
+ 143:Drivers/Bno055/Src/bno055.c **** 		*system_status    = I2C_read8(BNO055_ADDRESS_A, BNO055_SYS_STAT_ADDR);
+ 885              		.loc 1 143 5 is_stmt 0 view .LVU230
+ 886 0018 3EB1     		cbz	r6, .L51
+ 144:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 887              		.loc 1 144 3 is_stmt 1 view .LVU231
+ 144:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 888              		.loc 1 144 23 is_stmt 0 view .LVU232
+ 889 001a 3921     		movs	r1, #57
+ 890 001c 2920     		movs	r0, #41
+ 891 001e FFF7FEFF 		bl	I2C_read8
+ 892              	.LVL89:
+ 144:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 893              		.loc 1 144 21 view .LVU233
+ 894 0022 3070     		strb	r0, [r6]
+ 145:Drivers/Bno055/Src/bno055.c **** 	}
+ 895              		.loc 1 145 3 is_stmt 1 view .LVU234
+ 896 0024 1420     		movs	r0, #20
+ 897 0026 FFF7FEFF 		bl	HAL_Delay
+ 898              	.LVL90:
+ 899              	.L51:
+ 159:Drivers/Bno055/Src/bno055.c **** 		*self_test_result = I2C_read8(BNO055_ADDRESS_A, BNO055_SELFTEST_RESULT_ADDR);
+ 900              		.loc 1 159 2 view .LVU235
+ 159:Drivers/Bno055/Src/bno055.c **** 		*self_test_result = I2C_read8(BNO055_ADDRESS_A, BNO055_SELFTEST_RESULT_ADDR);
+ 901              		.loc 1 159 5 is_stmt 0 view .LVU236
+ 902 002a 3DB1     		cbz	r5, .L52
+ 160:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 903              		.loc 1 160 3 is_stmt 1 view .LVU237
+ 160:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 904              		.loc 1 160 23 is_stmt 0 view .LVU238
+ 905 002c 3621     		movs	r1, #54
+ 906 002e 2920     		movs	r0, #41
+ 907 0030 FFF7FEFF 		bl	I2C_read8
+ 908              	.LVL91:
+ 160:Drivers/Bno055/Src/bno055.c **** 		HAL_Delay(20);
+ 909              		.loc 1 160 21 view .LVU239
+ 910 0034 2870     		strb	r0, [r5]
+ 161:Drivers/Bno055/Src/bno055.c **** 	}
+ 911              		.loc 1 161 3 is_stmt 1 view .LVU240
+ 912 0036 1420     		movs	r0, #20
+ 913 0038 FFF7FEFF 		bl	HAL_Delay
+ 914              	.LVL92:
+ 915              	.L52:
+ 178:Drivers/Bno055/Src/bno055.c **** 		*system_error     = I2C_read8(BNO055_ADDRESS_A, BNO055_SYS_ERR_ADDR);
+ 916              		.loc 1 178 2 view .LVU241
+ 178:Drivers/Bno055/Src/bno055.c **** 		*system_error     = I2C_read8(BNO055_ADDRESS_A, BNO055_SYS_ERR_ADDR);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 26
+
+
+ 917              		.loc 1 178 5 is_stmt 0 view .LVU242
+ 918 003c 24B1     		cbz	r4, .L53
+ 179:Drivers/Bno055/Src/bno055.c **** 	}
+ 919              		.loc 1 179 3 is_stmt 1 view .LVU243
+ 179:Drivers/Bno055/Src/bno055.c **** 	}
+ 920              		.loc 1 179 23 is_stmt 0 view .LVU244
+ 921 003e 3A21     		movs	r1, #58
+ 922 0040 2920     		movs	r0, #41
+ 923 0042 FFF7FEFF 		bl	I2C_read8
+ 924              	.LVL93:
+ 179:Drivers/Bno055/Src/bno055.c **** 	}
+ 925              		.loc 1 179 21 view .LVU245
+ 926 0046 2070     		strb	r0, [r4]
+ 927              	.L53:
+ 181:Drivers/Bno055/Src/bno055.c **** }
+ 928              		.loc 1 181 2 is_stmt 1 view .LVU246
+ 929 0048 C820     		movs	r0, #200
+ 930 004a FFF7FEFF 		bl	HAL_Delay
+ 931              	.LVL94:
+ 182:Drivers/Bno055/Src/bno055.c **** 
+ 932              		.loc 1 182 1 is_stmt 0 view .LVU247
+ 933 004e 70BD     		pop	{r4, r5, r6, pc}
+ 182:Drivers/Bno055/Src/bno055.c **** 
+ 934              		.loc 1 182 1 view .LVU248
+ 935              		.cfi_endproc
+ 936              	.LFE70:
+ 938              		.section	.text.I2C_read16,"ax",%progbits
+ 939              		.align	1
+ 940              		.global	I2C_read16
+ 941              		.syntax unified
+ 942              		.thumb
+ 943              		.thumb_func
+ 944              		.fpu softvfp
+ 946              	I2C_read16:
+ 947              	.LVL95:
+ 948              	.LFB77:
+ 369:Drivers/Bno055/Src/bno055.c **** 
+ 370:Drivers/Bno055/Src/bno055.c **** int16_t I2C_read16(uint8_t address, uint8_t reg){
+ 949              		.loc 1 370 49 is_stmt 1 view -0
+ 950              		.cfi_startproc
+ 951              		@ args = 0, pretend = 0, frame = 8
+ 952              		@ frame_needed = 0, uses_anonymous_args = 0
+ 953              		.loc 1 370 49 is_stmt 0 view .LVU250
+ 954 0000 10B5     		push	{r4, lr}
+ 955              	.LCFI11:
+ 956              		.cfi_def_cfa_offset 8
+ 957              		.cfi_offset 4, -8
+ 958              		.cfi_offset 14, -4
+ 959 0002 82B0     		sub	sp, sp, #8
+ 960              	.LCFI12:
+ 961              		.cfi_def_cfa_offset 16
+ 962 0004 0446     		mov	r4, r0
+ 371:Drivers/Bno055/Src/bno055.c **** 	int16_t val=0;
+ 963              		.loc 1 371 2 is_stmt 1 view .LVU251
+ 964              		.loc 1 371 10 is_stmt 0 view .LVU252
+ 965 0006 0023     		movs	r3, #0
+ 966 0008 ADF80630 		strh	r3, [sp, #6]	@ movhi
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 27
+
+
+ 372:Drivers/Bno055/Src/bno055.c **** 	i2cSoft_WriteByteOled ( address, reg );
+ 967              		.loc 1 372 2 is_stmt 1 view .LVU253
+ 968 000c FFF7FEFF 		bl	i2cSoft_WriteByteOled
+ 969              	.LVL96:
+ 373:Drivers/Bno055/Src/bno055.c **** 	//HAL_I2C_Master_Transmit(&hi2c2, slave, &address, 1, 100 );
+ 374:Drivers/Bno055/Src/bno055.c **** 	//HAL_Delay(20);
+ 375:Drivers/Bno055/Src/bno055.c **** 	i2cSoft_ReadBuffer(address, (uint8_t *)&val, 2 );
+ 970              		.loc 1 375 2 view .LVU254
+ 971 0010 0222     		movs	r2, #2
+ 972 0012 0DF10601 		add	r1, sp, #6
+ 973 0016 2046     		mov	r0, r4
+ 974 0018 FFF7FEFF 		bl	i2cSoft_ReadBuffer
+ 975              	.LVL97:
+ 376:Drivers/Bno055/Src/bno055.c **** 	///HAL_I2C_Master_Receive(&hi2c2,slave, (uint8_t *)&val, 2, 100);
+ 377:Drivers/Bno055/Src/bno055.c **** 	return val;
+ 976              		.loc 1 377 2 view .LVU255
+ 378:Drivers/Bno055/Src/bno055.c **** }
+ 977              		.loc 1 378 1 is_stmt 0 view .LVU256
+ 978 001c BDF90600 		ldrsh	r0, [sp, #6]
+ 979 0020 02B0     		add	sp, sp, #8
+ 980              	.LCFI13:
+ 981              		.cfi_def_cfa_offset 8
+ 982              		@ sp needed
+ 983 0022 10BD     		pop	{r4, pc}
+ 984              		.cfi_endproc
+ 985              	.LFE77:
+ 987              		.section	.text.getVector,"ax",%progbits
+ 988              		.align	1
+ 989              		.global	getVector
+ 990              		.syntax unified
+ 991              		.thumb
+ 992              		.thumb_func
+ 993              		.fpu softvfp
+ 995              	getVector:
+ 996              	.LVL98:
+ 997              	.LFB71:
+ 184:Drivers/Bno055/Src/bno055.c **** 	/*
+ 998              		.loc 1 184 48 is_stmt 1 view -0
+ 999              		.cfi_startproc
+ 1000              		@ args = 0, pretend = 0, frame = 0
+ 1001              		@ frame_needed = 0, uses_anonymous_args = 0
+ 184:Drivers/Bno055/Src/bno055.c **** 	/*
+ 1002              		.loc 1 184 48 is_stmt 0 view .LVU258
+ 1003 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1004              	.LCFI14:
+ 1005              		.cfi_def_cfa_offset 24
+ 1006              		.cfi_offset 4, -24
+ 1007              		.cfi_offset 5, -20
+ 1008              		.cfi_offset 6, -16
+ 1009              		.cfi_offset 7, -12
+ 1010              		.cfi_offset 8, -8
+ 1011              		.cfi_offset 14, -4
+ 1012 0004 0446     		mov	r4, r0
+ 1013 0006 0D46     		mov	r5, r1
+ 195:Drivers/Bno055/Src/bno055.c **** 	x = y = z = 0;
+ 1014              		.loc 1 195 2 is_stmt 1 view .LVU259
+ 196:Drivers/Bno055/Src/bno055.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 28
+
+
+ 1015              		.loc 1 196 2 view .LVU260
+ 1016              	.LVL99:
+ 199:Drivers/Bno055/Src/bno055.c **** 	y = I2C_read16(BNO055_ADDRESS_A, vector_type+2);
+ 1017              		.loc 1 199 2 view .LVU261
+ 199:Drivers/Bno055/Src/bno055.c **** 	y = I2C_read16(BNO055_ADDRESS_A, vector_type+2);
+ 1018              		.loc 1 199 6 is_stmt 0 view .LVU262
+ 1019 0008 0146     		mov	r1, r0
+ 1020              	.LVL100:
+ 199:Drivers/Bno055/Src/bno055.c **** 	y = I2C_read16(BNO055_ADDRESS_A, vector_type+2);
+ 1021              		.loc 1 199 6 view .LVU263
+ 1022 000a 2920     		movs	r0, #41
+ 1023              	.LVL101:
+ 199:Drivers/Bno055/Src/bno055.c **** 	y = I2C_read16(BNO055_ADDRESS_A, vector_type+2);
+ 1024              		.loc 1 199 6 view .LVU264
+ 1025 000c FFF7FEFF 		bl	I2C_read16
+ 1026              	.LVL102:
+ 1027 0010 8046     		mov	r8, r0
+ 1028              	.LVL103:
+ 200:Drivers/Bno055/Src/bno055.c **** 	z = I2C_read16(BNO055_ADDRESS_A, vector_type+4);
+ 1029              		.loc 1 200 2 is_stmt 1 view .LVU265
+ 200:Drivers/Bno055/Src/bno055.c **** 	z = I2C_read16(BNO055_ADDRESS_A, vector_type+4);
+ 1030              		.loc 1 200 6 is_stmt 0 view .LVU266
+ 1031 0012 A11C     		adds	r1, r4, #2
+ 1032 0014 C9B2     		uxtb	r1, r1
+ 1033 0016 2920     		movs	r0, #41
+ 1034 0018 FFF7FEFF 		bl	I2C_read16
+ 1035              	.LVL104:
+ 1036 001c 0746     		mov	r7, r0
+ 1037              	.LVL105:
+ 201:Drivers/Bno055/Src/bno055.c **** 
+ 1038              		.loc 1 201 2 is_stmt 1 view .LVU267
+ 201:Drivers/Bno055/Src/bno055.c **** 
+ 1039              		.loc 1 201 6 is_stmt 0 view .LVU268
+ 1040 001e 211D     		adds	r1, r4, #4
+ 1041 0020 C9B2     		uxtb	r1, r1
+ 1042 0022 2920     		movs	r0, #41
+ 1043 0024 FFF7FEFF 		bl	I2C_read16
+ 1044              	.LVL106:
+ 1045 0028 0646     		mov	r6, r0
+ 1046              	.LVL107:
+ 203:Drivers/Bno055/Src/bno055.c ****     	case VECTOR_MAGNETOMETER:
+ 1047              		.loc 1 203 2 is_stmt 1 view .LVU269
+ 1048 002a 083C     		subs	r4, r4, #8
+ 1049 002c 262C     		cmp	r4, #38
+ 1050 002e 2DD8     		bhi	.L57
+ 1051 0030 DFE804F0 		tbb	[pc, r4]
+ 1052              	.L60:
+ 1053 0034 60       		.byte	(.L65-.L60)/2
+ 1054 0035 2C       		.byte	(.L57-.L60)/2
+ 1055 0036 2C       		.byte	(.L57-.L60)/2
+ 1056 0037 2C       		.byte	(.L57-.L60)/2
+ 1057 0038 2C       		.byte	(.L57-.L60)/2
+ 1058 0039 2C       		.byte	(.L57-.L60)/2
+ 1059 003a 14       		.byte	(.L64-.L60)/2
+ 1060 003b 2C       		.byte	(.L57-.L60)/2
+ 1061 003c 2C       		.byte	(.L57-.L60)/2
+ 1062 003d 2C       		.byte	(.L57-.L60)/2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 29
+
+
+ 1063 003e 2C       		.byte	(.L57-.L60)/2
+ 1064 003f 2C       		.byte	(.L57-.L60)/2
+ 1065 0040 2E       		.byte	(.L63-.L60)/2
+ 1066 0041 2C       		.byte	(.L57-.L60)/2
+ 1067 0042 2C       		.byte	(.L57-.L60)/2
+ 1068 0043 2C       		.byte	(.L57-.L60)/2
+ 1069 0044 2C       		.byte	(.L57-.L60)/2
+ 1070 0045 2C       		.byte	(.L57-.L60)/2
+ 1071 0046 47       		.byte	(.L62-.L60)/2
+ 1072 0047 2C       		.byte	(.L57-.L60)/2
+ 1073 0048 2C       		.byte	(.L57-.L60)/2
+ 1074 0049 2C       		.byte	(.L57-.L60)/2
+ 1075 004a 2C       		.byte	(.L57-.L60)/2
+ 1076 004b 2C       		.byte	(.L57-.L60)/2
+ 1077 004c 2C       		.byte	(.L57-.L60)/2
+ 1078 004d 2C       		.byte	(.L57-.L60)/2
+ 1079 004e 2C       		.byte	(.L57-.L60)/2
+ 1080 004f 2C       		.byte	(.L57-.L60)/2
+ 1081 0050 2C       		.byte	(.L57-.L60)/2
+ 1082 0051 2C       		.byte	(.L57-.L60)/2
+ 1083 0052 2C       		.byte	(.L57-.L60)/2
+ 1084 0053 2C       		.byte	(.L57-.L60)/2
+ 1085 0054 76       		.byte	(.L61-.L60)/2
+ 1086 0055 2C       		.byte	(.L57-.L60)/2
+ 1087 0056 2C       		.byte	(.L57-.L60)/2
+ 1088 0057 2C       		.byte	(.L57-.L60)/2
+ 1089 0058 2C       		.byte	(.L57-.L60)/2
+ 1090 0059 2C       		.byte	(.L57-.L60)/2
+ 1091 005a 8C       		.byte	(.L59-.L60)/2
+ 1092 005b 00       		.p2align 1
+ 1093              	.L64:
+ 206:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1094              		.loc 1 206 7 view .LVU270
+ 206:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1095              		.loc 1 206 17 is_stmt 0 view .LVU271
+ 1096 005c 4046     		mov	r0, r8
+ 1097 005e FFF7FEFF 		bl	__aeabi_i2f
+ 1098              	.LVL108:
+ 206:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1099              		.loc 1 206 14 view .LVU272
+ 1100 0062 4FF07651 		mov	r1, #1031798784
+ 1101 0066 FFF7FEFF 		bl	__aeabi_fmul
+ 1102              	.LVL109:
+ 1103 006a 2860     		str	r0, [r5]	@ float
+ 207:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1104              		.loc 1 207 7 is_stmt 1 view .LVU273
+ 207:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1105              		.loc 1 207 17 is_stmt 0 view .LVU274
+ 1106 006c 3846     		mov	r0, r7
+ 1107 006e FFF7FEFF 		bl	__aeabi_i2f
+ 1108              	.LVL110:
+ 207:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1109              		.loc 1 207 14 view .LVU275
+ 1110 0072 4FF07651 		mov	r1, #1031798784
+ 1111 0076 FFF7FEFF 		bl	__aeabi_fmul
+ 1112              	.LVL111:
+ 1113 007a 6860     		str	r0, [r5, #4]	@ float
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 30
+
+
+ 208:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1114              		.loc 1 208 7 is_stmt 1 view .LVU276
+ 208:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1115              		.loc 1 208 17 is_stmt 0 view .LVU277
+ 1116 007c 3046     		mov	r0, r6
+ 1117 007e FFF7FEFF 		bl	__aeabi_i2f
+ 1118              	.LVL112:
+ 208:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1119              		.loc 1 208 14 view .LVU278
+ 1120 0082 4FF07651 		mov	r1, #1031798784
+ 1121 0086 FFF7FEFF 		bl	__aeabi_fmul
+ 1122              	.LVL113:
+ 1123 008a A860     		str	r0, [r5, #8]	@ float
+ 209:Drivers/Bno055/Src/bno055.c ****     	case VECTOR_GYROSCOPE:
+ 1124              		.loc 1 209 7 is_stmt 1 view .LVU279
+ 1125              	.L57:
+ 241:Drivers/Bno055/Src/bno055.c **** /*
+ 1126              		.loc 1 241 1 is_stmt 0 view .LVU280
+ 1127 008c BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1128              	.LVL114:
+ 1129              	.L63:
+ 212:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1130              		.loc 1 212 7 is_stmt 1 view .LVU281
+ 212:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1131              		.loc 1 212 17 is_stmt 0 view .LVU282
+ 1132 0090 4046     		mov	r0, r8
+ 1133 0092 FFF7FEFF 		bl	__aeabi_i2f
+ 1134              	.LVL115:
+ 212:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1135              		.loc 1 212 14 view .LVU283
+ 1136 0096 4FF07651 		mov	r1, #1031798784
+ 1137 009a FFF7FEFF 		bl	__aeabi_fmul
+ 1138              	.LVL116:
+ 1139 009e 2860     		str	r0, [r5]	@ float
+ 213:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1140              		.loc 1 213 7 is_stmt 1 view .LVU284
+ 213:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1141              		.loc 1 213 17 is_stmt 0 view .LVU285
+ 1142 00a0 3846     		mov	r0, r7
+ 1143 00a2 FFF7FEFF 		bl	__aeabi_i2f
+ 1144              	.LVL117:
+ 213:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1145              		.loc 1 213 14 view .LVU286
+ 1146 00a6 4FF07651 		mov	r1, #1031798784
+ 1147 00aa FFF7FEFF 		bl	__aeabi_fmul
+ 1148              	.LVL118:
+ 1149 00ae 6860     		str	r0, [r5, #4]	@ float
+ 214:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1150              		.loc 1 214 7 is_stmt 1 view .LVU287
+ 214:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1151              		.loc 1 214 17 is_stmt 0 view .LVU288
+ 1152 00b0 3046     		mov	r0, r6
+ 1153 00b2 FFF7FEFF 		bl	__aeabi_i2f
+ 1154              	.LVL119:
+ 214:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1155              		.loc 1 214 14 view .LVU289
+ 1156 00b6 4FF07651 		mov	r1, #1031798784
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 31
+
+
+ 1157 00ba FFF7FEFF 		bl	__aeabi_fmul
+ 1158              	.LVL120:
+ 1159 00be A860     		str	r0, [r5, #8]	@ float
+ 215:Drivers/Bno055/Src/bno055.c ****     	case VECTOR_EULER:
+ 1160              		.loc 1 215 7 is_stmt 1 view .LVU290
+ 1161 00c0 E4E7     		b	.L57
+ 1162              	.L62:
+ 218:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1163              		.loc 1 218 7 view .LVU291
+ 218:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1164              		.loc 1 218 17 is_stmt 0 view .LVU292
+ 1165 00c2 4046     		mov	r0, r8
+ 1166 00c4 FFF7FEFF 		bl	__aeabi_i2f
+ 1167              	.LVL121:
+ 218:Drivers/Bno055/Src/bno055.c ****     		xyz[1] = ((float)y)/16.0;
+ 1168              		.loc 1 218 14 view .LVU293
+ 1169 00c8 4FF07651 		mov	r1, #1031798784
+ 1170 00cc FFF7FEFF 		bl	__aeabi_fmul
+ 1171              	.LVL122:
+ 1172 00d0 2860     		str	r0, [r5]	@ float
+ 219:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1173              		.loc 1 219 7 is_stmt 1 view .LVU294
+ 219:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1174              		.loc 1 219 17 is_stmt 0 view .LVU295
+ 1175 00d2 3846     		mov	r0, r7
+ 1176 00d4 FFF7FEFF 		bl	__aeabi_i2f
+ 1177              	.LVL123:
+ 219:Drivers/Bno055/Src/bno055.c ****     		xyz[2] = ((float)z)/16.0;
+ 1178              		.loc 1 219 14 view .LVU296
+ 1179 00d8 4FF07651 		mov	r1, #1031798784
+ 1180 00dc FFF7FEFF 		bl	__aeabi_fmul
+ 1181              	.LVL124:
+ 1182 00e0 6860     		str	r0, [r5, #4]	@ float
+ 220:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1183              		.loc 1 220 7 is_stmt 1 view .LVU297
+ 220:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1184              		.loc 1 220 17 is_stmt 0 view .LVU298
+ 1185 00e2 3046     		mov	r0, r6
+ 1186 00e4 FFF7FEFF 		bl	__aeabi_i2f
+ 1187              	.LVL125:
+ 220:Drivers/Bno055/Src/bno055.c ****     		break;
+ 1188              		.loc 1 220 14 view .LVU299
+ 1189 00e8 4FF07651 		mov	r1, #1031798784
+ 1190 00ec FFF7FEFF 		bl	__aeabi_fmul
+ 1191              	.LVL126:
+ 1192 00f0 A860     		str	r0, [r5, #8]	@ float
+ 221:Drivers/Bno055/Src/bno055.c **** 		case VECTOR_ACCELEROMETER:
+ 1193              		.loc 1 221 7 is_stmt 1 view .LVU300
+ 1194 00f2 CBE7     		b	.L57
+ 1195              	.L65:
+ 224:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1196              		.loc 1 224 4 view .LVU301
+ 224:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1197              		.loc 1 224 14 is_stmt 0 view .LVU302
+ 1198 00f4 4046     		mov	r0, r8
+ 1199 00f6 FFF7FEFF 		bl	__aeabi_i2f
+ 1200              	.LVL127:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 32
+
+
+ 224:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1201              		.loc 1 224 11 view .LVU303
+ 1202 00fa 1F49     		ldr	r1, .L67
+ 1203 00fc FFF7FEFF 		bl	__aeabi_fdiv
+ 1204              	.LVL128:
+ 1205 0100 2860     		str	r0, [r5]	@ float
+ 225:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1206              		.loc 1 225 4 is_stmt 1 view .LVU304
+ 225:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1207              		.loc 1 225 14 is_stmt 0 view .LVU305
+ 1208 0102 3846     		mov	r0, r7
+ 1209 0104 FFF7FEFF 		bl	__aeabi_i2f
+ 1210              	.LVL129:
+ 225:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1211              		.loc 1 225 11 view .LVU306
+ 1212 0108 1B49     		ldr	r1, .L67
+ 1213 010a FFF7FEFF 		bl	__aeabi_fdiv
+ 1214              	.LVL130:
+ 1215 010e 6860     		str	r0, [r5, #4]	@ float
+ 226:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1216              		.loc 1 226 4 is_stmt 1 view .LVU307
+ 226:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1217              		.loc 1 226 14 is_stmt 0 view .LVU308
+ 1218 0110 3046     		mov	r0, r6
+ 1219 0112 FFF7FEFF 		bl	__aeabi_i2f
+ 1220              	.LVL131:
+ 226:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1221              		.loc 1 226 11 view .LVU309
+ 1222 0116 1849     		ldr	r1, .L67
+ 1223 0118 FFF7FEFF 		bl	__aeabi_fdiv
+ 1224              	.LVL132:
+ 1225 011c A860     		str	r0, [r5, #8]	@ float
+ 227:Drivers/Bno055/Src/bno055.c **** 		case VECTOR_LINEARACCEL:
+ 1226              		.loc 1 227 4 is_stmt 1 view .LVU310
+ 1227 011e B5E7     		b	.L57
+ 1228              	.L61:
+ 230:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1229              		.loc 1 230 4 view .LVU311
+ 230:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1230              		.loc 1 230 14 is_stmt 0 view .LVU312
+ 1231 0120 4046     		mov	r0, r8
+ 1232 0122 FFF7FEFF 		bl	__aeabi_i2f
+ 1233              	.LVL133:
+ 230:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1234              		.loc 1 230 11 view .LVU313
+ 1235 0126 1449     		ldr	r1, .L67
+ 1236 0128 FFF7FEFF 		bl	__aeabi_fdiv
+ 1237              	.LVL134:
+ 1238 012c 2860     		str	r0, [r5]	@ float
+ 231:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1239              		.loc 1 231 4 is_stmt 1 view .LVU314
+ 231:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1240              		.loc 1 231 14 is_stmt 0 view .LVU315
+ 1241 012e 3846     		mov	r0, r7
+ 1242 0130 FFF7FEFF 		bl	__aeabi_i2f
+ 1243              	.LVL135:
+ 231:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 33
+
+
+ 1244              		.loc 1 231 11 view .LVU316
+ 1245 0134 1049     		ldr	r1, .L67
+ 1246 0136 FFF7FEFF 		bl	__aeabi_fdiv
+ 1247              	.LVL136:
+ 1248 013a 6860     		str	r0, [r5, #4]	@ float
+ 232:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1249              		.loc 1 232 4 is_stmt 1 view .LVU317
+ 232:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1250              		.loc 1 232 14 is_stmt 0 view .LVU318
+ 1251 013c 3046     		mov	r0, r6
+ 1252 013e FFF7FEFF 		bl	__aeabi_i2f
+ 1253              	.LVL137:
+ 232:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1254              		.loc 1 232 11 view .LVU319
+ 1255 0142 0D49     		ldr	r1, .L67
+ 1256 0144 FFF7FEFF 		bl	__aeabi_fdiv
+ 1257              	.LVL138:
+ 1258 0148 A860     		str	r0, [r5, #8]	@ float
+ 233:Drivers/Bno055/Src/bno055.c **** 		case VECTOR_GRAVITY:
+ 1259              		.loc 1 233 4 is_stmt 1 view .LVU320
+ 1260 014a 9FE7     		b	.L57
+ 1261              	.L59:
+ 236:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1262              		.loc 1 236 4 view .LVU321
+ 236:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1263              		.loc 1 236 14 is_stmt 0 view .LVU322
+ 1264 014c 4046     		mov	r0, r8
+ 1265 014e FFF7FEFF 		bl	__aeabi_i2f
+ 1266              	.LVL139:
+ 236:Drivers/Bno055/Src/bno055.c **** 			xyz[1] = ((float)y)/100.0;
+ 1267              		.loc 1 236 11 view .LVU323
+ 1268 0152 0949     		ldr	r1, .L67
+ 1269 0154 FFF7FEFF 		bl	__aeabi_fdiv
+ 1270              	.LVL140:
+ 1271 0158 2860     		str	r0, [r5]	@ float
+ 237:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1272              		.loc 1 237 4 is_stmt 1 view .LVU324
+ 237:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1273              		.loc 1 237 14 is_stmt 0 view .LVU325
+ 1274 015a 3846     		mov	r0, r7
+ 1275 015c FFF7FEFF 		bl	__aeabi_i2f
+ 1276              	.LVL141:
+ 237:Drivers/Bno055/Src/bno055.c **** 			xyz[2] = ((float)z)/100.0;
+ 1277              		.loc 1 237 11 view .LVU326
+ 1278 0160 0549     		ldr	r1, .L67
+ 1279 0162 FFF7FEFF 		bl	__aeabi_fdiv
+ 1280              	.LVL142:
+ 1281 0166 6860     		str	r0, [r5, #4]	@ float
+ 238:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1282              		.loc 1 238 4 is_stmt 1 view .LVU327
+ 238:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1283              		.loc 1 238 14 is_stmt 0 view .LVU328
+ 1284 0168 3046     		mov	r0, r6
+ 1285 016a FFF7FEFF 		bl	__aeabi_i2f
+ 1286              	.LVL143:
+ 238:Drivers/Bno055/Src/bno055.c **** 			break;
+ 1287              		.loc 1 238 11 view .LVU329
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 34
+
+
+ 1288 016e 0249     		ldr	r1, .L67
+ 1289 0170 FFF7FEFF 		bl	__aeabi_fdiv
+ 1290              	.LVL144:
+ 1291 0174 A860     		str	r0, [r5, #8]	@ float
+ 239:Drivers/Bno055/Src/bno055.c **** 	}
+ 1292              		.loc 1 239 4 is_stmt 1 view .LVU330
+ 241:Drivers/Bno055/Src/bno055.c **** /*
+ 1293              		.loc 1 241 1 is_stmt 0 view .LVU331
+ 1294 0176 89E7     		b	.L57
+ 1295              	.L68:
+ 1296              		.align	2
+ 1297              	.L67:
+ 1298 0178 0000C842 		.word	1120403456
+ 1299              		.cfi_endproc
+ 1300              	.LFE71:
+ 1302              		.global	scd
+ 1303              		.comm	bufferquat,8,4
+ 1304              		.comm	buffer,6,4
+ 1305              		.global	bno_mode
+ 1306              		.comm	QuatW,4,4
+ 1307              		.comm	QuatZ,4,4
+ 1308              		.comm	QuatY,4,4
+ 1309              		.comm	QuatX,4,4
+ 1310              		.comm	f_report,16,4
+ 1311              		.comm	send_report,16,4
+ 1312              		.comm	packet_num,1,1
+ 1313              		.comm	video_detected,1,1
+ 1314              		.comm	hid_ver,1,1
+ 1315              		.comm	edid,1,1
+ 1316              		.comm	mode,1,1
+ 1317              		.comm	stage,1,1
+ 1318              		.comm	old_status,1,1
+ 1319              		.comm	lane_status,1,1
+ 1320              		.comm	status,1,1
+ 1321              		.section	.bss.buffer.6855,"aw",%nobits
+ 1322              		.align	2
+ 1323              		.set	.LANCHOR0,. + 0
+ 1326              	buffer.6855:
+ 1327 0000 0000     		.space	2
+ 1328              		.section	.data.bno_mode,"aw"
+ 1329              		.set	.LANCHOR1,. + 0
+ 1332              	bno_mode:
+ 1333 0000 0C       		.byte	12
+ 1334              		.section	.rodata.scd,"a"
+ 1335              		.align	2
+ 1338              	scd:
+ 1339 0000 E8       		.byte	-24
+ 1340 0001 00       		.byte	0
+ 1341 0002 0A       		.byte	10
+ 1342 0003 00       		.byte	0
+ 1343 0004 E9       		.byte	-23
+ 1344 0005 9F       		.byte	-97
+ 1345 0006 13       		.byte	19
+ 1346 0007 AD       		.byte	-83
+ 1347 0008 DD       		.byte	-35
+ 1348 0009 55       		.byte	85
+ 1349 000a 22       		.byte	34
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 35
+
+
+ 1350 000b AA       		.byte	-86
+ 1351 000c 00       		.byte	0
+ 1352 000d 00       		.byte	0
+ 1353 000e 00       		.byte	0
+ 1354 000f 00       		.byte	0
+ 1355 0010 00       		.byte	0
+ 1356 0011 00       		.byte	0
+ 1357 0012 00       		.byte	0
+ 1358 0013 00       		.byte	0
+ 1359 0014 00       		.byte	0
+ 1360 0015 00       		.byte	0
+ 1361 0016 00       		.byte	0
+ 1362 0017 00       		.byte	0
+ 1363 0018 CD       		.byte	-51
+ 1364 0019 9C       		.byte	-100
+ 1365 001a 00       		.byte	0
+ 1366 001b 00       		.byte	0
+ 1367 001c 00       		.byte	0
+ 1368 001d 00       		.byte	0
+ 1369 001e 00       		.byte	0
+ 1370 001f 00       		.byte	0
+ 1371 0020 00       		.byte	0
+ 1372 0021 00       		.byte	0
+ 1373 0022 00       		.byte	0
+ 1374 0023 00       		.byte	0
+ 1375 0024 00       		.byte	0
+ 1376 0025 00       		.byte	0
+ 1377 0026 00       		.byte	0
+ 1378 0027 00       		.byte	0
+ 1379 0028 33       		.byte	51
+ 1380 0029 63       		.byte	99
+ 1381 002a FF       		.byte	-1
+ 1382 002b FF       		.byte	-1
+ 1383 002c 00       		.byte	0
+ 1384 002d 00       		.byte	0
+ 1385 002e 00       		.byte	0
+ 1386 002f 00       		.byte	0
+ 1387 0030 00       		.byte	0
+ 1388 0031 00       		.byte	0
+ 1389 0032 00       		.byte	0
+ 1390 0033 00       		.byte	0
+ 1391 0034 00       		.byte	0
+ 1392 0035 00       		.byte	0
+ 1393 0036 00       		.byte	0
+ 1394 0037 00       		.byte	0
+ 1395 0038 33       		.byte	51
+ 1396 0039 63       		.byte	99
+ 1397 003a FF       		.byte	-1
+ 1398 003b FF       		.byte	-1
+ 1399 003c 00       		.byte	0
+ 1400 003d 00       		.byte	0
+ 1401 003e 00       		.byte	0
+ 1402 003f 00       		.byte	0
+ 1403 0040 00       		.byte	0
+ 1404 0041 00       		.byte	0
+ 1405 0042 00       		.byte	0
+ 1406 0043 00       		.byte	0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 36
+
+
+ 1407 0044 00       		.byte	0
+ 1408 0045 00       		.byte	0
+ 1409 0046 00       		.byte	0
+ 1410 0047 00       		.byte	0
+ 1411 0048 5E       		.byte	94
+ 1412 0049 DF       		.byte	-33
+ 1413 004a 22       		.byte	34
+ 1414 004b 00       		.byte	0
+ 1415 004c 00       		.byte	0
+ 1416 004d 00       		.byte	0
+ 1417 004e 00       		.byte	0
+ 1418 004f 00       		.byte	0
+ 1419 0050 00       		.byte	0
+ 1420 0051 00       		.byte	0
+ 1421 0052 00       		.byte	0
+ 1422 0053 00       		.byte	0
+ 1423 0054 00       		.byte	0
+ 1424 0055 00       		.byte	0
+ 1425 0056 00       		.byte	0
+ 1426 0057 00       		.byte	0
+ 1427 0058 A2       		.byte	-94
+ 1428 0059 20       		.byte	32
+ 1429 005a DD       		.byte	-35
+ 1430 005b FF       		.byte	-1
+ 1431 005c 00       		.byte	0
+ 1432 005d 00       		.byte	0
+ 1433 005e 00       		.byte	0
+ 1434 005f 00       		.byte	0
+ 1435 0060 00       		.byte	0
+ 1436 0061 00       		.byte	0
+ 1437 0062 00       		.byte	0
+ 1438 0063 00       		.byte	0
+ 1439 0064 00       		.byte	0
+ 1440 0065 00       		.byte	0
+ 1441 0066 00       		.byte	0
+ 1442 0067 00       		.byte	0
+ 1443 0068 A2       		.byte	-94
+ 1444 0069 20       		.byte	32
+ 1445 006a DD       		.byte	-35
+ 1446 006b FF       		.byte	-1
+ 1447 006c 00       		.byte	0
+ 1448 006d 00       		.byte	0
+ 1449 006e 00       		.byte	0
+ 1450 006f 00       		.byte	0
+ 1451 0070 00       		.byte	0
+ 1452 0071 00       		.byte	0
+ 1453 0072 00       		.byte	0
+ 1454 0073 00       		.byte	0
+ 1455 0074 00       		.byte	0
+ 1456 0075 00       		.byte	0
+ 1457 0076 00       		.byte	0
+ 1458 0077 00       		.byte	0
+ 1459 0078 00       		.byte	0
+ 1460 0079 00       		.byte	0
+ 1461 007a 00       		.byte	0
+ 1462 007b 00       		.byte	0
+ 1463 007c D6       		.byte	-42
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 37
+
+
+ 1464 007d 56       		.byte	86
+ 1465 007e EC       		.byte	-20
+ 1466 007f FF       		.byte	-1
+ 1467 0080 00       		.byte	0
+ 1468 0081 00       		.byte	0
+ 1469 0082 00       		.byte	0
+ 1470 0083 00       		.byte	0
+ 1471 0084 D6       		.byte	-42
+ 1472 0085 56       		.byte	86
+ 1473 0086 EC       		.byte	-20
+ 1474 0087 FF       		.byte	-1
+ 1475 0088 00       		.byte	0
+ 1476 0089 00       		.byte	0
+ 1477 008a 00       		.byte	0
+ 1478 008b 00       		.byte	0
+ 1479 008c 00       		.byte	0
+ 1480 008d 00       		.byte	0
+ 1481 008e 00       		.byte	0
+ 1482 008f 00       		.byte	0
+ 1483 0090 00       		.byte	0
+ 1484 0091 00       		.byte	0
+ 1485 0092 00       		.byte	0
+ 1486 0093 00       		.byte	0
+ 1487 0094 00       		.byte	0
+ 1488 0095 00       		.byte	0
+ 1489 0096 00       		.byte	0
+ 1490 0097 00       		.byte	0
+ 1491 0098 D6       		.byte	-42
+ 1492 0099 56       		.byte	86
+ 1493 009a EC       		.byte	-20
+ 1494 009b FF       		.byte	-1
+ 1495 009c 00       		.byte	0
+ 1496 009d 00       		.byte	0
+ 1497 009e 00       		.byte	0
+ 1498 009f 00       		.byte	0
+ 1499 00a0 00       		.byte	0
+ 1500 00a1 00       		.byte	0
+ 1501 00a2 00       		.byte	0
+ 1502 00a3 00       		.byte	0
+ 1503 00a4 00       		.byte	0
+ 1504 00a5 00       		.byte	0
+ 1505 00a6 00       		.byte	0
+ 1506 00a7 00       		.byte	0
+ 1507 00a8 32       		.byte	50
+ 1508 00a9 3A       		.byte	58
+ 1509 00aa 4D       		.byte	77
+ 1510 00ab 00       		.byte	0
+ 1511 00ac 66       		.byte	102
+ 1512 00ad A4       		.byte	-92
+ 1513 00ae 58       		.byte	88
+ 1514 00af 00       		.byte	0
+ 1515 00b0 10       		.byte	16
+ 1516 00b1 7E       		.byte	126
+ 1517 00b2 29       		.byte	41
+ 1518 00b3 00       		.byte	0
+ 1519 00b4 47       		.byte	71
+ 1520 00b5 44       		.byte	68
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 38
+
+
+ 1521 00b6 42       		.byte	66
+ 1522 00b7 03       		.byte	3
+ 1523 00b8 67       		.byte	103
+ 1524 00b9 B9       		.byte	-71
+ 1525 00ba 3D       		.byte	61
+ 1526 00bb 03       		.byte	3
+ 1527 00bc B6       		.byte	-74
+ 1528 00bd 2A       		.byte	42
+ 1529 00be E8       		.byte	-24
+ 1530 00bf 02       		.byte	2
+ 1531 00c0 D4       		.byte	-44
+ 1532 00c1 35       		.byte	53
+ 1533 00c2 17       		.byte	23
+ 1534 00c3 04       		.byte	4
+ 1535 00c4 C5       		.byte	-59
+ 1536 00c5 4B       		.byte	75
+ 1537 00c6 AC       		.byte	-84
+ 1538 00c7 01       		.byte	1
+ 1539 00c8 9E       		.byte	-98
+ 1540 00c9 87       		.byte	-121
+ 1541 00ca E6       		.byte	-26
+ 1542 00cb 01       		.byte	1
+ 1543 00cc BE       		.byte	-66
+ 1544 00cd 30       		.byte	48
+ 1545 00ce BE       		.byte	-66
+ 1546 00cf 45       		.byte	69
+ 1547 00d0 9A       		.byte	-102
+ 1548 00d1 C9       		.byte	-55
+ 1549 00d2 65       		.byte	101
+ 1550 00d3 4E       		.byte	78
+ 1551 00d4 FF       		.byte	-1
+ 1552 00d5 FF       		.byte	-1
+ 1553 00d6 FF       		.byte	-1
+ 1554 00d7 7F       		.byte	127
+ 1555 00d8 29       		.byte	41
+ 1556 00d9 5C       		.byte	92
+ 1557 00da 8F       		.byte	-113
+ 1558 00db 02       		.byte	2
+ 1559 00dc 00       		.byte	0
+ 1560 00dd 00       		.byte	0
+ 1561 00de 00       		.byte	0
+ 1562 00df 40       		.byte	64
+ 1563 00e0 14       		.byte	20
+ 1564 00e1 AE       		.byte	-82
+ 1565 00e2 47       		.byte	71
+ 1566 00e3 01       		.byte	1
+ 1567 00e4 24       		.byte	36
+ 1568 00e5 EE       		.byte	-18
+ 1569 00e6 41       		.byte	65
+ 1570 00e7 3F       		.byte	63
+ 1571              		.text
+ 1572              	.Letext0:
+ 1573              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1574              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1575              		.file 4 "Drivers/CMSIS/Include/core_cm3.h"
+ 1576              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 1577              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 39
+
+
+ 1578              		.file 7 "Inc/hardware.h"
+ 1579              		.file 8 "Inc/main.h"
+ 1580              		.file 9 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1581              		.file 10 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1582              		.file 11 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-non
+ 1583              		.file 12 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1584              		.file 13 "Drivers/SoftI2C/Inc/i2cSoft.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 40
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bno055.c
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:16     .text.getQuat:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:24     .text.getQuat:0000000000000000 getQuat
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:130    .text.getQuat:0000000000000068 $d
+                            *COM*:0000000000000008 bufferquat
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:137    .text.getEuler:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:144    .text.getEuler:0000000000000000 getEuler
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:244    .text.getEuler:0000000000000068 $d
+                            *COM*:0000000000000006 buffer
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:250    .text.getLinear:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:257    .text.getLinear:0000000000000000 getLinear
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:357    .text.getLinear:0000000000000064 $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:363    .text.I2C_read8:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:370    .text.I2C_read8:0000000000000000 I2C_read8
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:399    .text.getTemp:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:406    .text.getTemp:0000000000000000 getTemp
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:430    .text.getCalibration:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:437    .text.getCalibration:0000000000000000 getCalibration
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:514    .text.I2C_write8:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:521    .text.I2C_write8:0000000000000000 I2C_write8
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:560    .text.I2C_write8:0000000000000018 $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:565    .text.setMode:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:572    .text.setMode:0000000000000000 setMode
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:603    .text.begin:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:610    .text.begin:0000000000000000 begin
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:759    .text.begin:00000000000000bc $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:764    .text.setExtCrystalUse:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:771    .text.setExtCrystalUse:0000000000000000 setExtCrystalUse
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:838    .text.setExtCrystalUse:000000000000004c $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:843    .text.getSystemStatus:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:850    .text.getSystemStatus:0000000000000000 getSystemStatus
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:939    .text.I2C_read16:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:946    .text.I2C_read16:0000000000000000 I2C_read16
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:988    .text.getVector:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:995    .text.getVector:0000000000000000 getVector
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1053   .text.getVector:0000000000000034 $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1298   .text.getVector:0000000000000178 $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1338   .rodata.scd:0000000000000000 scd
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1332   .data.bno_mode:0000000000000000 bno_mode
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+                            *COM*:0000000000000010 send_report
+                            *COM*:0000000000000001 packet_num
+                            *COM*:0000000000000001 video_detected
+                            *COM*:0000000000000001 hid_ver
+                            *COM*:0000000000000001 edid
+                            *COM*:0000000000000001 mode
+                            *COM*:0000000000000001 stage
+                            *COM*:0000000000000001 old_status
+                            *COM*:0000000000000001 lane_status
+                            *COM*:0000000000000001 status
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1322   .bss.buffer.6855:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1326   .bss.buffer.6855:0000000000000000 buffer.6855
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s 			page 41
+
+
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1335   .rodata.scd:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1092   .text.getVector:000000000000005b $d
+C:\Users\madmax\AppData\Local\Temp\ccO5CCrF.s:1092   .text.getVector:000000000000005c $t
+
+UNDEFINED SYMBOLS
+i2cSoft_Mem_Read
+__aeabi_i2f
+__aeabi_fmul
+__aeabi_fdiv
+i2cSoft_Read
+i2cSoft_WriteBuffer
+HAL_Delay
+i2cSoft_WriteByteOled
+i2cSoft_ReadBuffer

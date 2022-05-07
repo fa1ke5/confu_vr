@@ -1,0 +1,4 @@
+savebin build\readed_fw.bin, 0x00, 0x10000
+r
+g
+q

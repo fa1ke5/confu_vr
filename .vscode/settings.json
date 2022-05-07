@@ -1,0 +1,11 @@
+{
+    "cortex-debug.armToolchainPath": "D:/STM32/GNU MCU Eclipse/ARM Embedded GCC/8.2.1-1.4-20190214-0604/bin",
+    "cortex-debug.openocdPath": "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015",
+    "files.associations": {
+        "handler.h": "c",
+        "usbd_cdc_hid.h": "c",
+        "usbd_cdc.h": "c",
+        "usbd_cdc_if.h": "c",
+        "usbd_core.h": "c"
+    }
+}

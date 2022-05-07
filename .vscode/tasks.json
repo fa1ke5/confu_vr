@@ -1,0 +1,225 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build project",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/Build Tools/2.12-20190422-1053/bin/make.exe",
+            "args": [
+                "GCC_PATH=D:/STM32/GNU MCU Eclipse/ARM Embedded GCC/8.2.1-1.4-20190214-0604/bin",
+                "-j6"
+            ],
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "presentation": {
+                "focus": true
+            }
+        },
+        {
+            "label": "Compile current file",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/ARM Embedded GCC/8.2.1-1.4-20190214-0604/bin/arm-none-eabi-gcc.exe",
+            "args": [
+                "-c",
+                "-DUSE_HAL_DRIVER",
+                "-DSTM32F103xB",
+                "-IInc",
+                "-IDrivers/STM32F1xx_HAL_Driver/Inc",
+                "-IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy",
+                "-IDrivers/CMSIS/Device/ST/STM32F1xx/Include",
+                "-IDrivers/CMSIS/Include",
+                "-IDrivers/CMSIS/Include",
+                "-IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc",
+                "-IMiddlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc",
+                "-IMiddlewares/ST/STM32_USB_Device_Library/Class/Composite_CDC_CHID/Inc",
+                "-mcpu=cortex-m3",
+                "-mthumb",
+                "-DUSE_HAL_DRIVER",
+                "-DSTM32F103xB",
+                "-IInc",
+                "-IDrivers/STM32F1xx_HAL_Driver/Inc",
+                "-IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy",
+                "-IDrivers/CMSIS/Device/ST/STM32F1xx/Include",
+                "-IDrivers/CMSIS/Include",
+                "-IDrivers/CMSIS/Include",
+                "-IMiddlewares/ST/STM32_USB_Device_Library/Core/Inc",
+                "-IMiddlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc",
+                "-IMiddlewares/ST/STM32_USB_Device_Library/Class/Composite_CDC_CHID/Inc",
+                "-Og",
+                "-Wall",
+                "-fdata-sections",
+                "-ffunction-sections",
+                "-g",
+                "-gdwarf-2",
+                "-MMD",
+                "-MP",
+                "-MF'build/${fileBasenameNoExtension}.d'",
+                "'${relativeFile}'",
+                "-o",
+                "'build/${fileBasenameNoExtension}.o'"
+            ],
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "presentation": {
+                "focus": true
+            }
+        },
+        {
+            "label": "Delete build folder",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/Build Tools/2.12-20190422-1053/bin/make.exe",
+            "args": [
+                "clean"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "focus": false
+            }
+        },
+        {
+            "label": "DFU: Build and load from DFU",
+            "type": "shell",
+            "command": "DfuUtil/LibUsbDfu.Cli.exe",
+            "args": [
+                "-d",
+                "0483:DF11",
+                "-v",
+                "0.0",
+                "-i",
+                "build/CONFU_VR.hex"
+            ],
+            "problemMatcher": [],
+            "dependsOn": "Build project"
+        },
+        {
+            "label": "CPU: Build, Download and run",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/bin/openocd.exe",
+            "args": [
+                "-f",
+                "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/scripts/interface/stlink.cfg",
+                "-f",
+                ".vscode/stm32f1x.cfg",
+                "-c",
+                "program build/CONFU_VR.elf verify reset exit 0x08003000"
+            ],
+            "problemMatcher": [],
+            "dependsOn": "Build project"
+        },
+        {
+            "label": "CPU: Download and run",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/bin/openocd.exe",
+            "args": [
+                "-f",
+                "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/scripts/interface/stlink.cfg",
+                "-f",
+                ".vscode/stm32f1x.cfg",
+                "-c",
+                "program build/CONFU_VR.elf verify reset exit"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CPU: Reset and run",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/bin/openocd.exe",
+            "args": [
+                "-f",
+                "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/scripts/interface/stlink.cfg",
+                "-f",
+                ".vscode/stm32f1x.cfg",
+                "-c init",
+                "-c reset",
+                "-c exit"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CPU: Halt",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/bin/openocd.exe",
+            "args": [
+                "-f",
+                "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/scripts/interface/stlink.cfg",
+                "-f",
+                ".vscode/stm32f1x.cfg",
+                "-c init",
+                "-c halt",
+                "-c exit"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "CPU: Run",
+            "type": "shell",
+            "command": "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/bin/openocd.exe",
+            "args": [
+                "-f",
+                "D:/STM32/GNU MCU Eclipse/OpenOCD/0.10.0-12-20190422-2015/scripts/interface/stlink.cfg",
+                "-f",
+                ".vscode/stm32f1x.cfg",
+                "-c init",
+                "-c resume",
+                "-c exit"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Python file",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${file}"
+            ],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Open CubeMX project",
+            "type": "shell",
+            "command": "start",
+            "args": [
+                "CONFU_VR.ioc"
+            ],
+            "presentation": {
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Update workspace",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/ideScripts/update.py"
+            ],
+            "presentation": {
+                "focus": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,6 @@
+r
+loadbin build\CONFU_VR.bin, 0x00
+verifybin build\CONFU_VR.bin, 0x00
+r
+g
+q
