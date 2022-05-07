@@ -1,0 +1,254 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"usb_device.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.MX_USB_DEVICE_Init,"ax",%progbits
+  16              		.align	1
+  17              		.global	MX_USB_DEVICE_Init
+  18              		.arch armv7-m
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	MX_USB_DEVICE_Init:
+  25              	.LFB68:
+  26              		.file 1 "Src/usb_device.c"
+   1:Src/usb_device.c **** /* USER CODE BEGIN Header */
+   2:Src/usb_device.c **** /**
+   3:Src/usb_device.c ****   ******************************************************************************
+   4:Src/usb_device.c ****   * @file           : usb_device.c
+   5:Src/usb_device.c ****   * @version        : v2.0_Cube
+   6:Src/usb_device.c ****   * @brief          : This file implements the USB Device
+   7:Src/usb_device.c ****   ******************************************************************************
+   8:Src/usb_device.c ****   * @attention
+   9:Src/usb_device.c ****   *
+  10:Src/usb_device.c ****   * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  11:Src/usb_device.c ****   * All rights reserved.</center></h2>
+  12:Src/usb_device.c ****   *
+  13:Src/usb_device.c ****   * This software component is licensed by ST under Ultimate Liberty license
+  14:Src/usb_device.c ****   * SLA0044, the "License"; You may not use this file except in compliance with
+  15:Src/usb_device.c ****   * the License. You may obtain a copy of the License at:
+  16:Src/usb_device.c ****   *                             www.st.com/SLA0044
+  17:Src/usb_device.c ****   *
+  18:Src/usb_device.c ****   ******************************************************************************
+  19:Src/usb_device.c ****   */
+  20:Src/usb_device.c **** /* USER CODE END Header */
+  21:Src/usb_device.c **** 
+  22:Src/usb_device.c **** /* Includes ------------------------------------------------------------------*/
+  23:Src/usb_device.c **** 
+  24:Src/usb_device.c **** #include "usb_device.h"
+  25:Src/usb_device.c **** #include "usbd_core.h"
+  26:Src/usb_device.c **** #include "usbd_desc.h"
+  27:Src/usb_device.c **** #include "usbd_cdc.h"
+  28:Src/usb_device.c **** #include "usbd_cdc_if.h"
+  29:Src/usb_device.c **** #include "usbd_customhid.h"
+  30:Src/usb_device.c **** #include "usbd_custom_hid_if.h"
+  31:Src/usb_device.c **** #include "usbd_cdc_hid.h"
+  32:Src/usb_device.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s 			page 2
+
+
+  33:Src/usb_device.c **** /* USER CODE BEGIN Includes */
+  34:Src/usb_device.c **** 
+  35:Src/usb_device.c **** /* USER CODE END Includes */
+  36:Src/usb_device.c **** 
+  37:Src/usb_device.c **** /* USER CODE BEGIN PV */
+  38:Src/usb_device.c **** /* Private variables ---------------------------------------------------------*/
+  39:Src/usb_device.c **** 
+  40:Src/usb_device.c **** /* USER CODE END PV */
+  41:Src/usb_device.c **** 
+  42:Src/usb_device.c **** /* USER CODE BEGIN PFP */
+  43:Src/usb_device.c **** /* Private function prototypes -----------------------------------------------*/
+  44:Src/usb_device.c **** 
+  45:Src/usb_device.c **** /* USER CODE END PFP */
+  46:Src/usb_device.c **** 
+  47:Src/usb_device.c **** /* USB Device Core handle declaration. */
+  48:Src/usb_device.c **** USBD_HandleTypeDef hUsbDeviceFS;
+  49:Src/usb_device.c **** 
+  50:Src/usb_device.c **** /*
+  51:Src/usb_device.c ****  * -- Insert your variables declaration here --
+  52:Src/usb_device.c ****  */
+  53:Src/usb_device.c **** /* USER CODE BEGIN 0 */
+  54:Src/usb_device.c **** 
+  55:Src/usb_device.c **** /* USER CODE END 0 */
+  56:Src/usb_device.c **** 
+  57:Src/usb_device.c **** /*
+  58:Src/usb_device.c ****  * -- Insert your external function declaration here --
+  59:Src/usb_device.c ****  */
+  60:Src/usb_device.c **** /* USER CODE BEGIN 1 */
+  61:Src/usb_device.c **** 
+  62:Src/usb_device.c **** /* USER CODE END 1 */
+  63:Src/usb_device.c **** 
+  64:Src/usb_device.c **** /**
+  65:Src/usb_device.c ****   * Init USB device Library, add supported class and start the library
+  66:Src/usb_device.c ****   * @retval None
+  67:Src/usb_device.c ****   */
+  68:Src/usb_device.c **** void MX_USB_DEVICE_Init(void)
+  69:Src/usb_device.c **** {
+  27              		.loc 1 69 1 view -0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  70:Src/usb_device.c ****   /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
+  71:Src/usb_device.c ****   
+  72:Src/usb_device.c ****   /* USER CODE END USB_DEVICE_Init_PreTreatment */
+  73:Src/usb_device.c ****   
+  74:Src/usb_device.c ****   /* Init Device Library, add supported class and start the library. */
+  75:Src/usb_device.c ****   /*
+  76:Src/usb_device.c ****   if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK)
+  77:Src/usb_device.c ****   {
+  78:Src/usb_device.c ****     Error_Handler();
+  79:Src/usb_device.c ****   }
+  80:Src/usb_device.c ****   if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CUSTOM_HID) != USBD_OK)
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s 			page 3
+
+
+  81:Src/usb_device.c ****   {
+  82:Src/usb_device.c ****     Error_Handler();
+  83:Src/usb_device.c ****   }
+  84:Src/usb_device.c ****   if (USBD_CUSTOM_HID_RegisterInterface(&hUsbDeviceFS, &USBD_CustomHID_fops_FS) != USBD_OK)
+  85:Src/usb_device.c ****   {
+  86:Src/usb_device.c ****     Error_Handler();
+  87:Src/usb_device.c ****   }
+  88:Src/usb_device.c ****   if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
+  89:Src/usb_device.c ****   {
+  90:Src/usb_device.c ****     Error_Handler();
+  91:Src/usb_device.c ****   }
+  92:Src/usb_device.c **** */
+  93:Src/usb_device.c ****   /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
+  94:Src/usb_device.c **** 
+  95:Src/usb_device.c **** 
+  96:Src/usb_device.c ****   /* Init Device Library,Add Supported Class and Start the library*/
+  97:Src/usb_device.c ****   USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
+  36              		.loc 1 97 3 view .LVU1
+  37 0002 084C     		ldr	r4, .L3
+  38 0004 0022     		movs	r2, #0
+  39 0006 0849     		ldr	r1, .L3+4
+  40 0008 2046     		mov	r0, r4
+  41 000a FFF7FEFF 		bl	USBD_Init
+  42              	.LVL0:
+  98:Src/usb_device.c **** 
+  99:Src/usb_device.c ****   USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC_HID);
+  43              		.loc 1 99 3 view .LVU2
+  44 000e 0749     		ldr	r1, .L3+8
+  45 0010 2046     		mov	r0, r4
+  46 0012 FFF7FEFF 		bl	USBD_RegisterClass
+  47              	.LVL1:
+ 100:Src/usb_device.c **** 
+ 101:Src/usb_device.c **** //  USBD_CDC_HID_RegisterInterface(&hUsbDeviceFS, &USBD_CustomHID_fops_FS);
+ 102:Src/usb_device.c **** 	USBD_CDC_HID_RegisterInterface(&hUsbDeviceFS);
+  48              		.loc 1 102 2 view .LVU3
+  49 0016 2046     		mov	r0, r4
+  50 0018 FFF7FEFF 		bl	USBD_CDC_HID_RegisterInterface
+  51              	.LVL2:
+ 103:Src/usb_device.c **** 
+ 104:Src/usb_device.c ****   USBD_Start(&hUsbDeviceFS);
+  52              		.loc 1 104 3 view .LVU4
+  53 001c 2046     		mov	r0, r4
+  54 001e FFF7FEFF 		bl	USBD_Start
+  55              	.LVL3:
+ 105:Src/usb_device.c **** 
+ 106:Src/usb_device.c **** 
+ 107:Src/usb_device.c ****   
+ 108:Src/usb_device.c ****   /* USER CODE END USB_DEVICE_Init_PostTreatment */
+ 109:Src/usb_device.c **** }
+  56              		.loc 1 109 1 is_stmt 0 view .LVU5
+  57 0022 10BD     		pop	{r4, pc}
+  58              	.L4:
+  59              		.align	2
+  60              	.L3:
+  61 0024 00000000 		.word	hUsbDeviceFS
+  62 0028 00000000 		.word	FS_Desc
+  63 002c 00000000 		.word	USBD_CDC_HID
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s 			page 4
+
+
+  64              		.cfi_endproc
+  65              	.LFE68:
+  67              		.comm	hUsbDeviceFS,708,4
+  68              		.comm	QuatW,4,4
+  69              		.comm	QuatZ,4,4
+  70              		.comm	QuatY,4,4
+  71              		.comm	QuatX,4,4
+  72              		.comm	f_report,16,4
+  73              		.comm	send_report,16,4
+  74              		.comm	packet_num,1,1
+  75              		.comm	video_detected,1,1
+  76              		.comm	hid_ver,1,1
+  77              		.comm	edid,1,1
+  78              		.comm	mode,1,1
+  79              		.comm	stage,1,1
+  80              		.comm	old_status,1,1
+  81              		.comm	lane_status,1,1
+  82              		.comm	status,1,1
+  83              		.text
+  84              	.Letext0:
+  85              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+  86              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+  87              		.file 4 "Drivers/CMSIS/Include/core_cm3.h"
+  88              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+  89              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+  90              		.file 7 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+  91              		.file 8 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+  92              		.file 9 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-none
+  93              		.file 10 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+  94              		.file 11 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+  95              		.file 12 "Inc/main.h"
+  96              		.file 13 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+  97              		.file 14 "Inc/usbd_desc.h"
+  98              		.file 15 "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h"
+  99              		.file 16 "Inc/usbd_cdc_if.h"
+ 100              		.file 17 "Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc/usbd_customhid.h"
+ 101              		.file 18 "Inc/usbd_custom_hid_if.h"
+ 102              		.file 19 "Middlewares/ST/STM32_USB_Device_Library/Class/Composite_CDC_CHID/Inc/usbd_cdc_hid.h"
+ 103              		.file 20 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usb_device.c
+C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s:16     .text.MX_USB_DEVICE_Init:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s:24     .text.MX_USB_DEVICE_Init:0000000000000000 MX_USB_DEVICE_Init
+C:\Users\madmax\AppData\Local\Temp\ccZbgznP.s:61     .text.MX_USB_DEVICE_Init:0000000000000024 $d
+                            *COM*:00000000000002c4 hUsbDeviceFS
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+                            *COM*:0000000000000010 send_report
+                            *COM*:0000000000000001 packet_num
+                            *COM*:0000000000000001 video_detected
+                            *COM*:0000000000000001 hid_ver
+                            *COM*:0000000000000001 edid
+                            *COM*:0000000000000001 mode
+                            *COM*:0000000000000001 stage
+                            *COM*:0000000000000001 old_status
+                            *COM*:0000000000000001 lane_status
+                            *COM*:0000000000000001 status
+
+UNDEFINED SYMBOLS
+USBD_Init
+USBD_RegisterClass
+USBD_CDC_HID_RegisterInterface
+USBD_Start
+FS_Desc
+USBD_CDC_HID

@@ -1,0 +1,827 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"usbd_custom_hid_if.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.CUSTOM_HID_Init_FS,"ax",%progbits
+  16              		.align	1
+  17              		.arch armv7-m
+  18              		.syntax unified
+  19              		.thumb
+  20              		.thumb_func
+  21              		.fpu softvfp
+  23              	CUSTOM_HID_Init_FS:
+  24              	.LFB68:
+  25              		.file 1 "Src/usbd_custom_hid_if.c"
+   1:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN Header */
+   2:Src/usbd_custom_hid_if.c **** /**
+   3:Src/usbd_custom_hid_if.c ****   ******************************************************************************
+   4:Src/usbd_custom_hid_if.c ****   * @file           : usbd_custom_hid_if.c
+   5:Src/usbd_custom_hid_if.c ****   * @version        : v2.0_Cube
+   6:Src/usbd_custom_hid_if.c ****   * @brief          : USB Device Custom HID interface file.
+   7:Src/usbd_custom_hid_if.c ****   ******************************************************************************
+   8:Src/usbd_custom_hid_if.c ****   * @attention
+   9:Src/usbd_custom_hid_if.c ****   *
+  10:Src/usbd_custom_hid_if.c ****   * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  11:Src/usbd_custom_hid_if.c ****   * All rights reserved.</center></h2>
+  12:Src/usbd_custom_hid_if.c ****   *
+  13:Src/usbd_custom_hid_if.c ****   * This software component is licensed by ST under Ultimate Liberty license
+  14:Src/usbd_custom_hid_if.c ****   * SLA0044, the "License"; You may not use this file except in compliance with
+  15:Src/usbd_custom_hid_if.c ****   * the License. You may obtain a copy of the License at:
+  16:Src/usbd_custom_hid_if.c ****   *                             www.st.com/SLA0044
+  17:Src/usbd_custom_hid_if.c ****   *
+  18:Src/usbd_custom_hid_if.c ****   ******************************************************************************
+  19:Src/usbd_custom_hid_if.c ****   */
+  20:Src/usbd_custom_hid_if.c **** /* USER CODE END Header */
+  21:Src/usbd_custom_hid_if.c **** 
+  22:Src/usbd_custom_hid_if.c **** /* Includes ------------------------------------------------------------------*/
+  23:Src/usbd_custom_hid_if.c **** #include "usbd_custom_hid_if.h"
+  24:Src/usbd_custom_hid_if.c **** #include "Handler.h"
+  25:Src/usbd_custom_hid_if.c **** #include "hardware.h"
+  26:Src/usbd_custom_hid_if.c **** #include "SerialTrans.h"
+  27:Src/usbd_custom_hid_if.c **** 
+  28:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN INCLUDE */
+  29:Src/usbd_custom_hid_if.c **** 
+  30:Src/usbd_custom_hid_if.c **** /* USER CODE END INCLUDE */
+  31:Src/usbd_custom_hid_if.c **** 
+  32:Src/usbd_custom_hid_if.c **** /* Private typedef -----------------------------------------------------------*/
+  33:Src/usbd_custom_hid_if.c **** /* Private define ------------------------------------------------------------*/
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 2
+
+
+  34:Src/usbd_custom_hid_if.c **** /* Private macro -------------------------------------------------------------*/
+  35:Src/usbd_custom_hid_if.c **** 
+  36:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN PV */
+  37:Src/usbd_custom_hid_if.c **** /* Private variables ---------------------------------------------------------*/
+  38:Src/usbd_custom_hid_if.c **** 
+  39:Src/usbd_custom_hid_if.c **** /* USER CODE END PV */
+  40:Src/usbd_custom_hid_if.c **** 
+  41:Src/usbd_custom_hid_if.c **** /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
+  42:Src/usbd_custom_hid_if.c ****   * @brief Usb device.
+  43:Src/usbd_custom_hid_if.c ****   * @{
+  44:Src/usbd_custom_hid_if.c ****   */
+  45:Src/usbd_custom_hid_if.c **** 
+  46:Src/usbd_custom_hid_if.c **** /** @addtogroup USBD_CUSTOM_HID
+  47:Src/usbd_custom_hid_if.c ****   * @{
+  48:Src/usbd_custom_hid_if.c ****   */
+  49:Src/usbd_custom_hid_if.c **** 
+  50:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Private_TypesDefinitions USBD_CUSTOM_HID_Private_TypesDefinitions
+  51:Src/usbd_custom_hid_if.c ****   * @brief Private types.
+  52:Src/usbd_custom_hid_if.c ****   * @{
+  53:Src/usbd_custom_hid_if.c ****   */
+  54:Src/usbd_custom_hid_if.c **** 
+  55:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN PRIVATE_TYPES */
+  56:Src/usbd_custom_hid_if.c **** 
+  57:Src/usbd_custom_hid_if.c **** /* USER CODE END PRIVATE_TYPES */
+  58:Src/usbd_custom_hid_if.c **** 
+  59:Src/usbd_custom_hid_if.c **** /**
+  60:Src/usbd_custom_hid_if.c ****   * @}
+  61:Src/usbd_custom_hid_if.c ****   */
+  62:Src/usbd_custom_hid_if.c **** 
+  63:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Private_Defines USBD_CUSTOM_HID_Private_Defines
+  64:Src/usbd_custom_hid_if.c ****   * @brief Private defines.
+  65:Src/usbd_custom_hid_if.c ****   * @{
+  66:Src/usbd_custom_hid_if.c ****   */
+  67:Src/usbd_custom_hid_if.c **** 
+  68:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN PRIVATE_DEFINES */
+  69:Src/usbd_custom_hid_if.c **** 
+  70:Src/usbd_custom_hid_if.c **** /* USER CODE END PRIVATE_DEFINES */
+  71:Src/usbd_custom_hid_if.c **** 
+  72:Src/usbd_custom_hid_if.c **** /**
+  73:Src/usbd_custom_hid_if.c ****   * @}
+  74:Src/usbd_custom_hid_if.c ****   */
+  75:Src/usbd_custom_hid_if.c **** 
+  76:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Private_Macros USBD_CUSTOM_HID_Private_Macros
+  77:Src/usbd_custom_hid_if.c ****   * @brief Private macros.
+  78:Src/usbd_custom_hid_if.c ****   * @{
+  79:Src/usbd_custom_hid_if.c ****   */
+  80:Src/usbd_custom_hid_if.c **** 
+  81:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN PRIVATE_MACRO */
+  82:Src/usbd_custom_hid_if.c **** 
+  83:Src/usbd_custom_hid_if.c **** /* USER CODE END PRIVATE_MACRO */
+  84:Src/usbd_custom_hid_if.c **** 
+  85:Src/usbd_custom_hid_if.c **** /**
+  86:Src/usbd_custom_hid_if.c ****   * @}
+  87:Src/usbd_custom_hid_if.c ****   */
+  88:Src/usbd_custom_hid_if.c **** 
+  89:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Private_Variables USBD_CUSTOM_HID_Private_Variables
+  90:Src/usbd_custom_hid_if.c ****   * @brief Private variables.
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 3
+
+
+  91:Src/usbd_custom_hid_if.c ****   * @{
+  92:Src/usbd_custom_hid_if.c ****   */
+  93:Src/usbd_custom_hid_if.c **** 
+  94:Src/usbd_custom_hid_if.c **** /** Usb HID report descriptor. */
+  95:Src/usbd_custom_hid_if.c **** __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DESC_SIZE] __ALIGN_END
+  96:Src/usbd_custom_hid_if.c **** {
+  97:Src/usbd_custom_hid_if.c ****  /* USER CODE BEGIN 0 */ 
+  98:Src/usbd_custom_hid_if.c **** 	//from PC
+  99:Src/usbd_custom_hid_if.c **** 0x06, 0xFF, 0xFF,	// 04|2   , Usage Page (vendor defined?)
+ 100:Src/usbd_custom_hid_if.c ****         0x09, 0x01,	// 08|1   , Usage      (vendor defined
+ 101:Src/usbd_custom_hid_if.c ****         0xA1, 0x01,	// A0|1   , Collection (Application)
+ 102:Src/usbd_custom_hid_if.c ****         // IN report
+ 103:Src/usbd_custom_hid_if.c ****         0x09, 0x02,	// 08|1   , Usage      (vendor defined)
+ 104:Src/usbd_custom_hid_if.c ****         0x09, 0x03,	// 08|1   , Usage      (vendor defined)
+ 105:Src/usbd_custom_hid_if.c ****         0x15, 0x00,	// 14|1   , Logical Minimum(0 for signed byte?)
+ 106:Src/usbd_custom_hid_if.c ****         0x26, 0xFF, 0x00,	// 24|1   , Logical Maximum(255 for signed byte?)
+ 107:Src/usbd_custom_hid_if.c ****         0x75, 0x08,	// 74|1   , Report Size(8) = field size in bits = 1 byte
+ 108:Src/usbd_custom_hid_if.c ****         // 94|1   , ReportCount(size) = repeat count of previous item
+ 109:Src/usbd_custom_hid_if.c ****         0x95, 0x10, //sizeof(udi_hid_generic_report_in), //Out report size 16**********************
+ 110:Src/usbd_custom_hid_if.c ****         0x81, 0x02,	// 80|1   , IN report (Data,Variable, Absolute)
+ 111:Src/usbd_custom_hid_if.c ****         // OUT report
+ 112:Src/usbd_custom_hid_if.c ****         0x09, 0x04,	// 08|1   , Usage      (vendor defined)
+ 113:Src/usbd_custom_hid_if.c ****         0x09, 0x05,	// 08|1   , Usage      (vendor defined)
+ 114:Src/usbd_custom_hid_if.c ****         0x15, 0x00,	// 14|1   , Logical Minimum(0 for signed byte?)
+ 115:Src/usbd_custom_hid_if.c ****         0x26, 0xFF, 0x00,	// 24|1   , Logical Maximum(255 for signed byte?)
+ 116:Src/usbd_custom_hid_if.c ****         0x75, 0x08,	// 74|1   , Report Size(8) = field size in bits = 1 byte
+ 117:Src/usbd_custom_hid_if.c ****         // 94|1   , ReportCount(size) = repeat count of previous item
+ 118:Src/usbd_custom_hid_if.c ****         0x95, 0x40,// sizeof(udi_hid_generic_report_out), //In report size 64**********************
+ 119:Src/usbd_custom_hid_if.c ****         0x91, 0x02,	// 90|1   , OUT report (Data,Variable, Absolute)
+ 120:Src/usbd_custom_hid_if.c ****         // Feature report
+ 121:Src/usbd_custom_hid_if.c ****         0x09, 0x06,	// 08|1   , Usage      (vendor defined)
+ 122:Src/usbd_custom_hid_if.c ****         0x09, 0x07,	// 08|1   , Usage      (vendor defined)
+ 123:Src/usbd_custom_hid_if.c ****         0x15, 0x00,	// 14|1   , LogicalMinimum(0 for signed byte)
+ 124:Src/usbd_custom_hid_if.c ****         0x26, 0xFF, 0x00,	// 24|1   , Logical Maximum(255 for signed byte)
+ 125:Src/usbd_custom_hid_if.c ****         0x75, 0x08,	// 74|1   , Report Size(8) =field size in bits = 1 byte
+ 126:Src/usbd_custom_hid_if.c ****         0x95, 0x10, //sizeof(udi_hid_generic_report_feature),	// 94|x   , ReportCount in byte //UDI
+ 127:Src/usbd_custom_hid_if.c ****         0xB1, 0x02,	// B0|1   , Feature report
+ 128:Src/usbd_custom_hid_if.c ****         0xC0	// C0|0   , End Collection
+ 129:Src/usbd_custom_hid_if.c **** 
+ 130:Src/usbd_custom_hid_if.c **** };
+ 131:Src/usbd_custom_hid_if.c **** 
+ 132:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN PRIVATE_VARIABLES */
+ 133:Src/usbd_custom_hid_if.c **** //extern char uart_tx[BUF_SIZE], spi_tx[BUF_SIZE];
+ 134:Src/usbd_custom_hid_if.c **** extern uint8_t countTx, writePointerTx, spiCountTx, spiWritePointerTx;
+ 135:Src/usbd_custom_hid_if.c **** /* USER CODE END PRIVATE_VARIABLES */
+ 136:Src/usbd_custom_hid_if.c **** 
+ 137:Src/usbd_custom_hid_if.c **** /**
+ 138:Src/usbd_custom_hid_if.c ****   * @}
+ 139:Src/usbd_custom_hid_if.c ****   */
+ 140:Src/usbd_custom_hid_if.c **** 
+ 141:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Exported_Variables USBD_CUSTOM_HID_Exported_Variables
+ 142:Src/usbd_custom_hid_if.c ****   * @brief Public variables.
+ 143:Src/usbd_custom_hid_if.c ****   * @{
+ 144:Src/usbd_custom_hid_if.c ****   */
+ 145:Src/usbd_custom_hid_if.c **** extern USBD_HandleTypeDef hUsbDeviceFS;
+ 146:Src/usbd_custom_hid_if.c **** 
+ 147:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN EXPORTED_VARIABLES */
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 4
+
+
+ 148:Src/usbd_custom_hid_if.c **** extern uint8_t uartBusy;
+ 149:Src/usbd_custom_hid_if.c **** /* USER CODE END EXPORTED_VARIABLES */
+ 150:Src/usbd_custom_hid_if.c **** /**
+ 151:Src/usbd_custom_hid_if.c ****   * @}
+ 152:Src/usbd_custom_hid_if.c ****   */
+ 153:Src/usbd_custom_hid_if.c **** 
+ 154:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Private_FunctionPrototypes USBD_CUSTOM_HID_Private_FunctionPrototypes
+ 155:Src/usbd_custom_hid_if.c ****   * @brief Private functions declaration.
+ 156:Src/usbd_custom_hid_if.c ****   * @{
+ 157:Src/usbd_custom_hid_if.c ****   */
+ 158:Src/usbd_custom_hid_if.c **** 
+ 159:Src/usbd_custom_hid_if.c **** static int8_t CUSTOM_HID_Init_FS(void);
+ 160:Src/usbd_custom_hid_if.c **** static int8_t CUSTOM_HID_DeInit_FS(void);
+ 161:Src/usbd_custom_hid_if.c **** static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state);
+ 162:Src/usbd_custom_hid_if.c **** 
+ 163:Src/usbd_custom_hid_if.c **** //static int8_t CustomHID_OutEvent    (uint8_t event_idx, uint8_t* buffer);
+ 164:Src/usbd_custom_hid_if.c **** static int8_t CustomHID_SetFeature  (uint8_t event_idx, uint8_t* buffer);
+ 165:Src/usbd_custom_hid_if.c **** static int8_t CustomHID_GetFeature  (uint8_t event_idx, uint8_t* buffer, uint16_t* length);
+ 166:Src/usbd_custom_hid_if.c **** static uint16_t CustomHID_FeatureReportLength(uint8_t event_idx);
+ 167:Src/usbd_custom_hid_if.c **** 
+ 168:Src/usbd_custom_hid_if.c **** /**
+ 169:Src/usbd_custom_hid_if.c ****   * @}
+ 170:Src/usbd_custom_hid_if.c ****   */
+ 171:Src/usbd_custom_hid_if.c **** 
+ 172:Src/usbd_custom_hid_if.c **** USBD_CUSTOM_HID_ItfTypeDef USBD_CustomHID_fops_FS =
+ 173:Src/usbd_custom_hid_if.c **** {
+ 174:Src/usbd_custom_hid_if.c ****   CUSTOM_HID_ReportDesc_FS,
+ 175:Src/usbd_custom_hid_if.c ****   CUSTOM_HID_Init_FS,
+ 176:Src/usbd_custom_hid_if.c ****   CUSTOM_HID_DeInit_FS,
+ 177:Src/usbd_custom_hid_if.c ****   CUSTOM_HID_OutEvent_FS,
+ 178:Src/usbd_custom_hid_if.c ****   CustomHID_SetFeature,
+ 179:Src/usbd_custom_hid_if.c ****   CustomHID_GetFeature
+ 180:Src/usbd_custom_hid_if.c **** };
+ 181:Src/usbd_custom_hid_if.c **** 
+ 182:Src/usbd_custom_hid_if.c **** /** @defgroup USBD_CUSTOM_HID_Private_Functions USBD_CUSTOM_HID_Private_Functions
+ 183:Src/usbd_custom_hid_if.c ****   * @brief Private functions.
+ 184:Src/usbd_custom_hid_if.c ****   * @{
+ 185:Src/usbd_custom_hid_if.c ****   */
+ 186:Src/usbd_custom_hid_if.c **** 
+ 187:Src/usbd_custom_hid_if.c **** /* Private functions ---------------------------------------------------------*/
+ 188:Src/usbd_custom_hid_if.c **** 
+ 189:Src/usbd_custom_hid_if.c **** /**
+ 190:Src/usbd_custom_hid_if.c ****   * @brief  Initializes the CUSTOM HID media low layer
+ 191:Src/usbd_custom_hid_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL
+ 192:Src/usbd_custom_hid_if.c ****   */
+ 193:Src/usbd_custom_hid_if.c **** static int8_t CUSTOM_HID_Init_FS(void)
+ 194:Src/usbd_custom_hid_if.c **** {
+  26              		.loc 1 194 1 view -0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+ 195:Src/usbd_custom_hid_if.c ****   /* USER CODE BEGIN 4 */
+ 196:Src/usbd_custom_hid_if.c ****   return (USBD_OK);
+  31              		.loc 1 196 3 view .LVU1
+ 197:Src/usbd_custom_hid_if.c ****   /* USER CODE END 4 */
+ 198:Src/usbd_custom_hid_if.c **** }
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 5
+
+
+  32              		.loc 1 198 1 is_stmt 0 view .LVU2
+  33 0000 0020     		movs	r0, #0
+  34 0002 7047     		bx	lr
+  35              		.cfi_endproc
+  36              	.LFE68:
+  38              		.section	.text.CUSTOM_HID_DeInit_FS,"ax",%progbits
+  39              		.align	1
+  40              		.syntax unified
+  41              		.thumb
+  42              		.thumb_func
+  43              		.fpu softvfp
+  45              	CUSTOM_HID_DeInit_FS:
+  46              	.LFB69:
+ 199:Src/usbd_custom_hid_if.c **** 
+ 200:Src/usbd_custom_hid_if.c **** /**
+ 201:Src/usbd_custom_hid_if.c ****   * @brief  DeInitializes the CUSTOM HID media low layer
+ 202:Src/usbd_custom_hid_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL
+ 203:Src/usbd_custom_hid_if.c ****   */
+ 204:Src/usbd_custom_hid_if.c **** static int8_t CUSTOM_HID_DeInit_FS(void)
+ 205:Src/usbd_custom_hid_if.c **** {
+  47              		.loc 1 205 1 is_stmt 1 view -0
+  48              		.cfi_startproc
+  49              		@ args = 0, pretend = 0, frame = 0
+  50              		@ frame_needed = 0, uses_anonymous_args = 0
+  51              		@ link register save eliminated.
+ 206:Src/usbd_custom_hid_if.c ****   /* USER CODE BEGIN 5 */
+ 207:Src/usbd_custom_hid_if.c ****   return (USBD_OK);
+  52              		.loc 1 207 3 view .LVU4
+ 208:Src/usbd_custom_hid_if.c ****   /* USER CODE END 5 */
+ 209:Src/usbd_custom_hid_if.c **** }
+  53              		.loc 1 209 1 is_stmt 0 view .LVU5
+  54 0000 0020     		movs	r0, #0
+  55 0002 7047     		bx	lr
+  56              		.cfi_endproc
+  57              	.LFE69:
+  59              		.section	.text.CUSTOM_HID_OutEvent_FS,"ax",%progbits
+  60              		.align	1
+  61              		.syntax unified
+  62              		.thumb
+  63              		.thumb_func
+  64              		.fpu softvfp
+  66              	CUSTOM_HID_OutEvent_FS:
+  67              	.LVL0:
+  68              	.LFB70:
+ 210:Src/usbd_custom_hid_if.c **** 
+ 211:Src/usbd_custom_hid_if.c **** /**
+ 212:Src/usbd_custom_hid_if.c ****   * @brief  Manage the CUSTOM HID class events
+ 213:Src/usbd_custom_hid_if.c ****   * @param  event_idx: Event index
+ 214:Src/usbd_custom_hid_if.c ****   * @param  state: Event state
+ 215:Src/usbd_custom_hid_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL
+ 216:Src/usbd_custom_hid_if.c ****   */
+ 217:Src/usbd_custom_hid_if.c **** static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
+ 218:Src/usbd_custom_hid_if.c **** {
+  69              		.loc 1 218 1 is_stmt 1 view -0
+  70              		.cfi_startproc
+  71              		@ args = 0, pretend = 0, frame = 0
+  72              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 6
+
+
+  73              		@ link register save eliminated.
+ 219:Src/usbd_custom_hid_if.c **** 
+ 220:Src/usbd_custom_hid_if.c ****   
+ 221:Src/usbd_custom_hid_if.c ****   USBD_CUSTOM_HID_HandleTypeDef *hhid = (USBD_CUSTOM_HID_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  74              		.loc 1 221 3 view .LVU7
+ 222:Src/usbd_custom_hid_if.c ****   uint8_t id = hhid->Report_buf[0];
+  75              		.loc 1 222 3 view .LVU8
+ 223:Src/usbd_custom_hid_if.c ****   uint8_t id1 = hhid->Report_buf[1];
+  76              		.loc 1 223 3 view .LVU9
+ 224:Src/usbd_custom_hid_if.c **** 
+ 225:Src/usbd_custom_hid_if.c ****   //uint8_t informByte = hhid->Report_buf[1];
+ 226:Src/usbd_custom_hid_if.c **** 
+ 227:Src/usbd_custom_hid_if.c **** //SerialPrint("HID Packet recieved");////
+ 228:Src/usbd_custom_hid_if.c **** 	if ((id == 0) && (id1 == 1))
+  77              		.loc 1 228 2 view .LVU10
+ 229:Src/usbd_custom_hid_if.c **** 	{
+ 230:Src/usbd_custom_hid_if.c **** 		
+ 231:Src/usbd_custom_hid_if.c ****       //    HMDready = false;      
+ 232:Src/usbd_custom_hid_if.c ****    //   stage = 1;
+ 233:Src/usbd_custom_hid_if.c ****     //Display_Off(Display1);
+ 234:Src/usbd_custom_hid_if.c **** 		// The report is correct
+ 235:Src/usbd_custom_hid_if.c **** 	}
+  78              		.loc 1 235 2 view .LVU11
+ 236:Src/usbd_custom_hid_if.c ****     
+ 237:Src/usbd_custom_hid_if.c **** 
+ 238:Src/usbd_custom_hid_if.c **** 		
+ 239:Src/usbd_custom_hid_if.c **** 
+ 240:Src/usbd_custom_hid_if.c ****   return (USBD_OK);
+  79              		.loc 1 240 3 view .LVU12
+ 241:Src/usbd_custom_hid_if.c ****   /* USER CODE END 6 */ 
+ 242:Src/usbd_custom_hid_if.c **** }
+  80              		.loc 1 242 1 is_stmt 0 view .LVU13
+  81 0000 0020     		movs	r0, #0
+  82              	.LVL1:
+  83              		.loc 1 242 1 view .LVU14
+  84 0002 7047     		bx	lr
+  85              		.cfi_endproc
+  86              	.LFE70:
+  88              		.section	.text.CustomHID_GetFeature,"ax",%progbits
+  89              		.align	1
+  90              		.syntax unified
+  91              		.thumb
+  92              		.thumb_func
+  93              		.fpu softvfp
+  95              	CustomHID_GetFeature:
+  96              	.LVL2:
+  97              	.LFB72:
+ 243:Src/usbd_custom_hid_if.c **** 
+ 244:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN 7 */
+ 245:Src/usbd_custom_hid_if.c **** /**
+ 246:Src/usbd_custom_hid_if.c ****   * @brief  Send the report to the Host
+ 247:Src/usbd_custom_hid_if.c ****   * @param  report: The report to be sent
+ 248:Src/usbd_custom_hid_if.c ****   * @param  len: The report length
+ 249:Src/usbd_custom_hid_if.c ****   * @retval USBD_OK if all operations are OK else USBD_FAIL
+ 250:Src/usbd_custom_hid_if.c ****   */
+ 251:Src/usbd_custom_hid_if.c **** /*
+ 252:Src/usbd_custom_hid_if.c **** static int8_t USBD_CUSTOM_HID_SendReport_FS(uint8_t *report, uint16_t len)
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 7
+
+
+ 253:Src/usbd_custom_hid_if.c **** {
+ 254:Src/usbd_custom_hid_if.c ****   return USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, len);
+ 255:Src/usbd_custom_hid_if.c **** }
+ 256:Src/usbd_custom_hid_if.c **** */
+ 257:Src/usbd_custom_hid_if.c **** 
+ 258:Src/usbd_custom_hid_if.c **** /* USER CODE END 7 */
+ 259:Src/usbd_custom_hid_if.c **** 
+ 260:Src/usbd_custom_hid_if.c **** /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+ 261:Src/usbd_custom_hid_if.c **** /**
+ 262:Src/usbd_custom_hid_if.c ****  * @brief  CustomHID_OutEvent
+ 263:Src/usbd_custom_hid_if.c ****  *         Manage the CUSTOM HID class Out Event
+ 264:Src/usbd_custom_hid_if.c ****  *         Host -> Device
+ 265:Src/usbd_custom_hid_if.c ****  * @param  event_idx: Report Number
+ 266:Src/usbd_custom_hid_if.c ****  * @param  buffer: Received Data
+ 267:Src/usbd_custom_hid_if.c ****  * @retval USBD_OK
+ 268:Src/usbd_custom_hid_if.c ****  */
+ 269:Src/usbd_custom_hid_if.c **** /*
+ 270:Src/usbd_custom_hid_if.c **** static int8_t CustomHID_OutEvent(uint8_t event_idx, uint8_t* buffer)
+ 271:Src/usbd_custom_hid_if.c **** {
+ 272:Src/usbd_custom_hid_if.c **** 
+ 273:Src/usbd_custom_hid_if.c ****    switch(event_idx)
+ 274:Src/usbd_custom_hid_if.c ****    {
+ 275:Src/usbd_custom_hid_if.c ****    case REP_ID_CONTROL_PC_ENABLE:
+ 276:Src/usbd_custom_hid_if.c ****        write command to FIFO from where it will be sent later
+ 277:Src/usbd_custom_hid_if.c ****       FIFO_Write(&irsnd_fifo, (fifo_entry_t*)buffer);
+ 278:Src/usbd_custom_hid_if.c ****       break;
+ 279:Src/usbd_custom_hid_if.c **** 
+ 280:Src/usbd_custom_hid_if.c ****    default: 
+ 281:Src/usbd_custom_hid_if.c ****    }
+ 282:Src/usbd_custom_hid_if.c **** 
+ 283:Src/usbd_custom_hid_if.c ****    return (USBD_OK);
+ 284:Src/usbd_custom_hid_if.c **** }
+ 285:Src/usbd_custom_hid_if.c **** */
+ 286:Src/usbd_custom_hid_if.c **** 
+ 287:Src/usbd_custom_hid_if.c **** /**
+ 288:Src/usbd_custom_hid_if.c ****  * @brief  CustomHID_SetFeature
+ 289:Src/usbd_custom_hid_if.c ****  *         Manage the CUSTOM HID SetFeature request.
+ 290:Src/usbd_custom_hid_if.c ****  *         Host -> Device
+ 291:Src/usbd_custom_hid_if.c ****  * @param  event_idx: Report Number
+ 292:Src/usbd_custom_hid_if.c ****  * @param  buffer: Received Data
+ 293:Src/usbd_custom_hid_if.c ****  * @retval USBD_OK
+ 294:Src/usbd_custom_hid_if.c ****  */
+ 295:Src/usbd_custom_hid_if.c **** static int8_t CustomHID_SetFeature(uint8_t event_idx, uint8_t* buffer)
+ 296:Src/usbd_custom_hid_if.c **** {
+ 297:Src/usbd_custom_hid_if.c ****  //  swrtc_time_t   time;
+ 298:Src/usbd_custom_hid_if.c ****  //  uint32_t       alarm;
+ 299:Src/usbd_custom_hid_if.c **** 
+ 300:Src/usbd_custom_hid_if.c ****    switch(event_idx)
+ 301:Src/usbd_custom_hid_if.c ****    {
+ 302:Src/usbd_custom_hid_if.c ****    case REP_ID_CONTROL_PC_ENABLE:
+ 303:Src/usbd_custom_hid_if.c ****     //  hidirt_data_shadow.control_pc_enable = buffer[0];
+ 304:Src/usbd_custom_hid_if.c ****      // hidirt_data_shadow.data_update_pending = REP_ID_CONTROL_PC_ENABLE;
+ 305:Src/usbd_custom_hid_if.c ****       break;
+ 306:Src/usbd_custom_hid_if.c **** 
+ 307:Src/usbd_custom_hid_if.c ****    case REP_ID_FORWARD_IR_ENABLE:
+ 308:Src/usbd_custom_hid_if.c ****      // hidirt_data_shadow.forward_ir_enable = buffer[0];
+ 309:Src/usbd_custom_hid_if.c ****      // hidirt_data_shadow.data_update_pending = REP_ID_FORWARD_IR_ENABLE;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 8
+
+
+ 310:Src/usbd_custom_hid_if.c ****       break;
+ 311:Src/usbd_custom_hid_if.c **** 
+ 312:Src/usbd_custom_hid_if.c **** 
+ 313:Src/usbd_custom_hid_if.c **** 
+ 314:Src/usbd_custom_hid_if.c ****    default: /* Report does not exist */
+ 315:Src/usbd_custom_hid_if.c **** 
+ 316:Src/usbd_custom_hid_if.c ****    if ((buffer[0] == 0x71) && (buffer[1] == 0x25))
+ 317:Src/usbd_custom_hid_if.c **** 	{
+ 318:Src/usbd_custom_hid_if.c **** 		// The report feature is correct
+ 319:Src/usbd_custom_hid_if.c **** 		if (buffer[2] == 1)
+ 320:Src/usbd_custom_hid_if.c **** 		{
+ 321:Src/usbd_custom_hid_if.c **** 
+ 322:Src/usbd_custom_hid_if.c **** 			if (buffer[3] == 0)
+ 323:Src/usbd_custom_hid_if.c **** 			{
+ 324:Src/usbd_custom_hid_if.c ****         SerialPrint("SxS_Disable();");
+ 325:Src/usbd_custom_hid_if.c ****         //SxS_Disable();  // normal mode
+ 326:Src/usbd_custom_hid_if.c **** 			}
+ 327:Src/usbd_custom_hid_if.c **** 			else
+ 328:Src/usbd_custom_hid_if.c **** 			{
+ 329:Src/usbd_custom_hid_if.c ****         SerialPrint("SxS_Enable();");
+ 330:Src/usbd_custom_hid_if.c **** 				//SxS_Enable();  // side by side
+ 331:Src/usbd_custom_hid_if.c **** 			}
+ 332:Src/usbd_custom_hid_if.c ****     }
+ 333:Src/usbd_custom_hid_if.c ****   }
+ 334:Src/usbd_custom_hid_if.c **** 
+ 335:Src/usbd_custom_hid_if.c **** 
+ 336:Src/usbd_custom_hid_if.c **** 
+ 337:Src/usbd_custom_hid_if.c ****       break;
+ 338:Src/usbd_custom_hid_if.c ****    }
+ 339:Src/usbd_custom_hid_if.c **** 
+ 340:Src/usbd_custom_hid_if.c ****    return (USBD_OK);
+ 341:Src/usbd_custom_hid_if.c **** }
+ 342:Src/usbd_custom_hid_if.c **** 
+ 343:Src/usbd_custom_hid_if.c **** /**
+ 344:Src/usbd_custom_hid_if.c ****  * @brief  CustomHID_GetFeature
+ 345:Src/usbd_custom_hid_if.c ****  *         Manage the CUSTOM HID GetFeature request.
+ 346:Src/usbd_custom_hid_if.c ****  *         Device -> Host
+ 347:Src/usbd_custom_hid_if.c ****  * @param  event_idx: Requested Report Number
+ 348:Src/usbd_custom_hid_if.c ****  * @param  buffer: Data to transmit including ReportID
+ 349:Src/usbd_custom_hid_if.c ****  * @param  length: Length of the buffer
+ 350:Src/usbd_custom_hid_if.c ****  * @retval length: Number of bytes to send
+ 351:Src/usbd_custom_hid_if.c ****  * @retval USBD_OK
+ 352:Src/usbd_custom_hid_if.c ****  */
+ 353:Src/usbd_custom_hid_if.c **** static int8_t CustomHID_GetFeature(uint8_t event_idx, uint8_t* buffer, uint16_t* length)
+ 354:Src/usbd_custom_hid_if.c **** {
+  98              		.loc 1 354 1 is_stmt 1 view -0
+  99              		.cfi_startproc
+ 100              		@ args = 0, pretend = 0, frame = 0
+ 101              		@ frame_needed = 0, uses_anonymous_args = 0
+ 102              		.loc 1 354 1 is_stmt 0 view .LVU16
+ 103 0000 10B5     		push	{r4, lr}
+ 104              	.LCFI0:
+ 105              		.cfi_def_cfa_offset 8
+ 106              		.cfi_offset 4, -8
+ 107              		.cfi_offset 14, -4
+ 108 0002 0446     		mov	r4, r0
+ 109 0004 0846     		mov	r0, r1
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 9
+
+
+ 110              	.LVL3:
+ 355:Src/usbd_custom_hid_if.c ****    //swrtc_time_t   time;
+ 356:Src/usbd_custom_hid_if.c ****   // uint32_t       alarm;
+ 357:Src/usbd_custom_hid_if.c **** 
+ 358:Src/usbd_custom_hid_if.c ****    // clear transmission data array
+ 359:Src/usbd_custom_hid_if.c ****    memset(buffer, 0x00, *length);
+ 111              		.loc 1 359 4 is_stmt 1 view .LVU17
+ 112 0006 1288     		ldrh	r2, [r2]
+ 113              	.LVL4:
+ 114              		.loc 1 359 4 is_stmt 0 view .LVU18
+ 115 0008 0021     		movs	r1, #0
+ 116              	.LVL5:
+ 117              		.loc 1 359 4 view .LVU19
+ 118 000a FFF7FEFF 		bl	memset
+ 119              	.LVL6:
+ 360:Src/usbd_custom_hid_if.c **** 
+ 361:Src/usbd_custom_hid_if.c ****    // retrieve currently valid config
+ 362:Src/usbd_custom_hid_if.c ****  //  GetHidirtConfig(&hidirt_data_shadow);
+ 363:Src/usbd_custom_hid_if.c **** 
+ 364:Src/usbd_custom_hid_if.c ****    switch(event_idx)
+ 120              		.loc 1 364 4 is_stmt 1 view .LVU20
+ 121 000e 103C     		subs	r4, r4, #16
+ 122 0010 012C     		cmp	r4, #1
+ 123 0012 01D8     		bhi	.L8
+ 365:Src/usbd_custom_hid_if.c ****    {
+ 366:Src/usbd_custom_hid_if.c ****    case REP_ID_GET_FIRMWARE_VERSION:
+ 367:Src/usbd_custom_hid_if.c ****    //   memcpy(&buffer[0],
+ 368:Src/usbd_custom_hid_if.c ****     //         &FirmwareVersion[0],
+ 369:Src/usbd_custom_hid_if.c ****      //        sizeof(FirmwareVersion));
+ 370:Src/usbd_custom_hid_if.c ****       break;
+ 371:Src/usbd_custom_hid_if.c **** 
+ 372:Src/usbd_custom_hid_if.c ****    case REP_ID_CONTROL_PC_ENABLE:
+ 373:Src/usbd_custom_hid_if.c ****     //  memcpy(&buffer[0],
+ 374:Src/usbd_custom_hid_if.c ****      //        &hidirt_data_shadow.control_pc_enable,
+ 375:Src/usbd_custom_hid_if.c ****      //        sizeof(hidirt_data_shadow.control_pc_enable));
+ 376:Src/usbd_custom_hid_if.c ****       break;
+ 377:Src/usbd_custom_hid_if.c **** 
+ 378:Src/usbd_custom_hid_if.c **** 
+ 379:Src/usbd_custom_hid_if.c **** 
+ 380:Src/usbd_custom_hid_if.c ****    default: /* Report does not exist */
+ 381:Src/usbd_custom_hid_if.c ****       return (USBD_FAIL);
+ 382:Src/usbd_custom_hid_if.c ****       break;
+ 383:Src/usbd_custom_hid_if.c ****    }
+ 384:Src/usbd_custom_hid_if.c **** 
+ 385:Src/usbd_custom_hid_if.c **** 
+ 386:Src/usbd_custom_hid_if.c **** 
+ 387:Src/usbd_custom_hid_if.c **** 
+ 388:Src/usbd_custom_hid_if.c **** //   memcpy(&buffer[0], &f_report, 8);
+ 389:Src/usbd_custom_hid_if.c **** //buffer[0] = 0x11;
+ 390:Src/usbd_custom_hid_if.c **** 
+ 391:Src/usbd_custom_hid_if.c ****    //*length = CustomHID_FeatureReportLength(event_idx);
+ 392:Src/usbd_custom_hid_if.c ****  //  *length = 16;
+ 393:Src/usbd_custom_hid_if.c ****    
+ 394:Src/usbd_custom_hid_if.c ****    return (USBD_OK);
+ 124              		.loc 1 394 11 is_stmt 0 view .LVU21
+ 125 0014 0020     		movs	r0, #0
+ 126              	.L5:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 10
+
+
+ 395:Src/usbd_custom_hid_if.c **** }
+ 127              		.loc 1 395 1 view .LVU22
+ 128 0016 10BD     		pop	{r4, pc}
+ 129              	.L8:
+ 381:Src/usbd_custom_hid_if.c ****       break;
+ 130              		.loc 1 381 14 view .LVU23
+ 131 0018 0220     		movs	r0, #2
+ 132 001a FCE7     		b	.L5
+ 133              		.cfi_endproc
+ 134              	.LFE72:
+ 136              		.section	.text.CustomHID_SetFeature,"ax",%progbits
+ 137              		.align	1
+ 138              		.syntax unified
+ 139              		.thumb
+ 140              		.thumb_func
+ 141              		.fpu softvfp
+ 143              	CustomHID_SetFeature:
+ 144              	.LVL7:
+ 145              	.LFB71:
+ 296:Src/usbd_custom_hid_if.c ****  //  swrtc_time_t   time;
+ 146              		.loc 1 296 1 is_stmt 1 view -0
+ 147              		.cfi_startproc
+ 148              		@ args = 0, pretend = 0, frame = 0
+ 149              		@ frame_needed = 0, uses_anonymous_args = 0
+ 300:Src/usbd_custom_hid_if.c ****    {
+ 150              		.loc 1 300 4 view .LVU25
+ 151 0000 1138     		subs	r0, r0, #17
+ 152              	.LVL8:
+ 300:Src/usbd_custom_hid_if.c ****    {
+ 153              		.loc 1 300 4 is_stmt 0 view .LVU26
+ 154 0002 0128     		cmp	r0, #1
+ 155 0004 15D9     		bls	.L13
+ 296:Src/usbd_custom_hid_if.c ****  //  swrtc_time_t   time;
+ 156              		.loc 1 296 1 view .LVU27
+ 157 0006 08B5     		push	{r3, lr}
+ 158              	.LCFI1:
+ 159              		.cfi_def_cfa_offset 8
+ 160              		.cfi_offset 3, -8
+ 161              		.cfi_offset 14, -4
+ 316:Src/usbd_custom_hid_if.c **** 	{
+ 162              		.loc 1 316 4 is_stmt 1 view .LVU28
+ 316:Src/usbd_custom_hid_if.c **** 	{
+ 163              		.loc 1 316 15 is_stmt 0 view .LVU29
+ 164 0008 0B78     		ldrb	r3, [r1]	@ zero_extendqisi2
+ 316:Src/usbd_custom_hid_if.c **** 	{
+ 165              		.loc 1 316 7 view .LVU30
+ 166 000a 712B     		cmp	r3, #113
+ 167 000c 01D0     		beq	.L16
+ 168              	.LVL9:
+ 169              	.L10:
+ 340:Src/usbd_custom_hid_if.c **** }
+ 170              		.loc 1 340 4 is_stmt 1 view .LVU31
+ 341:Src/usbd_custom_hid_if.c **** 
+ 171              		.loc 1 341 1 is_stmt 0 view .LVU32
+ 172 000e 0020     		movs	r0, #0
+ 173 0010 08BD     		pop	{r3, pc}
+ 174              	.LVL10:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 11
+
+
+ 175              	.L16:
+ 316:Src/usbd_custom_hid_if.c **** 	{
+ 176              		.loc 1 316 38 discriminator 1 view .LVU33
+ 177 0012 4B78     		ldrb	r3, [r1, #1]	@ zero_extendqisi2
+ 316:Src/usbd_custom_hid_if.c **** 	{
+ 178              		.loc 1 316 28 discriminator 1 view .LVU34
+ 179 0014 252B     		cmp	r3, #37
+ 180 0016 FAD1     		bne	.L10
+ 319:Src/usbd_custom_hid_if.c **** 		{
+ 181              		.loc 1 319 3 is_stmt 1 view .LVU35
+ 319:Src/usbd_custom_hid_if.c **** 		{
+ 182              		.loc 1 319 13 is_stmt 0 view .LVU36
+ 183 0018 8B78     		ldrb	r3, [r1, #2]	@ zero_extendqisi2
+ 319:Src/usbd_custom_hid_if.c **** 		{
+ 184              		.loc 1 319 6 view .LVU37
+ 185 001a 012B     		cmp	r3, #1
+ 186 001c F7D1     		bne	.L10
+ 322:Src/usbd_custom_hid_if.c **** 			{
+ 187              		.loc 1 322 4 is_stmt 1 view .LVU38
+ 322:Src/usbd_custom_hid_if.c **** 			{
+ 188              		.loc 1 322 14 is_stmt 0 view .LVU39
+ 189 001e CB78     		ldrb	r3, [r1, #3]	@ zero_extendqisi2
+ 322:Src/usbd_custom_hid_if.c **** 			{
+ 190              		.loc 1 322 7 view .LVU40
+ 191 0020 1BB9     		cbnz	r3, .L11
+ 324:Src/usbd_custom_hid_if.c ****         //SxS_Disable();  // normal mode
+ 192              		.loc 1 324 9 is_stmt 1 view .LVU41
+ 193 0022 0548     		ldr	r0, .L17
+ 194 0024 FFF7FEFF 		bl	SerialPrint
+ 195              	.LVL11:
+ 324:Src/usbd_custom_hid_if.c ****         //SxS_Disable();  // normal mode
+ 196              		.loc 1 324 9 is_stmt 0 view .LVU42
+ 197 0028 F1E7     		b	.L10
+ 198              	.LVL12:
+ 199              	.L11:
+ 329:Src/usbd_custom_hid_if.c **** 				//SxS_Enable();  // side by side
+ 200              		.loc 1 329 9 is_stmt 1 view .LVU43
+ 201 002a 0448     		ldr	r0, .L17+4
+ 202 002c FFF7FEFF 		bl	SerialPrint
+ 203              	.LVL13:
+ 329:Src/usbd_custom_hid_if.c **** 				//SxS_Enable();  // side by side
+ 204              		.loc 1 329 9 is_stmt 0 view .LVU44
+ 205 0030 EDE7     		b	.L10
+ 206              	.LVL14:
+ 207              	.L13:
+ 208              	.LCFI2:
+ 209              		.cfi_def_cfa_offset 0
+ 210              		.cfi_restore 3
+ 211              		.cfi_restore 14
+ 340:Src/usbd_custom_hid_if.c **** }
+ 212              		.loc 1 340 4 is_stmt 1 view .LVU45
+ 341:Src/usbd_custom_hid_if.c **** 
+ 213              		.loc 1 341 1 is_stmt 0 view .LVU46
+ 214 0032 0020     		movs	r0, #0
+ 215 0034 7047     		bx	lr
+ 216              	.L18:
+ 217 0036 00BF     		.align	2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 12
+
+
+ 218              	.L17:
+ 219 0038 00000000 		.word	.LC0
+ 220 003c 10000000 		.word	.LC1
+ 221              		.cfi_endproc
+ 222              	.LFE71:
+ 224              		.global	USBD_CustomHID_fops_FS
+ 225              		.comm	QuatW,4,4
+ 226              		.comm	QuatZ,4,4
+ 227              		.comm	QuatY,4,4
+ 228              		.comm	QuatX,4,4
+ 229              		.comm	f_report,16,4
+ 230              		.comm	send_report,16,4
+ 231              		.comm	packet_num,1,1
+ 232              		.comm	video_detected,1,1
+ 233              		.comm	hid_ver,1,1
+ 234              		.comm	edid,1,1
+ 235              		.comm	mode,1,1
+ 236              		.comm	stage,1,1
+ 237              		.comm	old_status,1,1
+ 238              		.comm	lane_status,1,1
+ 239              		.comm	status,1,1
+ 240              		.section	.data.CUSTOM_HID_ReportDesc_FS,"aw"
+ 241              		.align	2
+ 244              	CUSTOM_HID_ReportDesc_FS:
+ 245 0000 06       		.byte	6
+ 246 0001 FF       		.byte	-1
+ 247 0002 FF       		.byte	-1
+ 248 0003 09       		.byte	9
+ 249 0004 01       		.byte	1
+ 250 0005 A1       		.byte	-95
+ 251 0006 01       		.byte	1
+ 252 0007 09       		.byte	9
+ 253 0008 02       		.byte	2
+ 254 0009 09       		.byte	9
+ 255 000a 03       		.byte	3
+ 256 000b 15       		.byte	21
+ 257 000c 00       		.byte	0
+ 258 000d 26       		.byte	38
+ 259 000e FF       		.byte	-1
+ 260 000f 00       		.byte	0
+ 261 0010 75       		.byte	117
+ 262 0011 08       		.byte	8
+ 263 0012 95       		.byte	-107
+ 264 0013 10       		.byte	16
+ 265 0014 81       		.byte	-127
+ 266 0015 02       		.byte	2
+ 267 0016 09       		.byte	9
+ 268 0017 04       		.byte	4
+ 269 0018 09       		.byte	9
+ 270 0019 05       		.byte	5
+ 271 001a 15       		.byte	21
+ 272 001b 00       		.byte	0
+ 273 001c 26       		.byte	38
+ 274 001d FF       		.byte	-1
+ 275 001e 00       		.byte	0
+ 276 001f 75       		.byte	117
+ 277 0020 08       		.byte	8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 13
+
+
+ 278 0021 95       		.byte	-107
+ 279 0022 40       		.byte	64
+ 280 0023 91       		.byte	-111
+ 281 0024 02       		.byte	2
+ 282 0025 09       		.byte	9
+ 283 0026 06       		.byte	6
+ 284 0027 09       		.byte	9
+ 285 0028 07       		.byte	7
+ 286 0029 15       		.byte	21
+ 287 002a 00       		.byte	0
+ 288 002b 26       		.byte	38
+ 289 002c FF       		.byte	-1
+ 290 002d 00       		.byte	0
+ 291 002e 75       		.byte	117
+ 292 002f 08       		.byte	8
+ 293 0030 95       		.byte	-107
+ 294 0031 10       		.byte	16
+ 295 0032 B1       		.byte	-79
+ 296 0033 02       		.byte	2
+ 297 0034 C0       		.byte	-64
+ 298              		.section	.data.USBD_CustomHID_fops_FS,"aw"
+ 299              		.align	2
+ 302              	USBD_CustomHID_fops_FS:
+ 303 0000 00000000 		.word	CUSTOM_HID_ReportDesc_FS
+ 304 0004 00000000 		.word	CUSTOM_HID_Init_FS
+ 305 0008 00000000 		.word	CUSTOM_HID_DeInit_FS
+ 306 000c 00000000 		.word	CUSTOM_HID_OutEvent_FS
+ 307 0010 00000000 		.word	CustomHID_SetFeature
+ 308 0014 00000000 		.word	CustomHID_GetFeature
+ 309              		.section	.rodata.CustomHID_SetFeature.str1.4,"aMS",%progbits,1
+ 310              		.align	2
+ 311              	.LC0:
+ 312 0000 5378535F 		.ascii	"SxS_Disable();\000"
+ 312      44697361 
+ 312      626C6528 
+ 312      293B00
+ 313 000f 00       		.space	1
+ 314              	.LC1:
+ 315 0010 5378535F 		.ascii	"SxS_Enable();\000"
+ 315      456E6162 
+ 315      6C652829 
+ 315      3B00
+ 316              		.text
+ 317              	.Letext0:
+ 318              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 319              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 320              		.file 4 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 321              		.file 5 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-none
+ 322              		.file 6 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 323              		.file 7 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 324              		.file 8 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 325              		.file 9 "Drivers/CMSIS/Include/core_cm3.h"
+ 326              		.file 10 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 327              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 328              		.file 12 "Inc/main.h"
+ 329              		.file 13 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 330              		.file 14 "Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc/usbd_customhid.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 14
+
+
+ 331              		.file 15 "Inc/usbd_custom_hid_if.h"
+ 332              		.file 16 "Inc/hardware.h"
+ 333              		.file 17 "Inc/SerialTrans.h"
+ 334              		.file 18 "<built-in>"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s 			page 15
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbd_custom_hid_if.c
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:16     .text.CUSTOM_HID_Init_FS:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:23     .text.CUSTOM_HID_Init_FS:0000000000000000 CUSTOM_HID_Init_FS
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:39     .text.CUSTOM_HID_DeInit_FS:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:45     .text.CUSTOM_HID_DeInit_FS:0000000000000000 CUSTOM_HID_DeInit_FS
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:60     .text.CUSTOM_HID_OutEvent_FS:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:66     .text.CUSTOM_HID_OutEvent_FS:0000000000000000 CUSTOM_HID_OutEvent_FS
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:89     .text.CustomHID_GetFeature:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:95     .text.CustomHID_GetFeature:0000000000000000 CustomHID_GetFeature
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:137    .text.CustomHID_SetFeature:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:143    .text.CustomHID_SetFeature:0000000000000000 CustomHID_SetFeature
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:219    .text.CustomHID_SetFeature:0000000000000038 $d
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:302    .data.USBD_CustomHID_fops_FS:0000000000000000 USBD_CustomHID_fops_FS
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+                            *COM*:0000000000000010 send_report
+                            *COM*:0000000000000001 packet_num
+                            *COM*:0000000000000001 video_detected
+                            *COM*:0000000000000001 hid_ver
+                            *COM*:0000000000000001 edid
+                            *COM*:0000000000000001 mode
+                            *COM*:0000000000000001 stage
+                            *COM*:0000000000000001 old_status
+                            *COM*:0000000000000001 lane_status
+                            *COM*:0000000000000001 status
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:241    .data.CUSTOM_HID_ReportDesc_FS:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:244    .data.CUSTOM_HID_ReportDesc_FS:0000000000000000 CUSTOM_HID_ReportDesc_FS
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:299    .data.USBD_CustomHID_fops_FS:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccNMaZZj.s:310    .rodata.CustomHID_SetFeature.str1.4:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+memset
+SerialPrint

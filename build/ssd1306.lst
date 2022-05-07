@@ -1,0 +1,1905 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"ssd1306.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.ssd1306_Fill,"ax",%progbits
+  16              		.align	1
+  17              		.global	ssd1306_Fill
+  18              		.arch armv7-m
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	ssd1306_Fill:
+  25              	.LVL0:
+  26              	.LFB66:
+  27              		.file 1 "Drivers/Ssd1306/Src/ssd1306.c"
+   1:Drivers/Ssd1306/Src/ssd1306.c **** 
+   2:Drivers/Ssd1306/Src/ssd1306.c **** #include "ssd1306.h"
+   3:Drivers/Ssd1306/Src/ssd1306.c **** #include "hardware.h"
+   4:Drivers/Ssd1306/Src/ssd1306.c **** #include "i2cSoft.h"
+   5:Drivers/Ssd1306/Src/ssd1306.c **** //#include "cmsis_os.h"
+   6:Drivers/Ssd1306/Src/ssd1306.c **** 
+   7:Drivers/Ssd1306/Src/ssd1306.c **** // Screenbuffer
+   8:Drivers/Ssd1306/Src/ssd1306.c **** //static uint8_t SSD1306_Buffer[SSD1306_WIDTH * SSD1306_HEIGHT / 8];
+   9:Drivers/Ssd1306/Src/ssd1306.c **** static uint8_t SSD1306_Buffer_all[SSD1306_WIDTH * SSD1306_HEIGHT / 8 + 1], *SSD1306_Buffer = SSD130
+  10:Drivers/Ssd1306/Src/ssd1306.c **** 
+  11:Drivers/Ssd1306/Src/ssd1306.c **** // Screen object
+  12:Drivers/Ssd1306/Src/ssd1306.c **** static SSD1306_t SSD1306;
+  13:Drivers/Ssd1306/Src/ssd1306.c **** /* Write command for soft I2C*/
+  14:Drivers/Ssd1306/Src/ssd1306.c **** #define SSD1306_WRITECOMMAND(command)      i2cSoft_WriteOled(SSD1306_I2C_ADDR, 0x00, (command))
+  15:Drivers/Ssd1306/Src/ssd1306.c **** /* Write data for soft I2C*/
+  16:Drivers/Ssd1306/Src/ssd1306.c **** #define SSD1306_WRITEDATA(data)            i2cSoft_WriteOled(SSD1306_I2C_ADDR, 0x40, (data))
+  17:Drivers/Ssd1306/Src/ssd1306.c **** 
+  18:Drivers/Ssd1306/Src/ssd1306.c **** //
+  19:Drivers/Ssd1306/Src/ssd1306.c **** //  Send a byte to the command register
+  20:Drivers/Ssd1306/Src/ssd1306.c **** //
+  21:Drivers/Ssd1306/Src/ssd1306.c **** /*
+  22:Drivers/Ssd1306/Src/ssd1306.c **** static void ssd1306_WriteCommand(uint8_t command) //HAL i2c
+  23:Drivers/Ssd1306/Src/ssd1306.c **** {
+  24:Drivers/Ssd1306/Src/ssd1306.c **** 	HAL_I2C_Mem_Write(&SSD1306_I2C_PORT, SSD1306_I2C_ADDR,0x00,1,&command,1,10);
+  25:Drivers/Ssd1306/Src/ssd1306.c **** }
+  26:Drivers/Ssd1306/Src/ssd1306.c **** */
+  27:Drivers/Ssd1306/Src/ssd1306.c **** 
+  28:Drivers/Ssd1306/Src/ssd1306.c **** 
+  29:Drivers/Ssd1306/Src/ssd1306.c **** //
+  30:Drivers/Ssd1306/Src/ssd1306.c **** //	Initialize the oled screen
+  31:Drivers/Ssd1306/Src/ssd1306.c **** //
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 2
+
+
+  32:Drivers/Ssd1306/Src/ssd1306.c **** uint8_t ssd1306_Init(void)
+  33:Drivers/Ssd1306/Src/ssd1306.c **** {	
+  34:Drivers/Ssd1306/Src/ssd1306.c **** 
+  35:Drivers/Ssd1306/Src/ssd1306.c **** 	if (!i2cSoft_DeviceReady(SSD1306_I2C_ADDR) ) {
+  36:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return false */
+  37:Drivers/Ssd1306/Src/ssd1306.c **** 	//	elog("SSD1306 I2C device not found");
+  38:Drivers/Ssd1306/Src/ssd1306.c **** 		return 0;
+  39:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+  40:Drivers/Ssd1306/Src/ssd1306.c **** 	// Wait for the screen to boot
+  41:Drivers/Ssd1306/Src/ssd1306.c **** 	HAL_Delay(100);
+  42:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  43:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Init LCD */
+  44:Drivers/Ssd1306/Src/ssd1306.c **** 
+  45:Drivers/Ssd1306/Src/ssd1306.c **** SSD1306_WRITECOMMAND(0xAE); //display off
+  46:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x20); //Set Memory Addressing Mode   
+  47:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x10); //00,Horizontal Addressing Mode;01,Vertical Addressing Mode;10,Page Ad
+  48:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xB0); //Set Page Start Address for Page Addressing Mode,0-7
+  49:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xC8); //Set COM Output Scan Direction
+  50:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x00); //---set low column address
+  51:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x10); //---set high column address
+  52:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x40); //--set start line address
+  53:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x81); //--set contrast control register
+  54:Drivers/Ssd1306/Src/ssd1306.c **** 	if(SSD1306_HEIGHT == 32)
+  55:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x8F);
+  56:Drivers/Ssd1306/Src/ssd1306.c **** 	else
+  57:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xFF);
+  58:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  59:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  60:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xA1); //--set segment re-map 0 to 127
+  61:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xA6); //--set normal display
+  62:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xA8); //--set multiplex ratio(1 to 64)
+  63:Drivers/Ssd1306/Src/ssd1306.c **** 	if(SSD1306_HEIGHT == 32)
+  64:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x1F);
+  65:Drivers/Ssd1306/Src/ssd1306.c **** 	else
+  66:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x3F);
+  67:Drivers/Ssd1306/Src/ssd1306.c **** 		
+  68:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xA4); //0xa4,Output follows RAM content;0xa5,Output ignores RAM content
+  69:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xD3); //-set display offset
+  70:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x00); //-not offset
+  71:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xD5); //--set display clock divide ratio/oscillator frequency
+  72:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xF0); //--set divide ratio
+  73:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xD9); //--set pre-charge period
+  74:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x22); //
+  75:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xDA); //--set com pins hardware configuration
+  76:Drivers/Ssd1306/Src/ssd1306.c **** 	if(SSD1306_HEIGHT == 32)
+  77:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x02);
+  78:Drivers/Ssd1306/Src/ssd1306.c **** 	else
+  79:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x12);
+  80:Drivers/Ssd1306/Src/ssd1306.c **** 		
+  81:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xDB); //--set vcomh
+  82:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x20); //0x20,0.77xVcc
+  83:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x8D); //--set DC-DC enable
+  84:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x14); //
+  85:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xAF); //--turn on SSD1306 panel
+  86:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  87:Drivers/Ssd1306/Src/ssd1306.c **** 	// Clear screen
+  88:Drivers/Ssd1306/Src/ssd1306.c **** 	ssd1306_Fill(Black);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 3
+
+
+  89:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  90:Drivers/Ssd1306/Src/ssd1306.c **** 	// Flush buffer to screen
+  91:Drivers/Ssd1306/Src/ssd1306.c **** 	ssd1306_UpdateScreen();
+  92:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  93:Drivers/Ssd1306/Src/ssd1306.c **** 	// Set default values for screen object
+  94:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentX = 0;
+  95:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentY = 0;
+  96:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  97:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.Initialized = 1;
+  98:Drivers/Ssd1306/Src/ssd1306.c **** 	
+  99:Drivers/Ssd1306/Src/ssd1306.c **** 	return 1;
+ 100:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 101:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 102:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 103:Drivers/Ssd1306/Src/ssd1306.c **** //  Fill the whole screen with the given color
+ 104:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 105:Drivers/Ssd1306/Src/ssd1306.c **** void ssd1306_Fill(SSD1306_COLOR color) 
+ 106:Drivers/Ssd1306/Src/ssd1306.c **** {
+  28              		.loc 1 106 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+ 107:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Set memory */
+ 108:Drivers/Ssd1306/Src/ssd1306.c **** 	uint32_t i;
+  33              		.loc 1 108 2 view .LVU1
+ 109:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 110:Drivers/Ssd1306/Src/ssd1306.c **** 	for(i = 0; i < sizeof(SSD1306_Buffer); i++)
+  34              		.loc 1 110 2 view .LVU2
+  35              		.loc 1 110 8 is_stmt 0 view .LVU3
+  36 0000 0023     		movs	r3, #0
+  37              		.loc 1 110 2 view .LVU4
+  38 0002 03E0     		b	.L2
+  39              	.LVL1:
+  40              	.L5:
+ 111:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 112:Drivers/Ssd1306/Src/ssd1306.c **** 		SSD1306_Buffer[i] = (color == Black) ? 0x00 : 0xFF;
+  41              		.loc 1 112 21 view .LVU5
+  42 0004 FF21     		movs	r1, #255
+  43              	.L3:
+  44              		.loc 1 112 17 discriminator 4 view .LVU6
+  45 0006 054A     		ldr	r2, .L7
+  46              		.loc 1 112 21 discriminator 4 view .LVU7
+  47 0008 D154     		strb	r1, [r2, r3]
+ 110:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+  48              		.loc 1 110 42 discriminator 4 view .LVU8
+  49 000a 0133     		adds	r3, r3, #1
+  50              	.LVL2:
+  51              	.L2:
+ 110:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+  52              		.loc 1 110 2 discriminator 2 view .LVU9
+  53 000c 032B     		cmp	r3, #3
+  54 000e 03D8     		bhi	.L6
+  55              		.loc 1 112 3 is_stmt 1 view .LVU10
+  56              		.loc 1 112 21 is_stmt 0 view .LVU11
+  57 0010 0028     		cmp	r0, #0
+  58 0012 F7D1     		bne	.L5
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 4
+
+
+  59 0014 0021     		movs	r1, #0
+  60 0016 F6E7     		b	.L3
+  61              	.L6:
+ 113:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 114:Drivers/Ssd1306/Src/ssd1306.c **** }
+  62              		.loc 1 114 1 view .LVU12
+  63 0018 7047     		bx	lr
+  64              	.L8:
+  65 001a 00BF     		.align	2
+  66              	.L7:
+  67 001c 01000000 		.word	.LANCHOR0+1
+  68              		.cfi_endproc
+  69              	.LFE66:
+  71              		.section	.text.ssd1306_UpdateScreen,"ax",%progbits
+  72              		.align	1
+  73              		.global	ssd1306_UpdateScreen
+  74              		.syntax unified
+  75              		.thumb
+  76              		.thumb_func
+  77              		.fpu softvfp
+  79              	ssd1306_UpdateScreen:
+  80              	.LFB67:
+ 115:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 116:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 117:Drivers/Ssd1306/Src/ssd1306.c **** //  Write the screenbuffer with changed to the screen
+ 118:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 119:Drivers/Ssd1306/Src/ssd1306.c **** void ssd1306_UpdateScreen(void) 
+ 120:Drivers/Ssd1306/Src/ssd1306.c **** {
+  81              		.loc 1 120 1 is_stmt 1 view -0
+  82              		.cfi_startproc
+  83              		@ args = 0, pretend = 0, frame = 0
+  84              		@ frame_needed = 0, uses_anonymous_args = 0
+  85 0000 08B5     		push	{r3, lr}
+  86              	.LCFI0:
+  87              		.cfi_def_cfa_offset 8
+  88              		.cfi_offset 3, -8
+  89              		.cfi_offset 14, -4
+ 121:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 122:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_Buffer_all[0] = 0x40;
+  90              		.loc 1 122 2 view .LVU14
+  91              		.loc 1 122 24 is_stmt 0 view .LVU15
+  92 0002 0649     		ldr	r1, .L11
+  93 0004 4023     		movs	r3, #64
+  94 0006 0B70     		strb	r3, [r1]
+ 123:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 124:Drivers/Ssd1306/Src/ssd1306.c **** 	i2cSoft_WriteBuffer( SSD1306_I2C_ADDR, SSD1306_Buffer_all, SSD1306_WIDTH * SSD1306_HEIGHT / 8 + 1 
+  95              		.loc 1 124 2 is_stmt 1 view .LVU16
+  96 0008 40F20122 		movw	r2, #513
+  97 000c 3C20     		movs	r0, #60
+  98 000e FFF7FEFF 		bl	i2cSoft_WriteBuffer
+  99              	.LVL3:
+ 125:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 126:Drivers/Ssd1306/Src/ssd1306.c **** 	HAL_Delay(5);
+ 100              		.loc 1 126 2 view .LVU17
+ 101 0012 0520     		movs	r0, #5
+ 102 0014 FFF7FEFF 		bl	HAL_Delay
+ 103              	.LVL4:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 5
+
+
+ 127:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 128:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 104              		.loc 1 128 1 is_stmt 0 view .LVU18
+ 105 0018 08BD     		pop	{r3, pc}
+ 106              	.L12:
+ 107 001a 00BF     		.align	2
+ 108              	.L11:
+ 109 001c 00000000 		.word	.LANCHOR0
+ 110              		.cfi_endproc
+ 111              	.LFE67:
+ 113              		.section	.text.ssd1306_Init,"ax",%progbits
+ 114              		.align	1
+ 115              		.global	ssd1306_Init
+ 116              		.syntax unified
+ 117              		.thumb
+ 118              		.thumb_func
+ 119              		.fpu softvfp
+ 121              	ssd1306_Init:
+ 122              	.LFB65:
+  33:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 123              		.loc 1 33 1 is_stmt 1 view -0
+ 124              		.cfi_startproc
+ 125              		@ args = 0, pretend = 0, frame = 0
+ 126              		@ frame_needed = 0, uses_anonymous_args = 0
+ 127 0000 08B5     		push	{r3, lr}
+ 128              	.LCFI1:
+ 129              		.cfi_def_cfa_offset 8
+ 130              		.cfi_offset 3, -8
+ 131              		.cfi_offset 14, -4
+  35:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return false */
+ 132              		.loc 1 35 2 view .LVU20
+  35:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return false */
+ 133              		.loc 1 35 7 is_stmt 0 view .LVU21
+ 134 0002 3C20     		movs	r0, #60
+ 135 0004 FFF7FEFF 		bl	i2cSoft_DeviceReady
+ 136              	.LVL5:
+  35:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return false */
+ 137              		.loc 1 35 5 view .LVU22
+ 138 0008 08B9     		cbnz	r0, .L17
+  38:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 139              		.loc 1 38 10 view .LVU23
+ 140 000a 0020     		movs	r0, #0
+ 141              	.L14:
+ 100:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 142              		.loc 1 100 1 view .LVU24
+ 143 000c 08BD     		pop	{r3, pc}
+ 144              	.L17:
+  41:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 145              		.loc 1 41 2 is_stmt 1 view .LVU25
+ 146 000e 6420     		movs	r0, #100
+ 147 0010 FFF7FEFF 		bl	HAL_Delay
+ 148              	.LVL6:
+  45:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x20); //Set Memory Addressing Mode   
+ 149              		.loc 1 45 1 view .LVU26
+ 150 0014 AE22     		movs	r2, #174
+ 151 0016 0021     		movs	r1, #0
+ 152 0018 3C20     		movs	r0, #60
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 6
+
+
+ 153 001a FFF7FEFF 		bl	i2cSoft_WriteOled
+ 154              	.LVL7:
+  46:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x10); //00,Horizontal Addressing Mode;01,Vertical Addressing Mode;10,Page Ad
+ 155              		.loc 1 46 2 view .LVU27
+ 156 001e 2022     		movs	r2, #32
+ 157 0020 0021     		movs	r1, #0
+ 158 0022 3C20     		movs	r0, #60
+ 159 0024 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 160              	.LVL8:
+  47:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xB0); //Set Page Start Address for Page Addressing Mode,0-7
+ 161              		.loc 1 47 2 view .LVU28
+ 162 0028 1022     		movs	r2, #16
+ 163 002a 0021     		movs	r1, #0
+ 164 002c 3C20     		movs	r0, #60
+ 165 002e FFF7FEFF 		bl	i2cSoft_WriteOled
+ 166              	.LVL9:
+  48:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xC8); //Set COM Output Scan Direction
+ 167              		.loc 1 48 2 view .LVU29
+ 168 0032 B022     		movs	r2, #176
+ 169 0034 0021     		movs	r1, #0
+ 170 0036 3C20     		movs	r0, #60
+ 171 0038 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 172              	.LVL10:
+  49:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x00); //---set low column address
+ 173              		.loc 1 49 2 view .LVU30
+ 174 003c C822     		movs	r2, #200
+ 175 003e 0021     		movs	r1, #0
+ 176 0040 3C20     		movs	r0, #60
+ 177 0042 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 178              	.LVL11:
+  50:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x10); //---set high column address
+ 179              		.loc 1 50 2 view .LVU31
+ 180 0046 0022     		movs	r2, #0
+ 181 0048 1146     		mov	r1, r2
+ 182 004a 3C20     		movs	r0, #60
+ 183 004c FFF7FEFF 		bl	i2cSoft_WriteOled
+ 184              	.LVL12:
+  51:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x40); //--set start line address
+ 185              		.loc 1 51 2 view .LVU32
+ 186 0050 1022     		movs	r2, #16
+ 187 0052 0021     		movs	r1, #0
+ 188 0054 3C20     		movs	r0, #60
+ 189 0056 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 190              	.LVL13:
+  52:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x81); //--set contrast control register
+ 191              		.loc 1 52 2 view .LVU33
+ 192 005a 4022     		movs	r2, #64
+ 193 005c 0021     		movs	r1, #0
+ 194 005e 3C20     		movs	r0, #60
+ 195 0060 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 196              	.LVL14:
+  53:Drivers/Ssd1306/Src/ssd1306.c **** 	if(SSD1306_HEIGHT == 32)
+ 197              		.loc 1 53 2 view .LVU34
+ 198 0064 8122     		movs	r2, #129
+ 199 0066 0021     		movs	r1, #0
+ 200 0068 3C20     		movs	r0, #60
+ 201 006a FFF7FEFF 		bl	i2cSoft_WriteOled
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 7
+
+
+ 202              	.LVL15:
+  54:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x8F);
+ 203              		.loc 1 54 2 view .LVU35
+  55:Drivers/Ssd1306/Src/ssd1306.c **** 	else
+ 204              		.loc 1 55 2 view .LVU36
+ 205 006e 8F22     		movs	r2, #143
+ 206 0070 0021     		movs	r1, #0
+ 207 0072 3C20     		movs	r0, #60
+ 208 0074 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 209              	.LVL16:
+  60:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xA6); //--set normal display
+ 210              		.loc 1 60 2 view .LVU37
+ 211 0078 A122     		movs	r2, #161
+ 212 007a 0021     		movs	r1, #0
+ 213 007c 3C20     		movs	r0, #60
+ 214 007e FFF7FEFF 		bl	i2cSoft_WriteOled
+ 215              	.LVL17:
+  61:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xA8); //--set multiplex ratio(1 to 64)
+ 216              		.loc 1 61 2 view .LVU38
+ 217 0082 A622     		movs	r2, #166
+ 218 0084 0021     		movs	r1, #0
+ 219 0086 3C20     		movs	r0, #60
+ 220 0088 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 221              	.LVL18:
+  62:Drivers/Ssd1306/Src/ssd1306.c **** 	if(SSD1306_HEIGHT == 32)
+ 222              		.loc 1 62 2 view .LVU39
+ 223 008c A822     		movs	r2, #168
+ 224 008e 0021     		movs	r1, #0
+ 225 0090 3C20     		movs	r0, #60
+ 226 0092 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 227              	.LVL19:
+  63:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x1F);
+ 228              		.loc 1 63 2 view .LVU40
+  64:Drivers/Ssd1306/Src/ssd1306.c **** 	else
+ 229              		.loc 1 64 2 view .LVU41
+ 230 0096 1F22     		movs	r2, #31
+ 231 0098 0021     		movs	r1, #0
+ 232 009a 3C20     		movs	r0, #60
+ 233 009c FFF7FEFF 		bl	i2cSoft_WriteOled
+ 234              	.LVL20:
+  68:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xD3); //-set display offset
+ 235              		.loc 1 68 2 view .LVU42
+ 236 00a0 A422     		movs	r2, #164
+ 237 00a2 0021     		movs	r1, #0
+ 238 00a4 3C20     		movs	r0, #60
+ 239 00a6 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 240              	.LVL21:
+  69:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x00); //-not offset
+ 241              		.loc 1 69 2 view .LVU43
+ 242 00aa D322     		movs	r2, #211
+ 243 00ac 0021     		movs	r1, #0
+ 244 00ae 3C20     		movs	r0, #60
+ 245 00b0 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 246              	.LVL22:
+  70:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xD5); //--set display clock divide ratio/oscillator frequency
+ 247              		.loc 1 70 2 view .LVU44
+ 248 00b4 0022     		movs	r2, #0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 8
+
+
+ 249 00b6 1146     		mov	r1, r2
+ 250 00b8 3C20     		movs	r0, #60
+ 251 00ba FFF7FEFF 		bl	i2cSoft_WriteOled
+ 252              	.LVL23:
+  71:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xF0); //--set divide ratio
+ 253              		.loc 1 71 2 view .LVU45
+ 254 00be D522     		movs	r2, #213
+ 255 00c0 0021     		movs	r1, #0
+ 256 00c2 3C20     		movs	r0, #60
+ 257 00c4 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 258              	.LVL24:
+  72:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xD9); //--set pre-charge period
+ 259              		.loc 1 72 2 view .LVU46
+ 260 00c8 F022     		movs	r2, #240
+ 261 00ca 0021     		movs	r1, #0
+ 262 00cc 3C20     		movs	r0, #60
+ 263 00ce FFF7FEFF 		bl	i2cSoft_WriteOled
+ 264              	.LVL25:
+  73:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x22); //
+ 265              		.loc 1 73 2 view .LVU47
+ 266 00d2 D922     		movs	r2, #217
+ 267 00d4 0021     		movs	r1, #0
+ 268 00d6 3C20     		movs	r0, #60
+ 269 00d8 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 270              	.LVL26:
+  74:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xDA); //--set com pins hardware configuration
+ 271              		.loc 1 74 2 view .LVU48
+ 272 00dc 2222     		movs	r2, #34
+ 273 00de 0021     		movs	r1, #0
+ 274 00e0 3C20     		movs	r0, #60
+ 275 00e2 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 276              	.LVL27:
+  75:Drivers/Ssd1306/Src/ssd1306.c **** 	if(SSD1306_HEIGHT == 32)
+ 277              		.loc 1 75 2 view .LVU49
+ 278 00e6 DA22     		movs	r2, #218
+ 279 00e8 0021     		movs	r1, #0
+ 280 00ea 3C20     		movs	r0, #60
+ 281 00ec FFF7FEFF 		bl	i2cSoft_WriteOled
+ 282              	.LVL28:
+  76:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x02);
+ 283              		.loc 1 76 2 view .LVU50
+  77:Drivers/Ssd1306/Src/ssd1306.c **** 	else
+ 284              		.loc 1 77 2 view .LVU51
+ 285 00f0 0222     		movs	r2, #2
+ 286 00f2 0021     		movs	r1, #0
+ 287 00f4 3C20     		movs	r0, #60
+ 288 00f6 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 289              	.LVL29:
+  81:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x20); //0x20,0.77xVcc
+ 290              		.loc 1 81 2 view .LVU52
+ 291 00fa DB22     		movs	r2, #219
+ 292 00fc 0021     		movs	r1, #0
+ 293 00fe 3C20     		movs	r0, #60
+ 294 0100 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 295              	.LVL30:
+  82:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x8D); //--set DC-DC enable
+ 296              		.loc 1 82 2 view .LVU53
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 9
+
+
+ 297 0104 2022     		movs	r2, #32
+ 298 0106 0021     		movs	r1, #0
+ 299 0108 3C20     		movs	r0, #60
+ 300 010a FFF7FEFF 		bl	i2cSoft_WriteOled
+ 301              	.LVL31:
+  83:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0x14); //
+ 302              		.loc 1 83 2 view .LVU54
+ 303 010e 8D22     		movs	r2, #141
+ 304 0110 0021     		movs	r1, #0
+ 305 0112 3C20     		movs	r0, #60
+ 306 0114 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 307              	.LVL32:
+  84:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_WRITECOMMAND(0xAF); //--turn on SSD1306 panel
+ 308              		.loc 1 84 2 view .LVU55
+ 309 0118 1422     		movs	r2, #20
+ 310 011a 0021     		movs	r1, #0
+ 311 011c 3C20     		movs	r0, #60
+ 312 011e FFF7FEFF 		bl	i2cSoft_WriteOled
+ 313              	.LVL33:
+  85:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 314              		.loc 1 85 2 view .LVU56
+ 315 0122 AF22     		movs	r2, #175
+ 316 0124 0021     		movs	r1, #0
+ 317 0126 3C20     		movs	r0, #60
+ 318 0128 FFF7FEFF 		bl	i2cSoft_WriteOled
+ 319              	.LVL34:
+  88:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 320              		.loc 1 88 2 view .LVU57
+ 321 012c 0020     		movs	r0, #0
+ 322 012e FFF7FEFF 		bl	ssd1306_Fill
+ 323              	.LVL35:
+  91:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 324              		.loc 1 91 2 view .LVU58
+ 325 0132 FFF7FEFF 		bl	ssd1306_UpdateScreen
+ 326              	.LVL36:
+  94:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentY = 0;
+ 327              		.loc 1 94 2 view .LVU59
+  94:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentY = 0;
+ 328              		.loc 1 94 19 is_stmt 0 view .LVU60
+ 329 0136 034B     		ldr	r3, .L18
+ 330 0138 0022     		movs	r2, #0
+ 331 013a 1A80     		strh	r2, [r3]	@ movhi
+  95:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 332              		.loc 1 95 2 is_stmt 1 view .LVU61
+  95:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 333              		.loc 1 95 19 is_stmt 0 view .LVU62
+ 334 013c 5A80     		strh	r2, [r3, #2]	@ movhi
+  97:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 335              		.loc 1 97 2 is_stmt 1 view .LVU63
+  97:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 336              		.loc 1 97 22 is_stmt 0 view .LVU64
+ 337 013e 0120     		movs	r0, #1
+ 338 0140 5871     		strb	r0, [r3, #5]
+  99:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 339              		.loc 1 99 2 is_stmt 1 view .LVU65
+  99:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 340              		.loc 1 99 9 is_stmt 0 view .LVU66
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 10
+
+
+ 341 0142 63E7     		b	.L14
+ 342              	.L19:
+ 343              		.align	2
+ 344              	.L18:
+ 345 0144 00000000 		.word	.LANCHOR1
+ 346              		.cfi_endproc
+ 347              	.LFE65:
+ 349              		.section	.text.ssd1306_DrawPixel,"ax",%progbits
+ 350              		.align	1
+ 351              		.global	ssd1306_DrawPixel
+ 352              		.syntax unified
+ 353              		.thumb
+ 354              		.thumb_func
+ 355              		.fpu softvfp
+ 357              	ssd1306_DrawPixel:
+ 358              	.LVL37:
+ 359              	.LFB68:
+ 129:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 130:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 131:Drivers/Ssd1306/Src/ssd1306.c **** //	Draw one pixel in the screenbuffer
+ 132:Drivers/Ssd1306/Src/ssd1306.c **** //	X => X Coordinate
+ 133:Drivers/Ssd1306/Src/ssd1306.c **** //	Y => Y Coordinate
+ 134:Drivers/Ssd1306/Src/ssd1306.c **** //	color => Pixel color
+ 135:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 136:Drivers/Ssd1306/Src/ssd1306.c **** void ssd1306_DrawPixel(uint8_t x, uint8_t y, SSD1306_COLOR color)
+ 137:Drivers/Ssd1306/Src/ssd1306.c **** {
+ 360              		.loc 1 137 1 is_stmt 1 view -0
+ 361              		.cfi_startproc
+ 362              		@ args = 0, pretend = 0, frame = 0
+ 363              		@ frame_needed = 0, uses_anonymous_args = 0
+ 364              		@ link register save eliminated.
+ 138:Drivers/Ssd1306/Src/ssd1306.c **** 	if (x >= SSD1306_WIDTH || y >= SSD1306_HEIGHT) 
+ 365              		.loc 1 138 2 view .LVU68
+ 366              		.loc 1 138 5 is_stmt 0 view .LVU69
+ 367 0000 10F0800F 		tst	r0, #128
+ 368 0004 15D1     		bne	.L20
+ 369              		.loc 1 138 25 discriminator 1 view .LVU70
+ 370 0006 1F29     		cmp	r1, #31
+ 371 0008 13D8     		bhi	.L20
+ 139:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 140:Drivers/Ssd1306/Src/ssd1306.c **** 		// Don't write outside the buffer
+ 141:Drivers/Ssd1306/Src/ssd1306.c **** 		return;
+ 142:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 143:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 144:Drivers/Ssd1306/Src/ssd1306.c **** 	// Check if pixel should be inverted
+ 145:Drivers/Ssd1306/Src/ssd1306.c **** 	if (SSD1306.Inverted) 
+ 372              		.loc 1 145 2 is_stmt 1 view .LVU71
+ 373              		.loc 1 145 13 is_stmt 0 view .LVU72
+ 374 000a 104B     		ldr	r3, .L25
+ 375 000c 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 376              		.loc 1 145 5 view .LVU73
+ 377 000e 13B1     		cbz	r3, .L22
+ 146:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 147:Drivers/Ssd1306/Src/ssd1306.c **** 		color = (SSD1306_COLOR)!color;
+ 378              		.loc 1 147 3 is_stmt 1 view .LVU74
+ 379              		.loc 1 147 11 is_stmt 0 view .LVU75
+ 380 0010 B2FA82F2 		clz	r2, r2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 11
+
+
+ 381              	.LVL38:
+ 382              		.loc 1 147 11 view .LVU76
+ 383 0014 5209     		lsrs	r2, r2, #5
+ 384              	.LVL39:
+ 385              	.L22:
+ 148:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 149:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 150:Drivers/Ssd1306/Src/ssd1306.c **** 	// Draw in the right color
+ 151:Drivers/Ssd1306/Src/ssd1306.c **** 	if (color == White)
+ 386              		.loc 1 151 2 is_stmt 1 view .LVU77
+ 387              		.loc 1 151 5 is_stmt 0 view .LVU78
+ 388 0016 012A     		cmp	r2, #1
+ 389 0018 0CD0     		beq	.L24
+ 152:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 		SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] |= 1 << (y % 8);
+ 154:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 155:Drivers/Ssd1306/Src/ssd1306.c **** 	else 
+ 156:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 157:Drivers/Ssd1306/Src/ssd1306.c **** 		SSD1306_Buffer[x + (y / 8) * SSD1306_WIDTH] &= ~(1 << (y % 8));
+ 390              		.loc 1 157 3 is_stmt 1 view .LVU79
+ 391              		.loc 1 157 47 is_stmt 0 view .LVU80
+ 392 001a 0D4A     		ldr	r2, .L25+4
+ 393              	.LVL40:
+ 394              		.loc 1 157 47 view .LVU81
+ 395 001c CB08     		lsrs	r3, r1, #3
+ 396 001e 00EBC310 		add	r0, r0, r3, lsl #7
+ 397              	.LVL41:
+ 398              		.loc 1 157 60 view .LVU82
+ 399 0022 01F00701 		and	r1, r1, #7
+ 400              	.LVL42:
+ 401              		.loc 1 157 54 view .LVU83
+ 402 0026 0123     		movs	r3, #1
+ 403 0028 8B40     		lsls	r3, r3, r1
+ 404              		.loc 1 157 47 view .LVU84
+ 405 002a 115C     		ldrb	r1, [r2, r0]	@ zero_extendqisi2
+ 406 002c 21EA0301 		bic	r1, r1, r3
+ 407 0030 1154     		strb	r1, [r2, r0]
+ 408              	.L20:
+ 158:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 159:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 409              		.loc 1 159 1 view .LVU85
+ 410 0032 7047     		bx	lr
+ 411              	.LVL43:
+ 412              	.L24:
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 413              		.loc 1 153 3 is_stmt 1 view .LVU86
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 414              		.loc 1 153 47 is_stmt 0 view .LVU87
+ 415 0034 064A     		ldr	r2, .L25+4
+ 416              	.LVL44:
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 417              		.loc 1 153 47 view .LVU88
+ 418 0036 CB08     		lsrs	r3, r1, #3
+ 419 0038 00EBC310 		add	r0, r0, r3, lsl #7
+ 420              	.LVL45:
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 421              		.loc 1 153 58 view .LVU89
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 12
+
+
+ 422 003c 01F00701 		and	r1, r1, #7
+ 423              	.LVL46:
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 424              		.loc 1 153 52 view .LVU90
+ 425 0040 0123     		movs	r3, #1
+ 426 0042 8B40     		lsls	r3, r3, r1
+ 153:Drivers/Ssd1306/Src/ssd1306.c **** 	} 
+ 427              		.loc 1 153 47 view .LVU91
+ 428 0044 115C     		ldrb	r1, [r2, r0]	@ zero_extendqisi2
+ 429 0046 1943     		orrs	r1, r1, r3
+ 430 0048 1154     		strb	r1, [r2, r0]
+ 431 004a 7047     		bx	lr
+ 432              	.L26:
+ 433              		.align	2
+ 434              	.L25:
+ 435 004c 00000000 		.word	.LANCHOR1
+ 436 0050 01000000 		.word	.LANCHOR0+1
+ 437              		.cfi_endproc
+ 438              	.LFE68:
+ 440              		.section	.text.ssd1306_WriteChar,"ax",%progbits
+ 441              		.align	1
+ 442              		.global	ssd1306_WriteChar
+ 443              		.syntax unified
+ 444              		.thumb
+ 445              		.thumb_func
+ 446              		.fpu softvfp
+ 448              	ssd1306_WriteChar:
+ 449              	.LVL47:
+ 450              	.LFB69:
+ 160:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 161:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 162:Drivers/Ssd1306/Src/ssd1306.c **** //  Draw 1 char to the screen buffer
+ 163:Drivers/Ssd1306/Src/ssd1306.c **** //	ch 		=> char om weg te schrijven
+ 164:Drivers/Ssd1306/Src/ssd1306.c **** //	Font 	=> Font waarmee we gaan schrijven
+ 165:Drivers/Ssd1306/Src/ssd1306.c **** //	color 	=> Black or White
+ 166:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 167:Drivers/Ssd1306/Src/ssd1306.c **** char ssd1306_WriteChar(char ch, FontDef Font, SSD1306_COLOR color)
+ 168:Drivers/Ssd1306/Src/ssd1306.c **** {
+ 451              		.loc 1 168 1 is_stmt 1 view -0
+ 452              		.cfi_startproc
+ 453              		@ args = 0, pretend = 0, frame = 8
+ 454              		@ frame_needed = 0, uses_anonymous_args = 0
+ 455              		.loc 1 168 1 is_stmt 0 view .LVU93
+ 456 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 457              	.LCFI2:
+ 458              		.cfi_def_cfa_offset 24
+ 459              		.cfi_offset 4, -24
+ 460              		.cfi_offset 5, -20
+ 461              		.cfi_offset 6, -16
+ 462              		.cfi_offset 7, -12
+ 463              		.cfi_offset 8, -8
+ 464              		.cfi_offset 14, -4
+ 465 0004 82B0     		sub	sp, sp, #8
+ 466              	.LCFI3:
+ 467              		.cfi_def_cfa_offset 32
+ 468 0006 02AC     		add	r4, sp, #8
+ 469 0008 04E90600 		stmdb	r4, {r1, r2}
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 13
+
+
+ 169:Drivers/Ssd1306/Src/ssd1306.c **** 	uint32_t i, b, j;
+ 470              		.loc 1 169 2 is_stmt 1 view .LVU94
+ 170:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 171:Drivers/Ssd1306/Src/ssd1306.c **** 	// Check remaining space on current line
+ 172:Drivers/Ssd1306/Src/ssd1306.c **** 	if (SSD1306_WIDTH <= (SSD1306.CurrentX + Font.FontWidth) ||
+ 471              		.loc 1 172 2 view .LVU95
+ 472              		.loc 1 172 31 is_stmt 0 view .LVU96
+ 473 000c 274A     		ldr	r2, .L40
+ 474 000e 1288     		ldrh	r2, [r2]
+ 475              		.loc 1 172 47 view .LVU97
+ 476 0010 9DF80010 		ldrb	r1, [sp]	@ zero_extendqisi2
+ 477              		.loc 1 172 41 view .LVU98
+ 478 0014 0A44     		add	r2, r2, r1
+ 479              		.loc 1 172 5 view .LVU99
+ 480 0016 7F2A     		cmp	r2, #127
+ 481 0018 43DC     		bgt	.L35
+ 173:Drivers/Ssd1306/Src/ssd1306.c **** 		SSD1306_HEIGHT <= (SSD1306.CurrentY + Font.FontHeight))
+ 482              		.loc 1 173 29 discriminator 1 view .LVU100
+ 483 001a 244A     		ldr	r2, .L40
+ 484 001c 5288     		ldrh	r2, [r2, #2]
+ 485              		.loc 1 173 45 discriminator 1 view .LVU101
+ 486 001e 9DF80110 		ldrb	r1, [sp, #1]	@ zero_extendqisi2
+ 487              		.loc 1 173 39 discriminator 1 view .LVU102
+ 488 0022 0A44     		add	r2, r2, r1
+ 172:Drivers/Ssd1306/Src/ssd1306.c **** 		SSD1306_HEIGHT <= (SSD1306.CurrentY + Font.FontHeight))
+ 489              		.loc 1 172 59 discriminator 1 view .LVU103
+ 490 0024 1F2A     		cmp	r2, #31
+ 491 0026 3EDC     		bgt	.L36
+ 492 0028 1F46     		mov	r7, r3
+ 493 002a 8046     		mov	r8, r0
+ 174:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 175:Drivers/Ssd1306/Src/ssd1306.c **** 		// Not enough space on current line
+ 176:Drivers/Ssd1306/Src/ssd1306.c **** 		return 0;
+ 177:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 178:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 179:Drivers/Ssd1306/Src/ssd1306.c **** 	// Use the font to write
+ 180:Drivers/Ssd1306/Src/ssd1306.c **** 	for (i = 0; i < Font.FontHeight; i++)
+ 494              		.loc 1 180 9 view .LVU104
+ 495 002c 0025     		movs	r5, #0
+ 496 002e 21E0     		b	.L29
+ 497              	.LVL48:
+ 498              	.L31:
+ 181:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 182:Drivers/Ssd1306/Src/ssd1306.c **** 		b = Font.data[(ch - 32) * Font.FontHeight + i];
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < Font.FontWidth; j++)
+ 184:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 185:Drivers/Ssd1306/Src/ssd1306.c **** 			if ((b << j) & 0x8000) 
+ 186:Drivers/Ssd1306/Src/ssd1306.c **** 			{
+ 187:Drivers/Ssd1306/Src/ssd1306.c **** 				ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR) color);
+ 188:Drivers/Ssd1306/Src/ssd1306.c **** 			} 
+ 189:Drivers/Ssd1306/Src/ssd1306.c **** 			else 
+ 190:Drivers/Ssd1306/Src/ssd1306.c **** 			{
+ 191:Drivers/Ssd1306/Src/ssd1306.c **** 				ssd1306_DrawPixel(SSD1306.CurrentX + j, (SSD1306.CurrentY + i), (SSD1306_COLOR)!color);
+ 499              		.loc 1 191 5 is_stmt 1 view .LVU105
+ 500              		.loc 1 191 30 is_stmt 0 view .LVU106
+ 501 0030 1E4B     		ldr	r3, .L40
+ 502 0032 1888     		ldrh	r0, [r3]
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 14
+
+
+ 503              		.loc 1 191 53 view .LVU107
+ 504 0034 5988     		ldrh	r1, [r3, #2]
+ 505              		.loc 1 191 5 view .LVU108
+ 506 0036 2944     		add	r1, r1, r5
+ 507 0038 2044     		add	r0, r0, r4
+ 508 003a B7FA87F2 		clz	r2, r7
+ 509 003e 5209     		lsrs	r2, r2, #5
+ 510 0040 C9B2     		uxtb	r1, r1
+ 511 0042 C0B2     		uxtb	r0, r0
+ 512 0044 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 513              	.LVL49:
+ 514              	.L32:
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 515              		.loc 1 183 36 discriminator 2 view .LVU109
+ 516 0048 0134     		adds	r4, r4, #1
+ 517              	.LVL50:
+ 518              	.L30:
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 519              		.loc 1 183 23 discriminator 1 view .LVU110
+ 520 004a 9DF80020 		ldrb	r2, [sp]	@ zero_extendqisi2
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 521              		.loc 1 183 3 discriminator 1 view .LVU111
+ 522 004e A242     		cmp	r2, r4
+ 523 0050 0FD9     		bls	.L38
+ 185:Drivers/Ssd1306/Src/ssd1306.c **** 			{
+ 524              		.loc 1 185 4 is_stmt 1 view .LVU112
+ 185:Drivers/Ssd1306/Src/ssd1306.c **** 			{
+ 525              		.loc 1 185 11 is_stmt 0 view .LVU113
+ 526 0052 06FA04F3 		lsl	r3, r6, r4
+ 185:Drivers/Ssd1306/Src/ssd1306.c **** 			{
+ 527              		.loc 1 185 7 view .LVU114
+ 528 0056 13F4004F 		tst	r3, #32768
+ 529 005a E9D0     		beq	.L31
+ 187:Drivers/Ssd1306/Src/ssd1306.c **** 			} 
+ 530              		.loc 1 187 5 is_stmt 1 view .LVU115
+ 187:Drivers/Ssd1306/Src/ssd1306.c **** 			} 
+ 531              		.loc 1 187 30 is_stmt 0 view .LVU116
+ 532 005c 134B     		ldr	r3, .L40
+ 533 005e 1888     		ldrh	r0, [r3]
+ 187:Drivers/Ssd1306/Src/ssd1306.c **** 			} 
+ 534              		.loc 1 187 53 view .LVU117
+ 535 0060 5988     		ldrh	r1, [r3, #2]
+ 187:Drivers/Ssd1306/Src/ssd1306.c **** 			} 
+ 536              		.loc 1 187 5 view .LVU118
+ 537 0062 2944     		add	r1, r1, r5
+ 538 0064 2044     		add	r0, r0, r4
+ 539 0066 3A46     		mov	r2, r7
+ 540 0068 C9B2     		uxtb	r1, r1
+ 541 006a C0B2     		uxtb	r0, r0
+ 542 006c FFF7FEFF 		bl	ssd1306_DrawPixel
+ 543              	.LVL51:
+ 544 0070 EAE7     		b	.L32
+ 545              	.L38:
+ 180:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 546              		.loc 1 180 36 discriminator 2 view .LVU119
+ 547 0072 0135     		adds	r5, r5, #1
+ 548              	.LVL52:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 15
+
+
+ 549              	.L29:
+ 180:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 550              		.loc 1 180 22 discriminator 1 view .LVU120
+ 551 0074 9DF80120 		ldrb	r2, [sp, #1]	@ zero_extendqisi2
+ 180:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 552              		.loc 1 180 2 discriminator 1 view .LVU121
+ 553 0078 AA42     		cmp	r2, r5
+ 554 007a 08D9     		bls	.L39
+ 182:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < Font.FontWidth; j++)
+ 555              		.loc 1 182 3 is_stmt 1 view .LVU122
+ 182:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < Font.FontWidth; j++)
+ 556              		.loc 1 182 21 is_stmt 0 view .LVU123
+ 557 007c A8F12003 		sub	r3, r8, #32
+ 182:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < Font.FontWidth; j++)
+ 558              		.loc 1 182 45 view .LVU124
+ 559 0080 02FB0353 		mla	r3, r2, r3, r5
+ 182:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < Font.FontWidth; j++)
+ 560              		.loc 1 182 16 view .LVU125
+ 561 0084 019A     		ldr	r2, [sp, #4]
+ 562 0086 32F81360 		ldrh	r6, [r2, r3, lsl #1]
+ 563              	.LVL53:
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 564              		.loc 1 183 3 is_stmt 1 view .LVU126
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 565              		.loc 1 183 10 is_stmt 0 view .LVU127
+ 566 008a 0024     		movs	r4, #0
+ 183:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 567              		.loc 1 183 3 view .LVU128
+ 568 008c DDE7     		b	.L30
+ 569              	.LVL54:
+ 570              	.L39:
+ 192:Drivers/Ssd1306/Src/ssd1306.c **** 			}
+ 193:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 194:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 195:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 196:Drivers/Ssd1306/Src/ssd1306.c **** 	// The current space is now taken
+ 197:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentX += Font.FontWidth;
+ 571              		.loc 1 197 2 is_stmt 1 view .LVU129
+ 572              		.loc 1 197 26 is_stmt 0 view .LVU130
+ 573 008e 9DF80030 		ldrb	r3, [sp]	@ zero_extendqisi2
+ 574              		.loc 1 197 19 view .LVU131
+ 575 0092 064A     		ldr	r2, .L40
+ 576 0094 1188     		ldrh	r1, [r2]
+ 577 0096 0B44     		add	r3, r3, r1
+ 578 0098 1380     		strh	r3, [r2]	@ movhi
+ 198:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 199:Drivers/Ssd1306/Src/ssd1306.c **** 	// Return written char for validation
+ 200:Drivers/Ssd1306/Src/ssd1306.c **** 	return ch;
+ 579              		.loc 1 200 2 is_stmt 1 view .LVU132
+ 580              		.loc 1 200 9 is_stmt 0 view .LVU133
+ 581 009a 4046     		mov	r0, r8
+ 582              	.LVL55:
+ 583              	.L28:
+ 201:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 584              		.loc 1 201 1 view .LVU134
+ 585 009c 02B0     		add	sp, sp, #8
+ 586              	.LCFI4:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 16
+
+
+ 587              		.cfi_remember_state
+ 588              		.cfi_def_cfa_offset 24
+ 589              		@ sp needed
+ 590 009e BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 591              	.LVL56:
+ 592              	.L35:
+ 593              	.LCFI5:
+ 594              		.cfi_restore_state
+ 176:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 595              		.loc 1 176 10 view .LVU135
+ 596 00a2 0020     		movs	r0, #0
+ 597              	.LVL57:
+ 176:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 598              		.loc 1 176 10 view .LVU136
+ 599 00a4 FAE7     		b	.L28
+ 600              	.LVL58:
+ 601              	.L36:
+ 176:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 602              		.loc 1 176 10 view .LVU137
+ 603 00a6 0020     		movs	r0, #0
+ 604              	.LVL59:
+ 176:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 605              		.loc 1 176 10 view .LVU138
+ 606 00a8 F8E7     		b	.L28
+ 607              	.L41:
+ 608 00aa 00BF     		.align	2
+ 609              	.L40:
+ 610 00ac 00000000 		.word	.LANCHOR1
+ 611              		.cfi_endproc
+ 612              	.LFE69:
+ 614              		.section	.text.ssd1306_WriteString,"ax",%progbits
+ 615              		.align	1
+ 616              		.global	ssd1306_WriteString
+ 617              		.syntax unified
+ 618              		.thumb
+ 619              		.thumb_func
+ 620              		.fpu softvfp
+ 622              	ssd1306_WriteString:
+ 623              	.LVL60:
+ 624              	.LFB70:
+ 202:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 203:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 204:Drivers/Ssd1306/Src/ssd1306.c **** //  Write full string to screenbuffer
+ 205:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 206:Drivers/Ssd1306/Src/ssd1306.c **** char ssd1306_WriteString(char* str, FontDef Font, SSD1306_COLOR color)
+ 207:Drivers/Ssd1306/Src/ssd1306.c **** {
+ 625              		.loc 1 207 1 is_stmt 1 view -0
+ 626              		.cfi_startproc
+ 627              		@ args = 0, pretend = 0, frame = 8
+ 628              		@ frame_needed = 0, uses_anonymous_args = 0
+ 629              		.loc 1 207 1 is_stmt 0 view .LVU140
+ 630 0000 70B5     		push	{r4, r5, r6, lr}
+ 631              	.LCFI6:
+ 632              		.cfi_def_cfa_offset 16
+ 633              		.cfi_offset 4, -16
+ 634              		.cfi_offset 5, -12
+ 635              		.cfi_offset 6, -8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 17
+
+
+ 636              		.cfi_offset 14, -4
+ 637 0002 82B0     		sub	sp, sp, #8
+ 638              	.LCFI7:
+ 639              		.cfi_def_cfa_offset 24
+ 640 0004 0546     		mov	r5, r0
+ 641 0006 02A8     		add	r0, sp, #8
+ 642              	.LVL61:
+ 643              		.loc 1 207 1 view .LVU141
+ 644 0008 00E90600 		stmdb	r0, {r1, r2}
+ 645 000c 1E46     		mov	r6, r3
+ 208:Drivers/Ssd1306/Src/ssd1306.c **** 	// Write until null-byte
+ 209:Drivers/Ssd1306/Src/ssd1306.c **** 	while (*str) 
+ 646              		.loc 1 209 2 is_stmt 1 view .LVU142
+ 647              	.LVL62:
+ 648              	.L43:
+ 649              		.loc 1 209 9 is_stmt 0 view .LVU143
+ 650 000e 2C78     		ldrb	r4, [r5]	@ zero_extendqisi2
+ 651              		.loc 1 209 8 view .LVU144
+ 652 0010 5CB1     		cbz	r4, .L44
+ 210:Drivers/Ssd1306/Src/ssd1306.c **** 	{
+ 211:Drivers/Ssd1306/Src/ssd1306.c **** 		if (ssd1306_WriteChar(*str, Font, color) != *str)
+ 653              		.loc 1 211 3 is_stmt 1 view .LVU145
+ 654              		.loc 1 211 7 is_stmt 0 view .LVU146
+ 655 0012 3346     		mov	r3, r6
+ 656 0014 02AA     		add	r2, sp, #8
+ 657 0016 12E90600 		ldmdb	r2, {r1, r2}
+ 658 001a 2046     		mov	r0, r4
+ 659 001c FFF7FEFF 		bl	ssd1306_WriteChar
+ 660              	.LVL63:
+ 661              		.loc 1 211 47 view .LVU147
+ 662 0020 2C78     		ldrb	r4, [r5]	@ zero_extendqisi2
+ 663              		.loc 1 211 6 view .LVU148
+ 664 0022 A042     		cmp	r0, r4
+ 665 0024 01D1     		bne	.L44
+ 212:Drivers/Ssd1306/Src/ssd1306.c **** 		{
+ 213:Drivers/Ssd1306/Src/ssd1306.c **** 			// Char could not be written
+ 214:Drivers/Ssd1306/Src/ssd1306.c **** 			return *str;
+ 215:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 216:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 217:Drivers/Ssd1306/Src/ssd1306.c **** 		// Next char
+ 218:Drivers/Ssd1306/Src/ssd1306.c **** 		str++;
+ 666              		.loc 1 218 3 is_stmt 1 view .LVU149
+ 667              		.loc 1 218 6 is_stmt 0 view .LVU150
+ 668 0026 0135     		adds	r5, r5, #1
+ 669              	.LVL64:
+ 670              		.loc 1 218 6 view .LVU151
+ 671 0028 F1E7     		b	.L43
+ 672              	.L44:
+ 219:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 220:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 221:Drivers/Ssd1306/Src/ssd1306.c **** 	// Everything ok
+ 222:Drivers/Ssd1306/Src/ssd1306.c **** 	return *str;
+ 223:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 673              		.loc 1 223 1 view .LVU152
+ 674 002a 2046     		mov	r0, r4
+ 675 002c 02B0     		add	sp, sp, #8
+ 676              	.LCFI8:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 18
+
+
+ 677              		.cfi_def_cfa_offset 16
+ 678              		@ sp needed
+ 679 002e 70BD     		pop	{r4, r5, r6, pc}
+ 680              		.loc 1 223 1 view .LVU153
+ 681              		.cfi_endproc
+ 682              	.LFE70:
+ 684              		.section	.text.ssd1306_SetCursor,"ax",%progbits
+ 685              		.align	1
+ 686              		.global	ssd1306_SetCursor
+ 687              		.syntax unified
+ 688              		.thumb
+ 689              		.thumb_func
+ 690              		.fpu softvfp
+ 692              	ssd1306_SetCursor:
+ 693              	.LVL65:
+ 694              	.LFB71:
+ 224:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 225:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 226:Drivers/Ssd1306/Src/ssd1306.c **** //	Position the cursor
+ 227:Drivers/Ssd1306/Src/ssd1306.c **** //
+ 228:Drivers/Ssd1306/Src/ssd1306.c **** void ssd1306_SetCursor(uint8_t x, uint8_t y) 
+ 229:Drivers/Ssd1306/Src/ssd1306.c **** {
+ 695              		.loc 1 229 1 is_stmt 1 view -0
+ 696              		.cfi_startproc
+ 697              		@ args = 0, pretend = 0, frame = 0
+ 698              		@ frame_needed = 0, uses_anonymous_args = 0
+ 699              		@ link register save eliminated.
+ 230:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentX = x;
+ 700              		.loc 1 230 2 view .LVU155
+ 701              		.loc 1 230 19 is_stmt 0 view .LVU156
+ 702 0000 014B     		ldr	r3, .L48
+ 703 0002 1880     		strh	r0, [r3]	@ movhi
+ 231:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306.CurrentY = y;
+ 704              		.loc 1 231 2 is_stmt 1 view .LVU157
+ 705              		.loc 1 231 19 is_stmt 0 view .LVU158
+ 706 0004 5980     		strh	r1, [r3, #2]	@ movhi
+ 232:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 707              		.loc 1 232 1 view .LVU159
+ 708 0006 7047     		bx	lr
+ 709              	.L49:
+ 710              		.align	2
+ 711              	.L48:
+ 712 0008 00000000 		.word	.LANCHOR1
+ 713              		.cfi_endproc
+ 714              	.LFE71:
+ 716              		.section	.text.SSD1306_DrawLine,"ax",%progbits
+ 717              		.align	1
+ 718              		.global	SSD1306_DrawLine
+ 719              		.syntax unified
+ 720              		.thumb
+ 721              		.thumb_func
+ 722              		.fpu softvfp
+ 724              	SSD1306_DrawLine:
+ 725              	.LVL66:
+ 726              	.LFB72:
+ 233:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 234:Drivers/Ssd1306/Src/ssd1306.c **** //addon functions
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 19
+
+
+ 235:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 236:Drivers/Ssd1306/Src/ssd1306.c **** void SSD1306_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint8_t c) {
+ 727              		.loc 1 236 86 is_stmt 1 view -0
+ 728              		.cfi_startproc
+ 729              		@ args = 4, pretend = 0, frame = 8
+ 730              		@ frame_needed = 0, uses_anonymous_args = 0
+ 731              		.loc 1 236 86 is_stmt 0 view .LVU161
+ 732 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 733              	.LCFI9:
+ 734              		.cfi_def_cfa_offset 36
+ 735              		.cfi_offset 4, -36
+ 736              		.cfi_offset 5, -32
+ 737              		.cfi_offset 6, -28
+ 738              		.cfi_offset 7, -24
+ 739              		.cfi_offset 8, -20
+ 740              		.cfi_offset 9, -16
+ 741              		.cfi_offset 10, -12
+ 742              		.cfi_offset 11, -8
+ 743              		.cfi_offset 14, -4
+ 744 0004 83B0     		sub	sp, sp, #12
+ 745              	.LCFI10:
+ 746              		.cfi_def_cfa_offset 48
+ 747 0006 0446     		mov	r4, r0
+ 748 0008 0E46     		mov	r6, r1
+ 749 000a 1746     		mov	r7, r2
+ 750 000c 9846     		mov	r8, r3
+ 751 000e 9DF83030 		ldrb	r3, [sp, #48]	@ zero_extendqisi2
+ 752              	.LVL67:
+ 753              		.loc 1 236 86 view .LVU162
+ 754 0012 0093     		str	r3, [sp]
+ 237:Drivers/Ssd1306/Src/ssd1306.c **** 	int16_t dx, dy, sx, sy, err, e2, i, tmp; 
+ 755              		.loc 1 237 2 is_stmt 1 view .LVU163
+ 238:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 239:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Check for overflow */
+ 240:Drivers/Ssd1306/Src/ssd1306.c **** 	if (x0 >= SSD1306_WIDTH) {
+ 756              		.loc 1 240 2 view .LVU164
+ 757              		.loc 1 240 5 is_stmt 0 view .LVU165
+ 758 0014 7F28     		cmp	r0, #127
+ 759 0016 00D9     		bls	.L51
+ 241:Drivers/Ssd1306/Src/ssd1306.c **** 		x0 = SSD1306_WIDTH - 1;
+ 760              		.loc 1 241 6 view .LVU166
+ 761 0018 7F24     		movs	r4, #127
+ 762              	.L51:
+ 763              	.LVL68:
+ 242:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 243:Drivers/Ssd1306/Src/ssd1306.c **** 	if (x1 >= SSD1306_WIDTH) {
+ 764              		.loc 1 243 2 is_stmt 1 view .LVU167
+ 765              		.loc 1 243 5 is_stmt 0 view .LVU168
+ 766 001a 7F2F     		cmp	r7, #127
+ 767 001c 00D9     		bls	.L52
+ 244:Drivers/Ssd1306/Src/ssd1306.c **** 		x1 = SSD1306_WIDTH - 1;
+ 768              		.loc 1 244 6 view .LVU169
+ 769 001e 7F27     		movs	r7, #127
+ 770              	.L52:
+ 771              	.LVL69:
+ 245:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 246:Drivers/Ssd1306/Src/ssd1306.c **** 	if (y0 >= SSD1306_HEIGHT) {
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 20
+
+
+ 772              		.loc 1 246 2 is_stmt 1 view .LVU170
+ 773              		.loc 1 246 5 is_stmt 0 view .LVU171
+ 774 0020 1F2E     		cmp	r6, #31
+ 775 0022 00D9     		bls	.L53
+ 247:Drivers/Ssd1306/Src/ssd1306.c **** 		y0 = SSD1306_HEIGHT - 1;
+ 776              		.loc 1 247 6 view .LVU172
+ 777 0024 1F26     		movs	r6, #31
+ 778              	.L53:
+ 779              	.LVL70:
+ 248:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 249:Drivers/Ssd1306/Src/ssd1306.c **** 	if (y1 >= SSD1306_HEIGHT) {
+ 780              		.loc 1 249 2 is_stmt 1 view .LVU173
+ 781              		.loc 1 249 5 is_stmt 0 view .LVU174
+ 782 0026 B8F11F0F 		cmp	r8, #31
+ 783 002a 01D9     		bls	.L54
+ 250:Drivers/Ssd1306/Src/ssd1306.c **** 		y1 = SSD1306_HEIGHT - 1;
+ 784              		.loc 1 250 6 view .LVU175
+ 785 002c 4FF01F08 		mov	r8, #31
+ 786              	.L54:
+ 787              	.LVL71:
+ 251:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 252:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 253:Drivers/Ssd1306/Src/ssd1306.c **** 	dx = (x0 < x1) ? (x1 - x0) : (x0 - x1); 
+ 788              		.loc 1 253 2 is_stmt 1 view .LVU176
+ 789              		.loc 1 253 5 is_stmt 0 view .LVU177
+ 790 0030 BC42     		cmp	r4, r7
+ 791 0032 1FD2     		bcs	.L55
+ 792              		.loc 1 253 23 discriminator 1 view .LVU178
+ 793 0034 A7EB0409 		sub	r9, r7, r4
+ 794              		.loc 1 253 5 discriminator 1 view .LVU179
+ 795 0038 0FFA89F9 		sxth	r9, r9
+ 796              	.L56:
+ 797              	.LVL72:
+ 254:Drivers/Ssd1306/Src/ssd1306.c **** 	dy = (y0 < y1) ? (y1 - y0) : (y0 - y1); 
+ 798              		.loc 1 254 2 is_stmt 1 discriminator 4 view .LVU180
+ 799              		.loc 1 254 5 is_stmt 0 discriminator 4 view .LVU181
+ 800 003c 4645     		cmp	r6, r8
+ 801 003e 1ED2     		bcs	.L57
+ 802              		.loc 1 254 23 discriminator 1 view .LVU182
+ 803 0040 A8EB060A 		sub	r10, r8, r6
+ 804              		.loc 1 254 5 discriminator 1 view .LVU183
+ 805 0044 0FFA8AFA 		sxth	r10, r10
+ 806              	.L58:
+ 807              	.LVL73:
+ 255:Drivers/Ssd1306/Src/ssd1306.c **** 	sx = (x0 < x1) ? 1 : -1; 
+ 808              		.loc 1 255 2 is_stmt 1 discriminator 4 view .LVU184
+ 809              		.loc 1 255 5 is_stmt 0 discriminator 4 view .LVU185
+ 810 0048 BC42     		cmp	r4, r7
+ 811 004a 1DD2     		bcs	.L81
+ 812              		.loc 1 255 5 view .LVU186
+ 813 004c 0123     		movs	r3, #1
+ 814              	.L59:
+ 815              	.LVL74:
+ 256:Drivers/Ssd1306/Src/ssd1306.c **** 	sy = (y0 < y1) ? 1 : -1; 
+ 816              		.loc 1 256 2 is_stmt 1 discriminator 4 view .LVU187
+ 817              		.loc 1 256 5 is_stmt 0 discriminator 4 view .LVU188
+ 818 004e 4645     		cmp	r6, r8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 21
+
+
+ 819 0050 1DD2     		bcs	.L82
+ 820              		.loc 1 256 5 view .LVU189
+ 821 0052 4FF0010B 		mov	fp, #1
+ 822              	.L60:
+ 823              	.LVL75:
+ 257:Drivers/Ssd1306/Src/ssd1306.c **** 	err = ((dx > dy) ? dx : -dy) / 2; 
+ 824              		.loc 1 257 2 is_stmt 1 discriminator 4 view .LVU190
+ 825              		.loc 1 257 6 is_stmt 0 discriminator 4 view .LVU191
+ 826 0056 D145     		cmp	r9, r10
+ 827 0058 1CDD     		ble	.L61
+ 828              		.loc 1 257 6 discriminator 1 view .LVU192
+ 829 005a 09EBD975 		add	r5, r9, r9, lsr #31
+ 830 005e 6D10     		asrs	r5, r5, #1
+ 831              	.L62:
+ 832              	.LVL76:
+ 258:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 259:Drivers/Ssd1306/Src/ssd1306.c **** 	if (dx == 0) {
+ 833              		.loc 1 259 2 is_stmt 1 discriminator 4 view .LVU193
+ 834              		.loc 1 259 5 is_stmt 0 discriminator 4 view .LVU194
+ 835 0060 B9F1000F 		cmp	r9, #0
+ 836 0064 1CD0     		beq	.L86
+ 260:Drivers/Ssd1306/Src/ssd1306.c **** 		if (y1 < y0) {
+ 261:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = y1;
+ 262:Drivers/Ssd1306/Src/ssd1306.c **** 			y1 = y0;
+ 263:Drivers/Ssd1306/Src/ssd1306.c **** 			y0 = tmp;
+ 264:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 265:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 266:Drivers/Ssd1306/Src/ssd1306.c **** 		if (x1 < x0) {
+ 267:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = x1;
+ 268:Drivers/Ssd1306/Src/ssd1306.c **** 			x1 = x0;
+ 269:Drivers/Ssd1306/Src/ssd1306.c **** 			x0 = tmp;
+ 270:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 271:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 272:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Vertical line */
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 		for (i = y0; i <= y1; i++) {
+ 274:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 275:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 276:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 277:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return from function */
+ 278:Drivers/Ssd1306/Src/ssd1306.c **** 		return;
+ 279:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 280:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 281:Drivers/Ssd1306/Src/ssd1306.c **** 	if (dy == 0) {
+ 837              		.loc 1 281 2 is_stmt 1 view .LVU195
+ 838              		.loc 1 281 5 is_stmt 0 view .LVU196
+ 839 0066 BAF1000F 		cmp	r10, #0
+ 840 006a 31D0     		beq	.L87
+ 841 006c CDF80480 		str	r8, [sp, #4]
+ 842 0070 9846     		mov	r8, r3
+ 843              	.LVL77:
+ 844              		.loc 1 281 5 view .LVU197
+ 845 0072 43E0     		b	.L69
+ 846              	.LVL78:
+ 847              	.L55:
+ 253:Drivers/Ssd1306/Src/ssd1306.c **** 	dy = (y0 < y1) ? (y1 - y0) : (y0 - y1); 
+ 848              		.loc 1 253 35 discriminator 2 view .LVU198
+ 849 0074 A4EB0709 		sub	r9, r4, r7
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 22
+
+
+ 253:Drivers/Ssd1306/Src/ssd1306.c **** 	dy = (y0 < y1) ? (y1 - y0) : (y0 - y1); 
+ 850              		.loc 1 253 5 discriminator 2 view .LVU199
+ 851 0078 0FFA89F9 		sxth	r9, r9
+ 852 007c DEE7     		b	.L56
+ 853              	.LVL79:
+ 854              	.L57:
+ 254:Drivers/Ssd1306/Src/ssd1306.c **** 	sx = (x0 < x1) ? 1 : -1; 
+ 855              		.loc 1 254 35 discriminator 2 view .LVU200
+ 856 007e A6EB080A 		sub	r10, r6, r8
+ 254:Drivers/Ssd1306/Src/ssd1306.c **** 	sx = (x0 < x1) ? 1 : -1; 
+ 857              		.loc 1 254 5 discriminator 2 view .LVU201
+ 858 0082 0FFA8AFA 		sxth	r10, r10
+ 859 0086 DFE7     		b	.L58
+ 860              	.LVL80:
+ 861              	.L81:
+ 255:Drivers/Ssd1306/Src/ssd1306.c **** 	sy = (y0 < y1) ? 1 : -1; 
+ 862              		.loc 1 255 5 view .LVU202
+ 863 0088 4FF0FF33 		mov	r3, #-1
+ 864 008c DFE7     		b	.L59
+ 865              	.LVL81:
+ 866              	.L82:
+ 256:Drivers/Ssd1306/Src/ssd1306.c **** 	err = ((dx > dy) ? dx : -dy) / 2; 
+ 867              		.loc 1 256 5 view .LVU203
+ 868 008e 4FF0FF3B 		mov	fp, #-1
+ 869 0092 E0E7     		b	.L60
+ 870              	.LVL82:
+ 871              	.L61:
+ 257:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 872              		.loc 1 257 6 discriminator 2 view .LVU204
+ 873 0094 0AEBDA75 		add	r5, r10, r10, lsr #31
+ 874 0098 6D10     		asrs	r5, r5, #1
+ 875 009a 6D42     		rsbs	r5, r5, #0
+ 876 009c 2DB2     		sxth	r5, r5
+ 877 009e DFE7     		b	.L62
+ 878              	.LVL83:
+ 879              	.L86:
+ 260:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = y1;
+ 880              		.loc 1 260 3 is_stmt 1 view .LVU205
+ 260:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = y1;
+ 881              		.loc 1 260 6 is_stmt 0 view .LVU206
+ 882 00a0 4645     		cmp	r6, r8
+ 883 00a2 02D8     		bhi	.L64
+ 884 00a4 4346     		mov	r3, r8
+ 885              	.LVL84:
+ 260:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = y1;
+ 886              		.loc 1 260 6 view .LVU207
+ 887 00a6 B046     		mov	r8, r6
+ 888              	.LVL85:
+ 260:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = y1;
+ 889              		.loc 1 260 6 view .LVU208
+ 890 00a8 1E46     		mov	r6, r3
+ 891              	.LVL86:
+ 892              	.L64:
+ 266:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = x1;
+ 893              		.loc 1 266 3 is_stmt 1 view .LVU209
+ 266:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = x1;
+ 894              		.loc 1 266 6 is_stmt 0 view .LVU210
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 23
+
+
+ 895 00aa BC42     		cmp	r4, r7
+ 896 00ac 00D8     		bhi	.L65
+ 897 00ae 2746     		mov	r7, r4
+ 898              	.LVL87:
+ 899              	.L65:
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 900              		.loc 1 273 3 is_stmt 1 view .LVU211
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 901              		.loc 1 273 10 is_stmt 0 view .LVU212
+ 902 00b0 0FFA88F8 		sxth	r8, r8
+ 903              	.LVL88:
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 904              		.loc 1 273 3 view .LVU213
+ 905 00b4 09E0     		b	.L66
+ 906              	.LVL89:
+ 907              	.L67:
+ 274:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 908              		.loc 1 274 4 is_stmt 1 discriminator 3 view .LVU214
+ 909 00b6 009A     		ldr	r2, [sp]
+ 910 00b8 5FFA88F1 		uxtb	r1, r8
+ 911 00bc F8B2     		uxtb	r0, r7
+ 912 00be FFF7FEFF 		bl	ssd1306_DrawPixel
+ 913              	.LVL90:
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 914              		.loc 1 273 26 is_stmt 0 discriminator 3 view .LVU215
+ 915 00c2 08F10108 		add	r8, r8, #1
+ 916              	.LVL91:
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 917              		.loc 1 273 26 discriminator 3 view .LVU216
+ 918 00c6 0FFA88F8 		sxth	r8, r8
+ 919              	.LVL92:
+ 920              	.L66:
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 921              		.loc 1 273 3 discriminator 1 view .LVU217
+ 922 00ca B045     		cmp	r8, r6
+ 923 00cc F3DD     		ble	.L67
+ 273:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x0, i, c);
+ 924              		.loc 1 273 3 discriminator 1 view .LVU218
+ 925 00ce 2FE0     		b	.L50
+ 926              	.LVL93:
+ 927              	.L87:
+ 282:Drivers/Ssd1306/Src/ssd1306.c **** 		if (y1 < y0) {
+ 928              		.loc 1 282 3 is_stmt 1 view .LVU219
+ 929              		.loc 1 282 6 is_stmt 0 view .LVU220
+ 930 00d0 4645     		cmp	r6, r8
+ 931 00d2 00D8     		bhi	.L70
+ 932 00d4 B046     		mov	r8, r6
+ 933              	.LVL94:
+ 934              	.L70:
+ 283:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = y1;
+ 284:Drivers/Ssd1306/Src/ssd1306.c **** 			y1 = y0;
+ 285:Drivers/Ssd1306/Src/ssd1306.c **** 			y0 = tmp;
+ 286:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 287:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 288:Drivers/Ssd1306/Src/ssd1306.c **** 		if (x1 < x0) {
+ 935              		.loc 1 288 3 is_stmt 1 view .LVU221
+ 936              		.loc 1 288 6 is_stmt 0 view .LVU222
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 24
+
+
+ 937 00d6 BC42     		cmp	r4, r7
+ 938 00d8 02D8     		bhi	.L71
+ 939 00da 3B46     		mov	r3, r7
+ 940              	.LVL95:
+ 941              		.loc 1 288 6 view .LVU223
+ 942 00dc 2746     		mov	r7, r4
+ 943              	.LVL96:
+ 944              		.loc 1 288 6 view .LVU224
+ 945 00de 1C46     		mov	r4, r3
+ 946              	.LVL97:
+ 947              	.L71:
+ 289:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = x1;
+ 290:Drivers/Ssd1306/Src/ssd1306.c **** 			x1 = x0;
+ 291:Drivers/Ssd1306/Src/ssd1306.c **** 			x0 = tmp;
+ 292:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 293:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 294:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Horizontal line */
+ 295:Drivers/Ssd1306/Src/ssd1306.c **** 		for (i = x0; i <= x1; i++) {
+ 948              		.loc 1 295 3 is_stmt 1 view .LVU225
+ 949              		.loc 1 295 10 is_stmt 0 view .LVU226
+ 950 00e0 3FB2     		sxth	r7, r7
+ 951              	.LVL98:
+ 952              		.loc 1 295 3 view .LVU227
+ 953 00e2 07E0     		b	.L72
+ 954              	.LVL99:
+ 955              	.L73:
+ 296:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(i, y0, c);
+ 956              		.loc 1 296 4 is_stmt 1 discriminator 3 view .LVU228
+ 957 00e4 009A     		ldr	r2, [sp]
+ 958 00e6 5FFA88F1 		uxtb	r1, r8
+ 959 00ea F8B2     		uxtb	r0, r7
+ 960 00ec FFF7FEFF 		bl	ssd1306_DrawPixel
+ 961              	.LVL100:
+ 295:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(i, y0, c);
+ 962              		.loc 1 295 26 is_stmt 0 discriminator 3 view .LVU229
+ 963 00f0 0137     		adds	r7, r7, #1
+ 964              	.LVL101:
+ 295:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(i, y0, c);
+ 965              		.loc 1 295 26 discriminator 3 view .LVU230
+ 966 00f2 3FB2     		sxth	r7, r7
+ 967              	.LVL102:
+ 968              	.L72:
+ 295:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(i, y0, c);
+ 969              		.loc 1 295 3 discriminator 1 view .LVU231
+ 970 00f4 A742     		cmp	r7, r4
+ 971 00f6 F5DD     		ble	.L73
+ 295:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(i, y0, c);
+ 972              		.loc 1 295 3 discriminator 1 view .LVU232
+ 973 00f8 1AE0     		b	.L50
+ 974              	.LVL103:
+ 975              	.L76:
+ 288:Drivers/Ssd1306/Src/ssd1306.c **** 			tmp = x1;
+ 976              		.loc 1 288 6 view .LVU233
+ 977 00fa 1D46     		mov	r5, r3
+ 978              	.LVL104:
+ 979              	.L69:
+ 297:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 25
+
+
+ 298:Drivers/Ssd1306/Src/ssd1306.c **** 		
+ 299:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return from function */
+ 300:Drivers/Ssd1306/Src/ssd1306.c **** 		return;
+ 301:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 302:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 303:Drivers/Ssd1306/Src/ssd1306.c **** 	while (1) {
+ 980              		.loc 1 303 2 is_stmt 1 view .LVU234
+ 304:Drivers/Ssd1306/Src/ssd1306.c **** 		ssd1306_DrawPixel(x0, y0, c);
+ 981              		.loc 1 304 3 view .LVU235
+ 982 00fc 009A     		ldr	r2, [sp]
+ 983 00fe F1B2     		uxtb	r1, r6
+ 984 0100 E0B2     		uxtb	r0, r4
+ 985 0102 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 986              	.LVL105:
+ 305:Drivers/Ssd1306/Src/ssd1306.c **** 		if (x0 == x1 && y0 == y1) {
+ 987              		.loc 1 305 3 view .LVU236
+ 988              		.loc 1 305 6 is_stmt 0 view .LVU237
+ 989 0106 BC42     		cmp	r4, r7
+ 990 0108 0FD0     		beq	.L88
+ 991              	.L74:
+ 306:Drivers/Ssd1306/Src/ssd1306.c **** 			break;
+ 307:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 308:Drivers/Ssd1306/Src/ssd1306.c **** 		e2 = err; 
+ 992              		.loc 1 308 3 is_stmt 1 view .LVU238
+ 993              	.LVL106:
+ 309:Drivers/Ssd1306/Src/ssd1306.c **** 		if (e2 > -dx) {
+ 994              		.loc 1 309 3 view .LVU239
+ 995              		.loc 1 309 12 is_stmt 0 view .LVU240
+ 996 010a C9F10003 		rsb	r3, r9, #0
+ 997              		.loc 1 309 6 view .LVU241
+ 998 010e 9D42     		cmp	r5, r3
+ 999 0110 11DD     		ble	.L83
+ 310:Drivers/Ssd1306/Src/ssd1306.c **** 			err -= dy;
+ 1000              		.loc 1 310 4 is_stmt 1 view .LVU242
+ 1001              		.loc 1 310 8 is_stmt 0 view .LVU243
+ 1002 0112 A5EB0A03 		sub	r3, r5, r10
+ 1003 0116 1BB2     		sxth	r3, r3
+ 1004              	.LVL107:
+ 311:Drivers/Ssd1306/Src/ssd1306.c **** 			x0 += sx;
+ 1005              		.loc 1 311 4 is_stmt 1 view .LVU244
+ 1006              		.loc 1 311 7 is_stmt 0 view .LVU245
+ 1007 0118 4444     		add	r4, r4, r8
+ 1008              	.LVL108:
+ 1009              		.loc 1 311 7 view .LVU246
+ 1010 011a A4B2     		uxth	r4, r4
+ 1011              	.LVL109:
+ 1012              	.L75:
+ 312:Drivers/Ssd1306/Src/ssd1306.c **** 		} 
+ 313:Drivers/Ssd1306/Src/ssd1306.c **** 		if (e2 < dy) {
+ 1013              		.loc 1 313 3 is_stmt 1 view .LVU247
+ 1014              		.loc 1 313 6 is_stmt 0 view .LVU248
+ 1015 011c 5545     		cmp	r5, r10
+ 1016 011e ECDA     		bge	.L76
+ 314:Drivers/Ssd1306/Src/ssd1306.c **** 			err += dx;
+ 1017              		.loc 1 314 4 is_stmt 1 view .LVU249
+ 1018              		.loc 1 314 8 is_stmt 0 view .LVU250
+ 1019 0120 4B44     		add	r3, r3, r9
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 26
+
+
+ 1020              	.LVL110:
+ 1021              		.loc 1 314 8 view .LVU251
+ 1022 0122 1BB2     		sxth	r3, r3
+ 1023              	.LVL111:
+ 315:Drivers/Ssd1306/Src/ssd1306.c **** 			y0 += sy;
+ 1024              		.loc 1 315 4 is_stmt 1 view .LVU252
+ 1025              		.loc 1 315 7 is_stmt 0 view .LVU253
+ 1026 0124 5E44     		add	r6, r6, fp
+ 1027              	.LVL112:
+ 1028              		.loc 1 315 7 view .LVU254
+ 1029 0126 B6B2     		uxth	r6, r6
+ 1030              	.LVL113:
+ 1031              		.loc 1 315 7 view .LVU255
+ 1032 0128 E7E7     		b	.L76
+ 1033              	.LVL114:
+ 1034              	.L88:
+ 305:Drivers/Ssd1306/Src/ssd1306.c **** 			break;
+ 1035              		.loc 1 305 16 discriminator 1 view .LVU256
+ 1036 012a 019B     		ldr	r3, [sp, #4]
+ 1037 012c 9E42     		cmp	r6, r3
+ 1038 012e ECD1     		bne	.L74
+ 1039              	.LVL115:
+ 1040              	.L50:
+ 316:Drivers/Ssd1306/Src/ssd1306.c **** 		} 
+ 317:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 318:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 1041              		.loc 1 318 1 view .LVU257
+ 1042 0130 03B0     		add	sp, sp, #12
+ 1043              	.LCFI11:
+ 1044              		.cfi_remember_state
+ 1045              		.cfi_def_cfa_offset 36
+ 1046              		@ sp needed
+ 1047 0132 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1048              	.LVL116:
+ 1049              	.L83:
+ 1050              	.LCFI12:
+ 1051              		.cfi_restore_state
+ 1052              		.loc 1 318 1 view .LVU258
+ 1053 0136 2B46     		mov	r3, r5
+ 1054 0138 F0E7     		b	.L75
+ 1055              		.cfi_endproc
+ 1056              	.LFE72:
+ 1058              		.section	.text.SSD1306_DrawRectangle,"ax",%progbits
+ 1059              		.align	1
+ 1060              		.global	SSD1306_DrawRectangle
+ 1061              		.syntax unified
+ 1062              		.thumb
+ 1063              		.thumb_func
+ 1064              		.fpu softvfp
+ 1066              	SSD1306_DrawRectangle:
+ 1067              	.LVL117:
+ 1068              	.LFB73:
+ 319:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 320:Drivers/Ssd1306/Src/ssd1306.c **** void SSD1306_DrawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t c) {
+ 1069              		.loc 1 320 87 is_stmt 1 view -0
+ 1070              		.cfi_startproc
+ 1071              		@ args = 4, pretend = 0, frame = 0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 27
+
+
+ 1072              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1073              		.loc 1 320 87 is_stmt 0 view .LVU260
+ 1074 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1075              	.LCFI13:
+ 1076              		.cfi_def_cfa_offset 24
+ 1077              		.cfi_offset 4, -24
+ 1078              		.cfi_offset 5, -20
+ 1079              		.cfi_offset 6, -16
+ 1080              		.cfi_offset 7, -12
+ 1081              		.cfi_offset 8, -8
+ 1082              		.cfi_offset 14, -4
+ 1083 0004 82B0     		sub	sp, sp, #8
+ 1084              	.LCFI14:
+ 1085              		.cfi_def_cfa_offset 32
+ 1086 0006 9DF82080 		ldrb	r8, [sp, #32]	@ zero_extendqisi2
+ 321:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Check input parameters */
+ 322:Drivers/Ssd1306/Src/ssd1306.c **** 	if (
+ 1087              		.loc 1 322 2 is_stmt 1 view .LVU261
+ 1088              		.loc 1 322 5 is_stmt 0 view .LVU262
+ 1089 000a 7F28     		cmp	r0, #127
+ 1090 000c 34D8     		bhi	.L89
+ 1091 000e 0646     		mov	r6, r0
+ 1092 0010 0F46     		mov	r7, r1
+ 1093 0012 1D46     		mov	r5, r3
+ 323:Drivers/Ssd1306/Src/ssd1306.c **** 		x >= SSD1306_WIDTH ||
+ 1094              		.loc 1 323 22 view .LVU263
+ 1095 0014 1F29     		cmp	r1, #31
+ 1096 0016 2FD8     		bhi	.L89
+ 324:Drivers/Ssd1306/Src/ssd1306.c **** 		y >= SSD1306_HEIGHT
+ 325:Drivers/Ssd1306/Src/ssd1306.c **** 	) {
+ 326:Drivers/Ssd1306/Src/ssd1306.c **** 		/* Return error */
+ 327:Drivers/Ssd1306/Src/ssd1306.c **** 		return;
+ 328:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 329:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 330:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Check width and height */
+ 331:Drivers/Ssd1306/Src/ssd1306.c **** 	if ((x + w) >= SSD1306_WIDTH) {
+ 1097              		.loc 1 331 2 is_stmt 1 view .LVU264
+ 1098              		.loc 1 331 9 is_stmt 0 view .LVU265
+ 1099 0018 8318     		adds	r3, r0, r2
+ 1100              	.LVL118:
+ 1101              		.loc 1 331 5 view .LVU266
+ 1102 001a 7F2B     		cmp	r3, #127
+ 1103 001c 02DD     		ble	.L91
+ 332:Drivers/Ssd1306/Src/ssd1306.c **** 		w = SSD1306_WIDTH - x;
+ 1104              		.loc 1 332 3 is_stmt 1 view .LVU267
+ 1105              		.loc 1 332 5 is_stmt 0 view .LVU268
+ 1106 001e C0F18002 		rsb	r2, r0, #128
+ 1107              	.LVL119:
+ 1108              		.loc 1 332 5 view .LVU269
+ 1109 0022 92B2     		uxth	r2, r2
+ 1110              	.LVL120:
+ 1111              	.L91:
+ 333:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 334:Drivers/Ssd1306/Src/ssd1306.c **** 	if ((y + h) >= SSD1306_HEIGHT) {
+ 1112              		.loc 1 334 2 is_stmt 1 view .LVU270
+ 1113              		.loc 1 334 9 is_stmt 0 view .LVU271
+ 1114 0024 7B19     		adds	r3, r7, r5
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 28
+
+
+ 1115              		.loc 1 334 5 view .LVU272
+ 1116 0026 1F2B     		cmp	r3, #31
+ 1117 0028 02DD     		ble	.L92
+ 335:Drivers/Ssd1306/Src/ssd1306.c **** 		h = SSD1306_HEIGHT - y;
+ 1118              		.loc 1 335 3 is_stmt 1 view .LVU273
+ 1119              		.loc 1 335 5 is_stmt 0 view .LVU274
+ 1120 002a C7F12005 		rsb	r5, r7, #32
+ 1121 002e ADB2     		uxth	r5, r5
+ 1122              	.LVL121:
+ 1123              	.L92:
+ 336:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 337:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 338:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Draw 4 lines */
+ 339:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_DrawLine(x, y, x + w, y, c);         /* Top line */
+ 1124              		.loc 1 339 2 is_stmt 1 view .LVU275
+ 1125 0030 3244     		add	r2, r2, r6
+ 1126              	.LVL122:
+ 1127              		.loc 1 339 2 is_stmt 0 view .LVU276
+ 1128 0032 94B2     		uxth	r4, r2
+ 1129 0034 CDF80080 		str	r8, [sp]
+ 1130 0038 3B46     		mov	r3, r7
+ 1131 003a 2246     		mov	r2, r4
+ 1132 003c 3946     		mov	r1, r7
+ 1133              	.LVL123:
+ 1134              		.loc 1 339 2 view .LVU277
+ 1135 003e 3046     		mov	r0, r6
+ 1136              	.LVL124:
+ 1137              		.loc 1 339 2 view .LVU278
+ 1138 0040 FFF7FEFF 		bl	SSD1306_DrawLine
+ 1139              	.LVL125:
+ 340:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_DrawLine(x, y + h, x + w, y + h, c); /* Bottom line */
+ 1140              		.loc 1 340 2 is_stmt 1 view .LVU279
+ 1141 0044 3D44     		add	r5, r5, r7
+ 1142              	.LVL126:
+ 1143              		.loc 1 340 2 is_stmt 0 view .LVU280
+ 1144 0046 ADB2     		uxth	r5, r5
+ 1145 0048 CDF80080 		str	r8, [sp]
+ 1146 004c 2B46     		mov	r3, r5
+ 1147 004e 2246     		mov	r2, r4
+ 1148 0050 2946     		mov	r1, r5
+ 1149 0052 3046     		mov	r0, r6
+ 1150 0054 FFF7FEFF 		bl	SSD1306_DrawLine
+ 1151              	.LVL127:
+ 341:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_DrawLine(x, y, x, y + h, c);         /* Left line */
+ 1152              		.loc 1 341 2 is_stmt 1 view .LVU281
+ 1153 0058 CDF80080 		str	r8, [sp]
+ 1154 005c 2B46     		mov	r3, r5
+ 1155 005e 3246     		mov	r2, r6
+ 1156 0060 3946     		mov	r1, r7
+ 1157 0062 3046     		mov	r0, r6
+ 1158 0064 FFF7FEFF 		bl	SSD1306_DrawLine
+ 1159              	.LVL128:
+ 342:Drivers/Ssd1306/Src/ssd1306.c **** 	SSD1306_DrawLine(x + w, y, x + w, y + h, c); /* Right line */
+ 1160              		.loc 1 342 2 view .LVU282
+ 1161 0068 CDF80080 		str	r8, [sp]
+ 1162 006c 2B46     		mov	r3, r5
+ 1163 006e 2246     		mov	r2, r4
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 29
+
+
+ 1164 0070 3946     		mov	r1, r7
+ 1165 0072 2046     		mov	r0, r4
+ 1166 0074 FFF7FEFF 		bl	SSD1306_DrawLine
+ 1167              	.LVL129:
+ 1168              	.L89:
+ 343:Drivers/Ssd1306/Src/ssd1306.c **** }
+ 1169              		.loc 1 343 1 is_stmt 0 view .LVU283
+ 1170 0078 02B0     		add	sp, sp, #8
+ 1171              	.LCFI15:
+ 1172              		.cfi_def_cfa_offset 24
+ 1173              		@ sp needed
+ 1174 007a BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1175              		.loc 1 343 1 view .LVU284
+ 1176              		.cfi_endproc
+ 1177              	.LFE73:
+ 1179              		.section	.text.ssd1306_image,"ax",%progbits
+ 1180              		.align	1
+ 1181              		.global	ssd1306_image
+ 1182              		.syntax unified
+ 1183              		.thumb
+ 1184              		.thumb_func
+ 1185              		.fpu softvfp
+ 1187              	ssd1306_image:
+ 1188              	.LVL130:
+ 1189              	.LFB74:
+ 344:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 345:Drivers/Ssd1306/Src/ssd1306.c **** void ssd1306_image(uint8_t *img, uint8_t frame, uint8_t x, uint8_t y)
+ 346:Drivers/Ssd1306/Src/ssd1306.c **** {
+ 1190              		.loc 1 346 1 is_stmt 1 view -0
+ 1191              		.cfi_startproc
+ 1192              		@ args = 0, pretend = 0, frame = 0
+ 1193              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1194              		.loc 1 346 1 is_stmt 0 view .LVU286
+ 1195 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 1196              	.LCFI16:
+ 1197              		.cfi_def_cfa_offset 32
+ 1198              		.cfi_offset 4, -32
+ 1199              		.cfi_offset 5, -28
+ 1200              		.cfi_offset 6, -24
+ 1201              		.cfi_offset 7, -20
+ 1202              		.cfi_offset 8, -16
+ 1203              		.cfi_offset 9, -12
+ 1204              		.cfi_offset 10, -8
+ 1205              		.cfi_offset 14, -4
+ 347:Drivers/Ssd1306/Src/ssd1306.c **** 	uint32_t i, b, j;
+ 1206              		.loc 1 347 2 is_stmt 1 view .LVU287
+ 348:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 349:Drivers/Ssd1306/Src/ssd1306.c **** 	b = 0;
+ 1207              		.loc 1 349 2 view .LVU288
+ 1208              	.LVL131:
+ 350:Drivers/Ssd1306/Src/ssd1306.c **** 	if(frame >= img[2])
+ 1209              		.loc 1 350 2 view .LVU289
+ 1210              		.loc 1 350 17 is_stmt 0 view .LVU290
+ 1211 0004 8478     		ldrb	r4, [r0, #2]	@ zero_extendqisi2
+ 1212              		.loc 1 350 4 view .LVU291
+ 1213 0006 8C42     		cmp	r4, r1
+ 1214 0008 28D9     		bls	.L94
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 30
+
+
+ 1215 000a 9A46     		mov	r10, r3
+ 1216 000c 9146     		mov	r9, r2
+ 1217 000e 0646     		mov	r6, r0
+ 351:Drivers/Ssd1306/Src/ssd1306.c **** 		return;
+ 352:Drivers/Ssd1306/Src/ssd1306.c **** 	uint32_t start = (frame * (img[3] + (img[4] << 8)));
+ 1218              		.loc 1 352 2 is_stmt 1 view .LVU292
+ 1219              		.loc 1 352 32 is_stmt 0 view .LVU293
+ 1220 0010 90F80380 		ldrb	r8, [r0, #3]	@ zero_extendqisi2
+ 1221              		.loc 1 352 42 view .LVU294
+ 1222 0014 0379     		ldrb	r3, [r0, #4]	@ zero_extendqisi2
+ 1223              	.LVL132:
+ 1224              		.loc 1 352 36 view .LVU295
+ 1225 0016 08EB0328 		add	r8, r8, r3, lsl #8
+ 1226              		.loc 1 352 26 view .LVU296
+ 1227 001a 08FB01F8 		mul	r8, r8, r1
+ 1228              	.LVL133:
+ 353:Drivers/Ssd1306/Src/ssd1306.c **** 	
+ 354:Drivers/Ssd1306/Src/ssd1306.c **** 	/* Go through font */
+ 355:Drivers/Ssd1306/Src/ssd1306.c **** 	for (i = 0; i < img[1]; i++) {
+ 1229              		.loc 1 355 2 is_stmt 1 view .LVU297
+ 349:Drivers/Ssd1306/Src/ssd1306.c **** 	if(frame >= img[2])
+ 1230              		.loc 1 349 4 is_stmt 0 view .LVU298
+ 1231 001e 0025     		movs	r5, #0
+ 1232              		.loc 1 355 9 view .LVU299
+ 1233 0020 2F46     		mov	r7, r5
+ 1234              		.loc 1 355 2 view .LVU300
+ 1235 0022 00E0     		b	.L96
+ 1236              	.LVL134:
+ 1237              	.L101:
+ 1238              		.loc 1 355 27 discriminator 2 view .LVU301
+ 1239 0024 0137     		adds	r7, r7, #1
+ 1240              	.LVL135:
+ 1241              	.L96:
+ 1242              		.loc 1 355 21 discriminator 1 view .LVU302
+ 1243 0026 7378     		ldrb	r3, [r6, #1]	@ zero_extendqisi2
+ 1244              		.loc 1 355 2 discriminator 1 view .LVU303
+ 1245 0028 BB42     		cmp	r3, r7
+ 1246 002a 17D9     		bls	.L94
+ 356:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < img[0]; j++) {
+ 1247              		.loc 1 356 10 view .LVU304
+ 1248 002c 0024     		movs	r4, #0
+ 1249              	.L98:
+ 1250              	.LVL136:
+ 1251              		.loc 1 356 22 discriminator 1 view .LVU305
+ 1252 002e 3378     		ldrb	r3, [r6]	@ zero_extendqisi2
+ 1253              		.loc 1 356 3 discriminator 1 view .LVU306
+ 1254 0030 A342     		cmp	r3, r4
+ 1255 0032 F7D9     		bls	.L101
+ 357:Drivers/Ssd1306/Src/ssd1306.c **** 
+ 358:Drivers/Ssd1306/Src/ssd1306.c **** 			ssd1306_DrawPixel(x + j, (y + i), (uint8_t) (img[b/8 + 5 + start] >> (b%8)) & 1);
+ 1256              		.loc 1 358 4 is_stmt 1 discriminator 3 view .LVU307
+ 1257              		.loc 1 358 61 is_stmt 0 discriminator 3 view .LVU308
+ 1258 0034 08EBD503 		add	r3, r8, r5, lsr #3
+ 1259 0038 0533     		adds	r3, r3, #5
+ 1260              		.loc 1 358 52 discriminator 3 view .LVU309
+ 1261 003a F25C     		ldrb	r2, [r6, r3]	@ zero_extendqisi2
+ 1262              		.loc 1 358 75 discriminator 3 view .LVU310
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 31
+
+
+ 1263 003c 05F00703 		and	r3, r5, #7
+ 1264              		.loc 1 358 70 discriminator 3 view .LVU311
+ 1265 0040 1A41     		asrs	r2, r2, r3
+ 1266              		.loc 1 358 4 discriminator 3 view .LVU312
+ 1267 0042 0AEB0701 		add	r1, r10, r7
+ 1268 0046 09EB0400 		add	r0, r9, r4
+ 1269 004a 02F00102 		and	r2, r2, #1
+ 1270 004e C9B2     		uxtb	r1, r1
+ 1271 0050 C0B2     		uxtb	r0, r0
+ 1272 0052 FFF7FEFF 		bl	ssd1306_DrawPixel
+ 1273              	.LVL137:
+ 359:Drivers/Ssd1306/Src/ssd1306.c **** 			b++;
+ 1274              		.loc 1 359 4 is_stmt 1 discriminator 3 view .LVU313
+ 1275              		.loc 1 359 5 is_stmt 0 discriminator 3 view .LVU314
+ 1276 0056 0135     		adds	r5, r5, #1
+ 1277              	.LVL138:
+ 356:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < img[0]; j++) {
+ 1278              		.loc 1 356 28 discriminator 3 view .LVU315
+ 1279 0058 0134     		adds	r4, r4, #1
+ 1280              	.LVL139:
+ 356:Drivers/Ssd1306/Src/ssd1306.c **** 		for (j = 0; j < img[0]; j++) {
+ 1281              		.loc 1 356 28 discriminator 3 view .LVU316
+ 1282 005a E8E7     		b	.L98
+ 1283              	.LVL140:
+ 1284              	.L94:
+ 360:Drivers/Ssd1306/Src/ssd1306.c **** 		}
+ 361:Drivers/Ssd1306/Src/ssd1306.c **** 	}
+ 362:Drivers/Ssd1306/Src/ssd1306.c **** }...
+ 1285              		.loc 1 362 1 view .LVU317
+ 1286 005c BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 1287              		.cfi_endproc
+ 1288              	.LFE74:
+ 1290              		.section	.bss.SSD1306,"aw",%nobits
+ 1291              		.align	2
+ 1292              		.set	.LANCHOR1,. + 0
+ 1295              	SSD1306:
+ 1296 0000 00000000 		.space	6
+ 1296      0000
+ 1297              		.section	.bss.SSD1306_Buffer_all,"aw",%nobits
+ 1298              		.align	2
+ 1299              		.set	.LANCHOR0,. + 0
+ 1302              	SSD1306_Buffer_all:
+ 1303 0000 00000000 		.space	513
+ 1303      00000000 
+ 1303      00000000 
+ 1303      00000000 
+ 1303      00000000 
+ 1304              		.text
+ 1305              	.Letext0:
+ 1306              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1307              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1308              		.file 4 "Drivers/CMSIS/Include/core_cm3.h"
+ 1309              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 1310              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 1311              		.file 7 "Drivers/Ssd1306/Inc/fonts.h"
+ 1312              		.file 8 "Drivers/Ssd1306/Inc/ssd1306.h"
+ 1313              		.file 9 "Inc/hardware.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 32
+
+
+ 1314              		.file 10 "Drivers/SoftI2C/Inc/i2cSoft.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s 			page 33
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ssd1306.c
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:16     .text.ssd1306_Fill:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:24     .text.ssd1306_Fill:0000000000000000 ssd1306_Fill
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:67     .text.ssd1306_Fill:000000000000001c $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:72     .text.ssd1306_UpdateScreen:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:79     .text.ssd1306_UpdateScreen:0000000000000000 ssd1306_UpdateScreen
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:109    .text.ssd1306_UpdateScreen:000000000000001c $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:114    .text.ssd1306_Init:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:121    .text.ssd1306_Init:0000000000000000 ssd1306_Init
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:345    .text.ssd1306_Init:0000000000000144 $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:350    .text.ssd1306_DrawPixel:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:357    .text.ssd1306_DrawPixel:0000000000000000 ssd1306_DrawPixel
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:435    .text.ssd1306_DrawPixel:000000000000004c $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:441    .text.ssd1306_WriteChar:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:448    .text.ssd1306_WriteChar:0000000000000000 ssd1306_WriteChar
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:610    .text.ssd1306_WriteChar:00000000000000ac $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:615    .text.ssd1306_WriteString:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:622    .text.ssd1306_WriteString:0000000000000000 ssd1306_WriteString
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:685    .text.ssd1306_SetCursor:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:692    .text.ssd1306_SetCursor:0000000000000000 ssd1306_SetCursor
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:712    .text.ssd1306_SetCursor:0000000000000008 $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:717    .text.SSD1306_DrawLine:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:724    .text.SSD1306_DrawLine:0000000000000000 SSD1306_DrawLine
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1059   .text.SSD1306_DrawRectangle:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1066   .text.SSD1306_DrawRectangle:0000000000000000 SSD1306_DrawRectangle
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1180   .text.ssd1306_image:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1187   .text.ssd1306_image:0000000000000000 ssd1306_image
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1291   .bss.SSD1306:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1295   .bss.SSD1306:0000000000000000 SSD1306
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1298   .bss.SSD1306_Buffer_all:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccYDQWrk.s:1302   .bss.SSD1306_Buffer_all:0000000000000000 SSD1306_Buffer_all
+
+UNDEFINED SYMBOLS
+i2cSoft_WriteBuffer
+HAL_Delay
+i2cSoft_DeviceReady
+i2cSoft_WriteOled

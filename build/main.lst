@@ -1,0 +1,3175 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"main.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.MX_GPIO_Init,"ax",%progbits
+  16              		.align	1
+  17              		.arch armv7-m
+  18              		.syntax unified
+  19              		.thumb
+  20              		.thumb_func
+  21              		.fpu softvfp
+  23              	MX_GPIO_Init:
+  24              	.LFB78:
+  25              		.file 1 "Src/main.c"
+   1:Src/main.c    **** /* USER CODE BEGIN Header */
+   2:Src/main.c    **** /**
+   3:Src/main.c    ****   ******************************************************************************
+   4:Src/main.c    ****   * @file           : main.c
+   5:Src/main.c    ****   * @brief          : Main program body
+   6:Src/main.c    ****   ******************************************************************************
+   7:Src/main.c    ****   * @attention
+   8:Src/main.c    ****   *
+   9:Src/main.c    ****   * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+  10:Src/main.c    ****   * All rights reserved.</center></h2>
+  11:Src/main.c    ****   *
+  12:Src/main.c    ****   * This software component is licensed by ST under BSD 3-Clause license,
+  13:Src/main.c    ****   * the "License"; You may not use this file except in compliance with the
+  14:Src/main.c    ****   * License. You may obtain a copy of the License at:
+  15:Src/main.c    ****   *                        opensource.org/licenses/BSD-3-Clause
+  16:Src/main.c    ****   *
+  17:Src/main.c    ****   ******************************************************************************
+  18:Src/main.c    ****   */
+  19:Src/main.c    **** /* USER CODE END Header */
+  20:Src/main.c    **** 
+  21:Src/main.c    **** /* Includes ------------------------------------------------------------------*/
+  22:Src/main.c    **** #include "main.h"
+  23:Src/main.c    **** #include "usb_device.h"
+  24:Src/main.c    **** 
+  25:Src/main.c    **** //#include "stm32f1xx_hal.h"
+  26:Src/main.c    **** 
+  27:Src/main.c    **** 
+  28:Src/main.c    **** 
+  29:Src/main.c    **** /* Private includes ----------------------------------------------------------*/
+  30:Src/main.c    **** /* USER CODE BEGIN Includes */
+  31:Src/main.c    **** #include "usbd_cdc_hid.h"
+  32:Src/main.c    **** #include <stdio.h>
+  33:Src/main.c    **** #include "Handler.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 2
+
+
+  34:Src/main.c    **** 
+  35:Src/main.c    **** #include "i2cSoft.h"
+  36:Src/main.c    **** #include <stdint.h>
+  37:Src/main.c    **** #include <stdbool.h>
+  38:Src/main.c    **** #include <stdio.h>
+  39:Src/main.c    **** #include "hardware.h"
+  40:Src/main.c    **** #include "SerialTrans.h"
+  41:Src/main.c    **** #include "Toshiba_TC358870_china.h"
+  42:Src/main.c    **** #include "bno055.h"
+  43:Src/main.c    **** #include "ssd1306.h"
+  44:Src/main.c    **** 
+  45:Src/main.c    **** /* USER CODE END Includes */
+  46:Src/main.c    **** 
+  47:Src/main.c    **** /* Private typedef -----------------------------------------------------------*/
+  48:Src/main.c    **** /* USER CODE BEGIN PTD */
+  49:Src/main.c    **** 
+  50:Src/main.c    **** /* USER CODE END PTD */
+  51:Src/main.c    **** 
+  52:Src/main.c    **** /* Private define ------------------------------------------------------------*/
+  53:Src/main.c    **** /* USER CODE BEGIN PD */
+  54:Src/main.c    **** /* USER CODE END PD */
+  55:Src/main.c    **** 
+  56:Src/main.c    **** /* Private macro -------------------------------------------------------------*/
+  57:Src/main.c    **** /* USER CODE BEGIN PM */
+  58:Src/main.c    **** 
+  59:Src/main.c    **** /* USER CODE END PM */
+  60:Src/main.c    **** 
+  61:Src/main.c    **** /* Private variables ---------------------------------------------------------*/
+  62:Src/main.c    **** 
+  63:Src/main.c    **** /* USER CODE BEGIN PV */
+  64:Src/main.c    **** 
+  65:Src/main.c    **** /* USER CODE END PV */
+  66:Src/main.c    **** 
+  67:Src/main.c    **** /* Private function prototypes -----------------------------------------------*/
+  68:Src/main.c    **** void SystemClock_Config(void);
+  69:Src/main.c    **** static void MX_GPIO_Init(void);
+  70:Src/main.c    **** /* USER CODE BEGIN PFP */
+  71:Src/main.c    **** 
+  72:Src/main.c    **** /* USER CODE END PFP */
+  73:Src/main.c    **** 
+  74:Src/main.c    **** /* Private user code ---------------------------------------------------------*/
+  75:Src/main.c    **** /* USER CODE BEGIN 0 */
+  76:Src/main.c    **** USBD_HandleTypeDef hUsbDeviceFS;
+  77:Src/main.c    **** 
+  78:Src/main.c    **** //blink LEDs var
+  79:Src/main.c    **** 
+  80:Src/main.c    **** 
+  81:Src/main.c    **** uint8_t rxLed=0,txLed=0;
+  82:Src/main.c    **** 
+  83:Src/main.c    **** uint8_t uartBusy = 0;
+  84:Src/main.c    **** 
+  85:Src/main.c    **** /*CDC buffers declaration*/
+  86:Src/main.c    **** 
+  87:Src/main.c    **** char spi_tx[BUF_SIZE];
+  88:Src/main.c    **** uint8_t spiCountTx=0;
+  89:Src/main.c    **** uint8_t spiWritePointerTx=0, spiReadPointerTx=0;
+  90:Src/main.c    **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 3
+
+
+  91:Src/main.c    **** char spi_rx[BUF_SIZE];
+  92:Src/main.c    **** uint8_t spiCountRx=0;
+  93:Src/main.c    **** uint8_t spiWritePointerRx=0, spiReadPointerRx=0;
+  94:Src/main.c    **** /*HID payload vars***************************************************************************/
+  95:Src/main.c    **** uint8_t hid_ver = 3; //Now 3 for OSVR
+  96:Src/main.c    **** uint8_t video_detected = 0;
+  97:Src/main.c    **** uint8_t packet_num = 0;
+  98:Src/main.c    **** 
+  99:Src/main.c    **** uint8_t dataToSend[16];
+ 100:Src/main.c    **** 
+ 101:Src/main.c    **** /*end HID payload vars***********************************************************************/
+ 102:Src/main.c    **** /*Hardware Vars******************************************************************************/
+ 103:Src/main.c    **** extern volatile uint8_t sMessage[16];
+ 104:Src/main.c    **** 
+ 105:Src/main.c    **** uint8_t mode = 0; //  0 - SBS mode, 1 - split mode, 
+ 106:Src/main.c    **** uint8_t target_mode = 0;
+ 107:Src/main.c    **** uint8_t stage = 0; //0 - initial, 1 - powerstage1, 2 = 5V is ok, 3 - toshiba init, 4 - powerstage2,
+ 108:Src/main.c    **** uint8_t new_stage = 2;
+ 109:Src/main.c    **** uint8_t edid = 0; //0 - SBS mode OSVR edid, 1 - SBS mode ORIG edid, 2 - SBS mode CUSTOM edid
+ 110:Src/main.c    **** uint8_t target_edid = 0;
+ 111:Src/main.c    **** uint8_t status = 0;
+ 112:Src/main.c    **** uint8_t old_status = 0;
+ 113:Src/main.c    **** //uint8_t state = 0; // 1 - DS mode, 2 - split mode, 3 - HDMI off, 4 - HDMI soft off
+ 114:Src/main.c    **** uint8_t lane_status = 0;
+ 115:Src/main.c    **** uint8_t edid_ver = 0;
+ 116:Src/main.c    **** /*End Hardware Vars******************************************************************************/
+ 117:Src/main.c    **** 
+ 118:Src/main.c    **** float PI = 3.14159265358979323846f;
+ 119:Src/main.c    **** float LINACC [3];
+ 120:Src/main.c    **** float LINACCOLD [3];
+ 121:Src/main.c    **** float Euler[3];
+ 122:Src/main.c    **** float Quat[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+ 123:Src/main.c    **** float QuatW;
+ 124:Src/main.c    **** float QuatX;
+ 125:Src/main.c    **** float QuatY;
+ 126:Src/main.c    **** float QuatZ;
+ 127:Src/main.c    **** float Gyro[3] = {0.0f, 0.0f, 0.0f};
+ 128:Src/main.c    **** 
+ 129:Src/main.c    **** int16_t quatCount[7]; 
+ 130:Src/main.c    **** int16_t QuatWbyte;
+ 131:Src/main.c    **** int16_t QuatXbyte;
+ 132:Src/main.c    **** int16_t QuatYbyte;
+ 133:Src/main.c    **** int16_t QuatZbyte;
+ 134:Src/main.c    **** int16_t Gxbyte;
+ 135:Src/main.c    **** int16_t Gybyte;
+ 136:Src/main.c    **** int16_t Gzbyte;
+ 137:Src/main.c    **** uint8_t send_report[16] = {0};
+ 138:Src/main.c    **** 
+ 139:Src/main.c    **** 
+ 140:Src/main.c    **** float test;
+ 141:Src/main.c    **** 
+ 142:Src/main.c    **** float sinr_cosp =0.0f;
+ 143:Src/main.c    **** float cosr_cosp =0.0f;
+ 144:Src/main.c    **** float sinp =0.0f;
+ 145:Src/main.c    **** float siny_cosp =0.0f;
+ 146:Src/main.c    **** float cosy_cosp =0.0f;
+ 147:Src/main.c    **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 4
+
+
+ 148:Src/main.c    **** float prevVelocity[3];
+ 149:Src/main.c    **** float newVelocity[3];
+ 150:Src/main.c    **** float prevPosition[3];
+ 151:Src/main.c    **** float prevAccel[3];
+ 152:Src/main.c    **** float Position[3];
+ 153:Src/main.c    **** float nevalgo[3];
+ 154:Src/main.c    **** float Abs[3];
+ 155:Src/main.c    **** float AbsOld[3];
+ 156:Src/main.c    **** float EulerF[3];
+ 157:Src/main.c    **** float EulerF2[3];
+ 158:Src/main.c    **** 
+ 159:Src/main.c    **** float vzero[3];
+ 160:Src/main.c    **** float szero[3];
+ 161:Src/main.c    **** 
+ 162:Src/main.c    **** uint64_t lastRotationUpdate = 0.0f;
+ 163:Src/main.c    **** volatile uint64_t now = 0.0f;
+ 164:Src/main.c    **** float elapsedTime = 0.0f;
+ 165:Src/main.c    **** 
+ 166:Src/main.c    **** 
+ 167:Src/main.c    **** int optimer=0;
+ 168:Src/main.c    **** uint16_t Code;
+ 169:Src/main.c    **** uint8_t bufArd[30];
+ 170:Src/main.c    **** uint8_t cnt=0;
+ 171:Src/main.c    **** uint8_t status;
+ 172:Src/main.c    **** uint8_t test_result;
+ 173:Src/main.c    **** uint8_t error;
+ 174:Src/main.c    **** 
+ 175:Src/main.c    **** uint8_t sys=0;
+ 176:Src/main.c    **** uint8_t gyro=0;
+ 177:Src/main.c    **** uint8_t accel=0;
+ 178:Src/main.c    **** uint8_t mag=0;
+ 179:Src/main.c    **** 
+ 180:Src/main.c    **** uint8_t OLED_OK = 0;
+ 181:Src/main.c    **** int     HT_OK = 0;
+ 182:Src/main.c    **** void print(char string[]);
+ 183:Src/main.c    **** 
+ 184:Src/main.c    **** void floatToByteArray(float f, uint8_t *barr, uint8_t start) {
+ 185:Src/main.c    **** 
+ 186:Src/main.c    ****     unsigned int asInt = *((int*)&f);
+ 187:Src/main.c    **** 
+ 188:Src/main.c    ****     int i;
+ 189:Src/main.c    ****     for (i = 0; i < 4; i++) {
+ 190:Src/main.c    ****         barr[start+i] = (asInt >> 8 * i) & 0xFF;
+ 191:Src/main.c    ****     }
+ 192:Src/main.c    **** }
+ 193:Src/main.c    **** 
+ 194:Src/main.c    **** 
+ 195:Src/main.c    **** 
+ 196:Src/main.c    **** uint64_t GetMicros(void)
+ 197:Src/main.c    **** {
+ 198:Src/main.c    **** 	register uint64_t systick, ticks;
+ 199:Src/main.c    **** 	do {
+ 200:Src/main.c    **** 	ticks = (uint64_t)HAL_GetTick();
+ 201:Src/main.c    **** 
+ 202:Src/main.c    **** 	 systick = (uint64_t)SysTick->VAL;
+ 203:Src/main.c    **** 	}
+ 204:Src/main.c    **** 	 while (ticks != (uint64_t)HAL_GetTick());
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 5
+
+
+ 205:Src/main.c    **** 	return (ticks * 1000ull) + (72ul*1000ull - systick )/ 72ul;
+ 206:Src/main.c    **** }
+ 207:Src/main.c    **** void processEuler()
+ 208:Src/main.c    **** {
+ 209:Src/main.c    **** 
+ 210:Src/main.c    **** 	getEuler(VECTOR_EULER, Euler);
+ 211:Src/main.c    **** 
+ 212:Src/main.c    **** 	/* sinr_cosp = 2.0f*(QuatY*QuatW-QuatX*QuatZ);
+ 213:Src/main.c    **** 	 cosr_cosp = 1.0f-2.0f*(QuatY*QuatY+QuatZ*QuatZ);
+ 214:Src/main.c    **** 	 sinp = 2.0f*(QuatX*QuatY + QuatZ*QuatW);
+ 215:Src/main.c    **** 	 siny_cosp = 2.0f*(QuatX*QuatW-QuatY*QuatZ);
+ 216:Src/main.c    **** 	 cosy_cosp = 1.f-2.0f*(QuatX*QuatX+QuatZ*QuatZ);
+ 217:Src/main.c    **** 
+ 218:Src/main.c    ****  Euler[0]=atan2(sinr_cosp, cosr_cosp);
+ 219:Src/main.c    ****  if(fabs(sinp)>=1){
+ 220:Src/main.c    ****  Euler[1]=copysign(PI/2,sinp);
+ 221:Src/main.c    ****  }
+ 222:Src/main.c    ****  else {
+ 223:Src/main.c    ****  		  Euler[1]=asin(sinp);
+ 224:Src/main.c    ****  	  }
+ 225:Src/main.c    ****  Euler[2]=atan2(siny_cosp, cosy_cosp);
+ 226:Src/main.c    ****  */
+ 227:Src/main.c    **** 	  EulerF[0]=Euler[0]-180.0f;
+ 228:Src/main.c    **** 	  EulerF[1]=Euler[1];
+ 229:Src/main.c    **** 	  EulerF[2]=Euler[2];
+ 230:Src/main.c    **** } 
+ 231:Src/main.c    **** 
+ 232:Src/main.c    **** void CalibrateHeadTracker()
+ 233:Src/main.c    **** {
+ 234:Src/main.c    ****   
+ 235:Src/main.c    ****      while(sys != 3)
+ 236:Src/main.c    ****     {
+ 237:Src/main.c    ****     	char str[5];
+ 238:Src/main.c    ****     getCalibration(&sys, &gyro, &accel, &mag);
+ 239:Src/main.c    ****     
+ 240:Src/main.c    ****     LED1_TOGGLE;
+ 241:Src/main.c    ****     LED2_TOGGLE;    
+ 242:Src/main.c    ****     print("CALIBRATION: Sys=");
+ 243:Src/main.c    ****     sprintf(str, "0x%X",sys);
+ 244:Src/main.c    ****     HAL_Delay (500);
+ 245:Src/main.c    ****     SerialPrint(str);
+ 246:Src/main.c    ****     HAL_Delay (500);
+ 247:Src/main.c    ****     SerialPrint(" Gyro=");
+ 248:Src/main.c    ****     sprintf(str, "0x%X",gyro);
+ 249:Src/main.c    ****     HAL_Delay (500);
+ 250:Src/main.c    ****     SerialPrint(str);
+ 251:Src/main.c    ****     HAL_Delay (500);
+ 252:Src/main.c    ****     SerialPrint(" Accel=");
+ 253:Src/main.c    ****     sprintf(str, "0x%X",accel);
+ 254:Src/main.c    ****     HAL_Delay (500);
+ 255:Src/main.c    ****     SerialPrint(str);
+ 256:Src/main.c    ****     HAL_Delay (500);
+ 257:Src/main.c    ****     SerialPrint(" Mag=");
+ 258:Src/main.c    ****     sprintf(str, "0x%X",mag);
+ 259:Src/main.c    ****     HAL_Delay (500);
+ 260:Src/main.c    ****     SerialPrint(str);
+ 261:Src/main.c    ****     HAL_Delay (500);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 6
+
+
+ 262:Src/main.c    **** 
+ 263:Src/main.c    ****     SerialPrint("\r\n");
+ 264:Src/main.c    ****     HAL_Delay (500);
+ 265:Src/main.c    ****   }
+ 266:Src/main.c    **** }
+ 267:Src/main.c    **** 
+ 268:Src/main.c    ****  
+ 269:Src/main.c    **** void processcalcAbs()
+ 270:Src/main.c    **** {
+ 271:Src/main.c    **** 	lastRotationUpdate = now;
+ 272:Src/main.c    **** 	now = GetMicros();
+ 273:Src/main.c    **** 	elapsedTime = (now - lastRotationUpdate) / 1000000.0f; // set integration time by time elapsed sin
+ 274:Src/main.c    **** 
+ 275:Src/main.c    ****     getLinear(VECTOR_LINEARACCEL, LINACC);
+ 276:Src/main.c    **** 
+ 277:Src/main.c    ****     LINACCOLD[0] = LINACCOLD[0]*0.995f+LINACC[0]*0.005f;
+ 278:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 279:Src/main.c    ****     LINACCOLD[2] = LINACCOLD[2]*0.995f+LINACC[2]*0.005f;
+ 280:Src/main.c    **** 
+ 281:Src/main.c    ****     newVelocity[0] = prevVelocity[0]+ LINACCOLD[0]* elapsedTime;
+ 282:Src/main.c    ****     newVelocity[1] = prevVelocity[1]+ LINACCOLD[1]* elapsedTime;
+ 283:Src/main.c    ****     newVelocity[2] = prevVelocity[2]+ LINACCOLD[2]* elapsedTime;
+ 284:Src/main.c    **** 
+ 285:Src/main.c    ****     nevalgo[0]+= LINACCOLD[0];
+ 286:Src/main.c    ****     nevalgo[1]+= LINACCOLD[1];
+ 287:Src/main.c    ****     nevalgo[2]+= LINACCOLD[2];
+ 288:Src/main.c    **** 
+ 289:Src/main.c    **** 
+ 290:Src/main.c    ****     Position[0] += (prevVelocity[0]* elapsedTime + (LINACCOLD[0]* elapsedTime* elapsedTime)/2);
+ 291:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 292:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 293:Src/main.c    **** 
+ 294:Src/main.c    ****     Abs[0] = Abs[0]*0.98f+Position[0]*0.02f;
+ 295:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 296:Src/main.c    ****     Abs[2] = Abs[2]*0.98f+Position[2]*0.02f;
+ 297:Src/main.c    **** 
+ 298:Src/main.c    **** 
+ 299:Src/main.c    ****     prevVelocity[0]= newVelocity[0];
+ 300:Src/main.c    ****     prevVelocity[1]= newVelocity[1];   
+ 301:Src/main.c    ****     prevVelocity[2]= newVelocity[2];
+ 302:Src/main.c    ****    
+ 303:Src/main.c    **** 
+ 304:Src/main.c    **** 
+ 305:Src/main.c    **** 
+ 306:Src/main.c    **** }
+ 307:Src/main.c    **** 
+ 308:Src/main.c    ****   void processQuat()
+ 309:Src/main.c    **** {
+ 310:Src/main.c    **** 
+ 311:Src/main.c    **** 	getQuat(VECTOR_QUAT, quatCount);
+ 312:Src/main.c    **** 
+ 313:Src/main.c    **** }
+ 314:Src/main.c    **** void ProcessHeadTracking()
+ 315:Src/main.c    **** {
+ 316:Src/main.c    **** 	processQuat();
+ 317:Src/main.c    **** 	processEuler();
+ 318:Src/main.c    **** 	processcalcAbs();
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 7
+
+
+ 319:Src/main.c    **** }
+ 320:Src/main.c    **** 
+ 321:Src/main.c    **** void print(char string[])
+ 322:Src/main.c    **** {
+ 323:Src/main.c    **** 	CDC_Transmit_FS( (unsigned char*) string, strlen(string));
+ 324:Src/main.c    **** }
+ 325:Src/main.c    **** 
+ 326:Src/main.c    **** 
+ 327:Src/main.c    **** /* USER CODE END 0 */
+ 328:Src/main.c    **** 
+ 329:Src/main.c    **** /**
+ 330:Src/main.c    ****   * @brief  The application entry point.
+ 331:Src/main.c    ****   * @retval int
+ 332:Src/main.c    ****   */
+ 333:Src/main.c    **** 
+ 334:Src/main.c    **** 
+ 335:Src/main.c    **** int main(void)
+ 336:Src/main.c    **** {
+ 337:Src/main.c    ****   /* USER CODE BEGIN 1 */
+ 338:Src/main.c    **** 
+ 339:Src/main.c    ****   /* USER CODE END 1 */
+ 340:Src/main.c    ****   
+ 341:Src/main.c    **** 
+ 342:Src/main.c    ****   /* MCU Configuration--------------------------------------------------------*/
+ 343:Src/main.c    **** 
+ 344:Src/main.c    ****   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+ 345:Src/main.c    ****   HAL_Init();
+ 346:Src/main.c    **** 
+ 347:Src/main.c    ****   /* USER CODE BEGIN Init */
+ 348:Src/main.c    **** 
+ 349:Src/main.c    ****   /* USER CODE END Init */
+ 350:Src/main.c    **** 
+ 351:Src/main.c    ****   /* Configure the system clock */
+ 352:Src/main.c    ****   SystemClock_Config();
+ 353:Src/main.c    **** 
+ 354:Src/main.c    ****   /* USER CODE BEGIN SysInit */
+ 355:Src/main.c    **** 
+ 356:Src/main.c    ****   /* USER CODE END SysInit */
+ 357:Src/main.c    **** 
+ 358:Src/main.c    ****   /* Initialize all configured peripherals */
+ 359:Src/main.c    ****   MX_GPIO_Init();
+ 360:Src/main.c    ****   MX_USB_DEVICE_Init();
+ 361:Src/main.c    **** 
+ 362:Src/main.c    ****   /* USER CODE BEGIN 2 */
+ 363:Src/main.c    ****   MainPowerOn();
+ 364:Src/main.c    ****   HAL_Delay(50);
+ 365:Src/main.c    ****   i2cSoft_Init();
+ 366:Src/main.c    ****   HAL_Delay(150);
+ 367:Src/main.c    ****   for(int i = 0; i < 10; i++)
+ 368:Src/main.c    ****   {
+ 369:Src/main.c    **** 
+ 370:Src/main.c    ****     
+ 371:Src/main.c    ****     //ctl_OLED
+ 372:Src/main.c    **** 
+ 373:Src/main.c    ****   }
+ 374:Src/main.c    ****   //if(!OLED_OK && i2cSoft_DeviceExists(SSD1306_I2C_ADDR)) OLED_OK = 1;
+ 375:Src/main.c    ****   if(i2cSoft_DeviceExists(SSD1306_I2C_ADDR)) OLED_OK = 1;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 8
+
+
+ 376:Src/main.c    ****   if(i2cSoft_DeviceExists(BNO055_ADDRESS_A)) HT_OK = 1;
+ 377:Src/main.c    **** 
+ 378:Src/main.c    ****   while(1){
+ 379:Src/main.c    ****   if(i2cSoft_DeviceExists(TOSHIBA_I2C_ADDR))
+ 380:Src/main.c    ****   break;
+ 381:Src/main.c    ****   }
+ 382:Src/main.c    ****   HAL_Delay(50);
+ 383:Src/main.c    ****   ssd1306_Init();
+ 384:Src/main.c    ****   HAL_Delay(50);
+ 385:Src/main.c    **** 
+ 386:Src/main.c    ****   if(OLED_OK)
+ 387:Src/main.c    ****   {
+ 388:Src/main.c    ****     ssd1306_Fill(Black);
+ 389:Src/main.c    ****     ssd1306_UpdateScreen();
+ 390:Src/main.c    ****   }
+ 391:Src/main.c    ****   
+ 392:Src/main.c    ****   HT_OK = begin();
+ 393:Src/main.c    ****   //while(!VCPInitialized) {}   
+ 394:Src/main.c    ****     
+ 395:Src/main.c    ****     now = GetMicros();
+ 396:Src/main.c    **** 
+ 397:Src/main.c    ****   /* USER CODE END 2 */
+ 398:Src/main.c    ****   
+ 399:Src/main.c    ****   /* USER CODE BEGIN WHILE */
+ 400:Src/main.c    ****   //char byte;
+ 401:Src/main.c    **** UserRxBufferFS[0] = '\0';
+ 402:Src/main.c    ****   while (1)
+ 403:Src/main.c    ****   {   
+ 404:Src/main.c    ****     InitHardware();
+ 405:Src/main.c    ****     if(OLED_OK)
+ 406:Src/main.c    ****     {
+ 407:Src/main.c    ****           PrintScreen();
+ 408:Src/main.c    ****       }
+ 409:Src/main.c    ****     StatusControl();
+ 410:Src/main.c    ****     if(VCPInitialized)
+ 411:Src/main.c    ****     {
+ 412:Src/main.c    ****         Cmd_Interface();
+ 413:Src/main.c    ****         if(HT_OK == -1) SerialPrint("Bno is fail....");    
+ 414:Src/main.c    ****       }
+ 415:Src/main.c    ****     Buttons();
+ 416:Src/main.c    ****     processQuat();
+ 417:Src/main.c    **** 		
+ 418:Src/main.c    **** 		send_report[0]=hid_ver;
+ 419:Src/main.c    ****     if(status == 0x9F)
+ 420:Src/main.c    ****     send_report[0] = 0x13;
+ 421:Src/main.c    ****     send_report[1] = packet_num;
+ 422:Src/main.c    ****     
+ 423:Src/main.c    ****     packet_num++;
+ 424:Src/main.c    ****     for(int i = 0; i < 7; i++)
+ 425:Src/main.c    ****     {
+ 426:Src/main.c    ****       send_report[i*2+2] = (uint8_t)(quatCount[i] & 0xFF);
+ 427:Src/main.c    ****       send_report[i*2+3] = (uint8_t)(quatCount[i] >> 8);
+ 428:Src/main.c    **** 
+ 429:Src/main.c    **** 
+ 430:Src/main.c    ****     }
+ 431:Src/main.c    ****     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, send_report, 16);
+ 432:Src/main.c    ****     if(packet_num == 0xFF)  packet_num = 0;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 9
+
+
+ 433:Src/main.c    ****     /* USER CODE END WHILE */
+ 434:Src/main.c    **** 
+ 435:Src/main.c    ****     /* USER CODE BEGIN 3 */
+ 436:Src/main.c    ****   }
+ 437:Src/main.c    ****   /* USER CODE END 3 */
+ 438:Src/main.c    **** }
+ 439:Src/main.c    **** 
+ 440:Src/main.c    **** 
+ 441:Src/main.c    **** 
+ 442:Src/main.c    **** 
+ 443:Src/main.c    **** 
+ 444:Src/main.c    **** /**
+ 445:Src/main.c    ****   * @brief System Clock Configuration
+ 446:Src/main.c    ****   * @retval None
+ 447:Src/main.c    ****   */
+ 448:Src/main.c    **** void SystemClock_Config(void)
+ 449:Src/main.c    **** {
+ 450:Src/main.c    ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 451:Src/main.c    ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 452:Src/main.c    ****   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+ 453:Src/main.c    **** 
+ 454:Src/main.c    ****   /** Initializes the CPU, AHB and APB busses clocks 
+ 455:Src/main.c    ****   */
+ 456:Src/main.c    ****   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+ 457:Src/main.c    ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+ 458:Src/main.c    ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+ 459:Src/main.c    ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 460:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 461:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+ 462:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+ 463:Src/main.c    ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 464:Src/main.c    ****   {
+ 465:Src/main.c    ****     Error_Handler();
+ 466:Src/main.c    ****   }
+ 467:Src/main.c    ****   /** Initializes the CPU, AHB and APB busses clocks 
+ 468:Src/main.c    ****   */
+ 469:Src/main.c    ****   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+ 470:Src/main.c    ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 471:Src/main.c    ****   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+ 472:Src/main.c    ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 473:Src/main.c    ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+ 474:Src/main.c    ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 475:Src/main.c    **** 
+ 476:Src/main.c    ****   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+ 477:Src/main.c    ****   {
+ 478:Src/main.c    ****     Error_Handler();
+ 479:Src/main.c    ****   }
+ 480:Src/main.c    ****   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+ 481:Src/main.c    ****   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
+ 482:Src/main.c    ****   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+ 483:Src/main.c    ****   {
+ 484:Src/main.c    ****     Error_Handler();
+ 485:Src/main.c    ****   }
+ 486:Src/main.c    **** }
+ 487:Src/main.c    **** 
+ 488:Src/main.c    **** /**
+ 489:Src/main.c    ****   * @brief GPIO Initialization Function
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 10
+
+
+ 490:Src/main.c    ****   * @param None
+ 491:Src/main.c    ****   * @retval None
+ 492:Src/main.c    ****   */
+ 493:Src/main.c    **** static void MX_GPIO_Init(void)
+ 494:Src/main.c    **** {
+  26              		.loc 1 494 1 view -0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 32
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 36
+  33              		.cfi_offset 4, -36
+  34              		.cfi_offset 5, -32
+  35              		.cfi_offset 6, -28
+  36              		.cfi_offset 7, -24
+  37              		.cfi_offset 8, -20
+  38              		.cfi_offset 9, -16
+  39              		.cfi_offset 10, -12
+  40              		.cfi_offset 11, -8
+  41              		.cfi_offset 14, -4
+  42 0004 89B0     		sub	sp, sp, #36
+  43              	.LCFI1:
+  44              		.cfi_def_cfa_offset 72
+ 495:Src/main.c    **** GPIO_InitTypeDef GPIO_InitStruct = {0};
+  45              		.loc 1 495 1 view .LVU1
+  46              		.loc 1 495 18 is_stmt 0 view .LVU2
+  47 0006 0024     		movs	r4, #0
+  48 0008 0494     		str	r4, [sp, #16]
+  49 000a 0594     		str	r4, [sp, #20]
+  50 000c 0694     		str	r4, [sp, #24]
+  51 000e 0794     		str	r4, [sp, #28]
+ 496:Src/main.c    **** 
+ 497:Src/main.c    ****   /* GPIO Ports Clock Enable */
+ 498:Src/main.c    ****   __HAL_RCC_GPIOC_CLK_ENABLE();
+  52              		.loc 1 498 3 is_stmt 1 view .LVU3
+  53              	.LBB2:
+  54              		.loc 1 498 3 view .LVU4
+  55              		.loc 1 498 3 view .LVU5
+  56 0010 4B4B     		ldr	r3, .L3
+  57 0012 9A69     		ldr	r2, [r3, #24]
+  58 0014 42F01002 		orr	r2, r2, #16
+  59 0018 9A61     		str	r2, [r3, #24]
+  60              		.loc 1 498 3 view .LVU6
+  61 001a 9A69     		ldr	r2, [r3, #24]
+  62 001c 02F01002 		and	r2, r2, #16
+  63 0020 0092     		str	r2, [sp]
+  64              		.loc 1 498 3 view .LVU7
+  65 0022 009A     		ldr	r2, [sp]
+  66              	.LBE2:
+ 499:Src/main.c    ****   __HAL_RCC_GPIOD_CLK_ENABLE();
+  67              		.loc 1 499 3 view .LVU8
+  68              	.LBB3:
+  69              		.loc 1 499 3 view .LVU9
+  70              		.loc 1 499 3 view .LVU10
+  71 0024 9A69     		ldr	r2, [r3, #24]
+  72 0026 42F02002 		orr	r2, r2, #32
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 11
+
+
+  73 002a 9A61     		str	r2, [r3, #24]
+  74              		.loc 1 499 3 view .LVU11
+  75 002c 9A69     		ldr	r2, [r3, #24]
+  76 002e 02F02002 		and	r2, r2, #32
+  77 0032 0192     		str	r2, [sp, #4]
+  78              		.loc 1 499 3 view .LVU12
+  79 0034 019A     		ldr	r2, [sp, #4]
+  80              	.LBE3:
+ 500:Src/main.c    ****   __HAL_RCC_GPIOA_CLK_ENABLE();
+  81              		.loc 1 500 3 view .LVU13
+  82              	.LBB4:
+  83              		.loc 1 500 3 view .LVU14
+  84              		.loc 1 500 3 view .LVU15
+  85 0036 9A69     		ldr	r2, [r3, #24]
+  86 0038 42F00402 		orr	r2, r2, #4
+  87 003c 9A61     		str	r2, [r3, #24]
+  88              		.loc 1 500 3 view .LVU16
+  89 003e 9A69     		ldr	r2, [r3, #24]
+  90 0040 02F00402 		and	r2, r2, #4
+  91 0044 0292     		str	r2, [sp, #8]
+  92              		.loc 1 500 3 view .LVU17
+  93 0046 029A     		ldr	r2, [sp, #8]
+  94              	.LBE4:
+ 501:Src/main.c    ****   __HAL_RCC_GPIOB_CLK_ENABLE();
+  95              		.loc 1 501 3 view .LVU18
+  96              	.LBB5:
+  97              		.loc 1 501 3 view .LVU19
+  98              		.loc 1 501 3 view .LVU20
+  99 0048 9A69     		ldr	r2, [r3, #24]
+ 100 004a 42F00802 		orr	r2, r2, #8
+ 101 004e 9A61     		str	r2, [r3, #24]
+ 102              		.loc 1 501 3 view .LVU21
+ 103 0050 9B69     		ldr	r3, [r3, #24]
+ 104 0052 03F00803 		and	r3, r3, #8
+ 105 0056 0393     		str	r3, [sp, #12]
+ 106              		.loc 1 501 3 view .LVU22
+ 107 0058 039B     		ldr	r3, [sp, #12]
+ 108              	.LBE5:
+ 502:Src/main.c    **** 
+ 503:Src/main.c    ****   /*Configure GPIO pin Output Level */
+ 504:Src/main.c    ****   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+ 109              		.loc 1 504 3 view .LVU23
+ 110 005a 2246     		mov	r2, r4
+ 111 005c 4FF40051 		mov	r1, #8192
+ 112 0060 3848     		ldr	r0, .L3+4
+ 113 0062 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 114              	.LVL0:
+ 505:Src/main.c    **** 
+ 506:Src/main.c    ****   /*Configure GPIO pin Output Level */
+ 507:Src/main.c    ****   //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_1|GPIO_PIN_6|GPIO_PIN_9|GPIO_PIN_0, GPI
+ 508:Src/main.c    ****  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_1|GPIO_PIN_6|GPIO_PIN_9, GPIO_PIN_RESET
+ 509:Src/main.c    ****   //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15|GPIO_PIN_3|GPIO_PIN_2 , GPIO_PIN_SET);
+ 510:Src/main.c    ****   
+ 511:Src/main.c    **** 
+ 512:Src/main.c    ****   /*Configure GPIO pin Output Level */
+ 513:Src/main.c    ****  // HAL_GPIO_WritePin(GPIOB, SoftI2C2_SDA_Pin|SoftI2C2_SCL_Pin|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_10|GP
+ 514:Src/main.c    ****  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_9, GPIO_PIN_RESET); //OLED displayys power off
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 12
+
+
+ 115              		.loc 1 514 2 view .LVU24
+ 116 0066 DFF8E480 		ldr	r8, .L3+12
+ 117 006a 2246     		mov	r2, r4
+ 118 006c 4FF40471 		mov	r1, #528
+ 119 0070 4046     		mov	r0, r8
+ 120 0072 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 121              	.LVL1:
+ 515:Src/main.c    ****  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4|GPIO_PIN_5, GPIO_PIN_RESET); //Soft I2C pins to low
+ 122              		.loc 1 515 2 view .LVU25
+ 123 0076 344E     		ldr	r6, .L3+8
+ 124 0078 2246     		mov	r2, r4
+ 125 007a 3021     		movs	r1, #48
+ 126 007c 3046     		mov	r0, r6
+ 127 007e FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 128              	.LVL2:
+ 516:Src/main.c    **** 
+ 517:Src/main.c    ****   /*Configure GPIO pin Output Level */
+ 518:Src/main.c    ****   //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+ 519:Src/main.c    **** 
+ 520:Src/main.c    ****   /*Configure GPIO pin : PC13 */
+ 521:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_13;
+ 129              		.loc 1 521 3 view .LVU26
+ 130              		.loc 1 521 23 is_stmt 0 view .LVU27
+ 131 0082 4FF40053 		mov	r3, #8192
+ 132 0086 0493     		str	r3, [sp, #16]
+ 522:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+ 133              		.loc 1 522 3 is_stmt 1 view .LVU28
+ 134              		.loc 1 522 24 is_stmt 0 view .LVU29
+ 135 0088 4FF0110B 		mov	fp, #17
+ 136 008c CDF814B0 		str	fp, [sp, #20]
+ 523:Src/main.c    ****   GPIO_InitStruct.Pull = GPIO_PULLUP;
+ 137              		.loc 1 523 3 is_stmt 1 view .LVU30
+ 138              		.loc 1 523 24 is_stmt 0 view .LVU31
+ 139 0090 0127     		movs	r7, #1
+ 140 0092 0697     		str	r7, [sp, #24]
+ 524:Src/main.c    ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+ 141              		.loc 1 524 3 is_stmt 1 view .LVU32
+ 142              		.loc 1 524 25 is_stmt 0 view .LVU33
+ 143 0094 4FF00209 		mov	r9, #2
+ 144 0098 CDF81C90 		str	r9, [sp, #28]
+ 525:Src/main.c    ****   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+ 145              		.loc 1 525 3 is_stmt 1 view .LVU34
+ 146 009c 04A9     		add	r1, sp, #16
+ 147 009e 2948     		ldr	r0, .L3+4
+ 148 00a0 FFF7FEFF 		bl	HAL_GPIO_Init
+ 149              	.LVL3:
+ 526:Src/main.c    **** 
+ 527:Src/main.c    ****   /*Configure GPIO pins : PC14 PC15 */
+ 528:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15;
+ 150              		.loc 1 528 3 view .LVU35
+ 151              		.loc 1 528 23 is_stmt 0 view .LVU36
+ 152 00a4 4FF4404A 		mov	r10, #49152
+ 153 00a8 CDF810A0 		str	r10, [sp, #16]
+ 529:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+ 154              		.loc 1 529 3 is_stmt 1 view .LVU37
+ 155              		.loc 1 529 24 is_stmt 0 view .LVU38
+ 156 00ac 0325     		movs	r5, #3
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 13
+
+
+ 157 00ae 0595     		str	r5, [sp, #20]
+ 530:Src/main.c    ****   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+ 158              		.loc 1 530 3 is_stmt 1 view .LVU39
+ 159 00b0 04A9     		add	r1, sp, #16
+ 160 00b2 2448     		ldr	r0, .L3+4
+ 161 00b4 FFF7FEFF 		bl	HAL_GPIO_Init
+ 162              	.LVL4:
+ 531:Src/main.c    **** 
+ 532:Src/main.c    ****   /*Configure GPIO pins : PA0 PA1 PA8 */
+ 533:Src/main.c    **** // GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_8;
+ 534:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_8;
+ 163              		.loc 1 534 3 view .LVU40
+ 164              		.loc 1 534 23 is_stmt 0 view .LVU41
+ 165 00b8 4FF48073 		mov	r3, #256
+ 166 00bc 0493     		str	r3, [sp, #16]
+ 535:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+ 167              		.loc 1 535 3 is_stmt 1 view .LVU42
+ 168              		.loc 1 535 24 is_stmt 0 view .LVU43
+ 169 00be 0595     		str	r5, [sp, #20]
+ 536:Src/main.c    ****   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+ 170              		.loc 1 536 3 is_stmt 1 view .LVU44
+ 171 00c0 04A9     		add	r1, sp, #16
+ 172 00c2 4046     		mov	r0, r8
+ 173 00c4 FFF7FEFF 		bl	HAL_GPIO_Init
+ 174              	.LVL5:
+ 537:Src/main.c    **** 
+ 538:Src/main.c    ****     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
+ 175              		.loc 1 538 5 view .LVU45
+ 176              		.loc 1 538 25 is_stmt 0 view .LVU46
+ 177 00c8 0495     		str	r5, [sp, #16]
+ 539:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+ 178              		.loc 1 539 3 is_stmt 1 view .LVU47
+ 179              		.loc 1 539 24 is_stmt 0 view .LVU48
+ 180 00ca 0594     		str	r4, [sp, #20]
+ 540:Src/main.c    ****   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+ 181              		.loc 1 540 3 is_stmt 1 view .LVU49
+ 182              		.loc 1 540 24 is_stmt 0 view .LVU50
+ 183 00cc CDF81890 		str	r9, [sp, #24]
+ 541:Src/main.c    ****   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+ 184              		.loc 1 541 3 is_stmt 1 view .LVU51
+ 185 00d0 04A9     		add	r1, sp, #16
+ 186 00d2 4046     		mov	r0, r8
+ 187 00d4 FFF7FEFF 		bl	HAL_GPIO_Init
+ 188              	.LVL6:
+ 542:Src/main.c    **** 
+ 543:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_10|GPIO_PIN_15|GPIO_PI
+ 189              		.loc 1 543 3 view .LVU52
+ 190              		.loc 1 543 23 is_stmt 0 view .LVU53
+ 191 00d8 48F2FC63 		movw	r3, #34556
+ 192 00dc 0493     		str	r3, [sp, #16]
+ 544:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+ 193              		.loc 1 544 3 is_stmt 1 view .LVU54
+ 194              		.loc 1 544 24 is_stmt 0 view .LVU55
+ 195 00de 0597     		str	r7, [sp, #20]
+ 545:Src/main.c    ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 196              		.loc 1 545 3 is_stmt 1 view .LVU56
+ 197              		.loc 1 545 24 is_stmt 0 view .LVU57
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 14
+
+
+ 198 00e0 0694     		str	r4, [sp, #24]
+ 546:Src/main.c    ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+ 199              		.loc 1 546 3 is_stmt 1 view .LVU58
+ 200              		.loc 1 546 25 is_stmt 0 view .LVU59
+ 201 00e2 CDF81C90 		str	r9, [sp, #28]
+ 547:Src/main.c    ****   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+ 202              		.loc 1 547 3 is_stmt 1 view .LVU60
+ 203 00e6 04A9     		add	r1, sp, #16
+ 204 00e8 4046     		mov	r0, r8
+ 205 00ea FFF7FEFF 		bl	HAL_GPIO_Init
+ 206              	.LVL7:
+ 548:Src/main.c    **** 
+ 549:Src/main.c    **** 
+ 550:Src/main.c    ****   /*Configure GPIO pins : SoftI2C2_SDA_Pin SoftI2C2_SCL_Pin PB10 PB11 
+ 551:Src/main.c    ****                            PB12 PB9 */
+ 552:Src/main.c    ****   GPIO_InitStruct.Pin = SoftI2C2_SDA_Pin|SoftI2C2_SCL_Pin 
+ 207              		.loc 1 552 3 view .LVU61
+ 208              		.loc 1 552 23 is_stmt 0 view .LVU62
+ 209 00ee 40F23323 		movw	r3, #563
+ 210 00f2 0493     		str	r3, [sp, #16]
+ 553:Src/main.c    ****                           |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_9;
+ 554:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+ 211              		.loc 1 554 3 is_stmt 1 view .LVU63
+ 212              		.loc 1 554 24 is_stmt 0 view .LVU64
+ 213 00f4 CDF814B0 		str	fp, [sp, #20]
+ 555:Src/main.c    ****   GPIO_InitStruct.Pull = GPIO_PULLUP;
+ 214              		.loc 1 555 3 is_stmt 1 view .LVU65
+ 215              		.loc 1 555 24 is_stmt 0 view .LVU66
+ 216 00f8 0697     		str	r7, [sp, #24]
+ 556:Src/main.c    ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+ 217              		.loc 1 556 3 is_stmt 1 view .LVU67
+ 218              		.loc 1 556 25 is_stmt 0 view .LVU68
+ 219 00fa 0795     		str	r5, [sp, #28]
+ 557:Src/main.c    ****   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+ 220              		.loc 1 557 3 is_stmt 1 view .LVU69
+ 221 00fc 04A9     		add	r1, sp, #16
+ 222 00fe 3046     		mov	r0, r6
+ 223 0100 FFF7FEFF 		bl	HAL_GPIO_Init
+ 224              	.LVL8:
+ 558:Src/main.c    **** 
+ 559:Src/main.c    ****   /*Configure GPIO pins : PB2 PB13 PB8 */
+ 560:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_13|GPIO_PIN_8;
+ 225              		.loc 1 560 3 view .LVU70
+ 226              		.loc 1 560 23 is_stmt 0 view .LVU71
+ 227 0104 42F20413 		movw	r3, #8452
+ 228 0108 0493     		str	r3, [sp, #16]
+ 561:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+ 229              		.loc 1 561 3 is_stmt 1 view .LVU72
+ 230              		.loc 1 561 24 is_stmt 0 view .LVU73
+ 231 010a 0595     		str	r5, [sp, #20]
+ 562:Src/main.c    ****   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+ 232              		.loc 1 562 3 is_stmt 1 view .LVU74
+ 233 010c 04A9     		add	r1, sp, #16
+ 234 010e 3046     		mov	r0, r6
+ 235 0110 FFF7FEFF 		bl	HAL_GPIO_Init
+ 236              	.LVL9:
+ 563:Src/main.c    **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 15
+
+
+ 564:Src/main.c    ****   /*Configure GPIO pins : PB14 PB15 */
+ 565:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15;
+ 237              		.loc 1 565 3 view .LVU75
+ 238              		.loc 1 565 23 is_stmt 0 view .LVU76
+ 239 0114 CDF810A0 		str	r10, [sp, #16]
+ 566:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+ 240              		.loc 1 566 3 is_stmt 1 view .LVU77
+ 241              		.loc 1 566 24 is_stmt 0 view .LVU78
+ 242 0118 0594     		str	r4, [sp, #20]
+ 567:Src/main.c    ****   GPIO_InitStruct.Pull = GPIO_PULLUP;
+ 243              		.loc 1 567 3 is_stmt 1 view .LVU79
+ 244              		.loc 1 567 24 is_stmt 0 view .LVU80
+ 245 011a 0697     		str	r7, [sp, #24]
+ 568:Src/main.c    ****   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+ 246              		.loc 1 568 3 is_stmt 1 view .LVU81
+ 247 011c 04A9     		add	r1, sp, #16
+ 248 011e 3046     		mov	r0, r6
+ 249 0120 FFF7FEFF 		bl	HAL_GPIO_Init
+ 250              	.LVL10:
+ 569:Src/main.c    **** 
+ 570:Src/main.c    **** 
+ 571:Src/main.c    ****     /*Configure GPIO pins : PB4 PB5 */
+ 572:Src/main.c    ****   GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12;
+ 251              		.loc 1 572 3 view .LVU82
+ 252              		.loc 1 572 23 is_stmt 0 view .LVU83
+ 253 0124 4FF4E053 		mov	r3, #7168
+ 254 0128 0493     		str	r3, [sp, #16]
+ 573:Src/main.c    ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+ 255              		.loc 1 573 3 is_stmt 1 view .LVU84
+ 256              		.loc 1 573 24 is_stmt 0 view .LVU85
+ 257 012a 0597     		str	r7, [sp, #20]
+ 574:Src/main.c    ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 258              		.loc 1 574 3 is_stmt 1 view .LVU86
+ 259              		.loc 1 574 24 is_stmt 0 view .LVU87
+ 260 012c 0694     		str	r4, [sp, #24]
+ 575:Src/main.c    ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+ 261              		.loc 1 575 3 is_stmt 1 view .LVU88
+ 262              		.loc 1 575 25 is_stmt 0 view .LVU89
+ 263 012e 0795     		str	r5, [sp, #28]
+ 576:Src/main.c    ****   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+ 264              		.loc 1 576 3 is_stmt 1 view .LVU90
+ 265 0130 04A9     		add	r1, sp, #16
+ 266 0132 3046     		mov	r0, r6
+ 267 0134 FFF7FEFF 		bl	HAL_GPIO_Init
+ 268              	.LVL11:
+ 577:Src/main.c    **** 
+ 578:Src/main.c    **** }
+ 269              		.loc 1 578 1 is_stmt 0 view .LVU91
+ 270 0138 09B0     		add	sp, sp, #36
+ 271              	.LCFI2:
+ 272              		.cfi_def_cfa_offset 36
+ 273              		@ sp needed
+ 274 013a BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 275              	.L4:
+ 276 013e 00BF     		.align	2
+ 277              	.L3:
+ 278 0140 00100240 		.word	1073876992
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 16
+
+
+ 279 0144 00100140 		.word	1073811456
+ 280 0148 000C0140 		.word	1073810432
+ 281 014c 00080140 		.word	1073809408
+ 282              		.cfi_endproc
+ 283              	.LFE78:
+ 285              		.section	.text.floatToByteArray,"ax",%progbits
+ 286              		.align	1
+ 287              		.global	floatToByteArray
+ 288              		.syntax unified
+ 289              		.thumb
+ 290              		.thumb_func
+ 291              		.fpu softvfp
+ 293              	floatToByteArray:
+ 294              	.LVL12:
+ 295              	.LFB68:
+ 184:Src/main.c    **** 
+ 296              		.loc 1 184 62 is_stmt 1 view -0
+ 297              		.cfi_startproc
+ 298              		@ args = 0, pretend = 0, frame = 0
+ 299              		@ frame_needed = 0, uses_anonymous_args = 0
+ 300              		@ link register save eliminated.
+ 186:Src/main.c    **** 
+ 301              		.loc 1 186 5 view .LVU93
+ 188:Src/main.c    ****     for (i = 0; i < 4; i++) {
+ 302              		.loc 1 188 5 view .LVU94
+ 189:Src/main.c    ****         barr[start+i] = (asInt >> 8 * i) & 0xFF;
+ 303              		.loc 1 189 5 view .LVU95
+ 189:Src/main.c    ****         barr[start+i] = (asInt >> 8 * i) & 0xFF;
+ 304              		.loc 1 189 12 is_stmt 0 view .LVU96
+ 305 0000 0023     		movs	r3, #0
+ 306              	.LVL13:
+ 189:Src/main.c    ****         barr[start+i] = (asInt >> 8 * i) & 0xFF;
+ 307              		.loc 1 189 5 view .LVU97
+ 308 0002 032B     		cmp	r3, #3
+ 309 0004 0ADC     		bgt	.L11
+ 184:Src/main.c    **** 
+ 310              		.loc 1 184 62 view .LVU98
+ 311 0006 30B4     		push	{r4, r5}
+ 312              	.LCFI3:
+ 313              		.cfi_def_cfa_offset 8
+ 314              		.cfi_offset 4, -8
+ 315              		.cfi_offset 5, -4
+ 316              	.L7:
+ 190:Src/main.c    ****     }
+ 317              		.loc 1 190 9 is_stmt 1 discriminator 3 view .LVU99
+ 190:Src/main.c    ****     }
+ 318              		.loc 1 190 37 is_stmt 0 discriminator 3 view .LVU100
+ 319 0008 DC00     		lsls	r4, r3, #3
+ 190:Src/main.c    ****     }
+ 320              		.loc 1 190 32 discriminator 3 view .LVU101
+ 321 000a 20FA04F4 		lsr	r4, r0, r4
+ 190:Src/main.c    ****     }
+ 322              		.loc 1 190 19 discriminator 3 view .LVU102
+ 323 000e D518     		adds	r5, r2, r3
+ 190:Src/main.c    ****     }
+ 324              		.loc 1 190 23 discriminator 3 view .LVU103
+ 325 0010 4C55     		strb	r4, [r1, r5]
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 17
+
+
+ 189:Src/main.c    ****         barr[start+i] = (asInt >> 8 * i) & 0xFF;
+ 326              		.loc 1 189 25 discriminator 3 view .LVU104
+ 327 0012 0133     		adds	r3, r3, #1
+ 328              	.LVL14:
+ 189:Src/main.c    ****         barr[start+i] = (asInt >> 8 * i) & 0xFF;
+ 329              		.loc 1 189 5 discriminator 3 view .LVU105
+ 330 0014 032B     		cmp	r3, #3
+ 331 0016 F7DD     		ble	.L7
+ 192:Src/main.c    **** 
+ 332              		.loc 1 192 1 view .LVU106
+ 333 0018 30BC     		pop	{r4, r5}
+ 334              	.LCFI4:
+ 335              		.cfi_restore 5
+ 336              		.cfi_restore 4
+ 337              		.cfi_def_cfa_offset 0
+ 338 001a 7047     		bx	lr
+ 339              	.L11:
+ 192:Src/main.c    **** 
+ 340              		.loc 1 192 1 view .LVU107
+ 341 001c 7047     		bx	lr
+ 342              		.cfi_endproc
+ 343              	.LFE68:
+ 345              		.global	__aeabi_uldivmod
+ 346              		.section	.text.GetMicros,"ax",%progbits
+ 347              		.align	1
+ 348              		.global	GetMicros
+ 349              		.syntax unified
+ 350              		.thumb
+ 351              		.thumb_func
+ 352              		.fpu softvfp
+ 354              	GetMicros:
+ 355              	.LFB69:
+ 197:Src/main.c    **** 	register uint64_t systick, ticks;
+ 356              		.loc 1 197 1 is_stmt 1 view -0
+ 357              		.cfi_startproc
+ 358              		@ args = 0, pretend = 0, frame = 0
+ 359              		@ frame_needed = 0, uses_anonymous_args = 0
+ 360 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 361              	.LCFI5:
+ 362              		.cfi_def_cfa_offset 24
+ 363              		.cfi_offset 3, -24
+ 364              		.cfi_offset 4, -20
+ 365              		.cfi_offset 5, -16
+ 366              		.cfi_offset 6, -12
+ 367              		.cfi_offset 7, -8
+ 368              		.cfi_offset 14, -4
+ 369              	.L13:
+ 198:Src/main.c    **** 	do {
+ 370              		.loc 1 198 2 discriminator 1 view .LVU109
+ 199:Src/main.c    **** 	ticks = (uint64_t)HAL_GetTick();
+ 371              		.loc 1 199 2 discriminator 1 view .LVU110
+ 200:Src/main.c    **** 
+ 372              		.loc 1 200 2 discriminator 1 view .LVU111
+ 200:Src/main.c    **** 
+ 373              		.loc 1 200 20 is_stmt 0 discriminator 1 view .LVU112
+ 374 0002 FFF7FEFF 		bl	HAL_GetTick
+ 375              	.LVL15:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 18
+
+
+ 376 0006 0446     		mov	r4, r0
+ 200:Src/main.c    **** 
+ 377              		.loc 1 200 8 discriminator 1 view .LVU113
+ 378 0008 0646     		mov	r6, r0
+ 379              	.LVL16:
+ 202:Src/main.c    **** 	}
+ 380              		.loc 1 202 3 is_stmt 1 discriminator 1 view .LVU114
+ 202:Src/main.c    **** 	}
+ 381              		.loc 1 202 30 is_stmt 0 discriminator 1 view .LVU115
+ 382 000a 144B     		ldr	r3, .L15
+ 383 000c 9D68     		ldr	r5, [r3, #8]
+ 384              	.LVL17:
+ 204:Src/main.c    **** 	return (ticks * 1000ull) + (72ul*1000ull - systick )/ 72ul;
+ 385              		.loc 1 204 29 discriminator 1 view .LVU116
+ 386 000e FFF7FEFF 		bl	HAL_GetTick
+ 387              	.LVL18:
+ 204:Src/main.c    **** 	return (ticks * 1000ull) + (72ul*1000ull - systick )/ 72ul;
+ 388              		.loc 1 204 3 discriminator 1 view .LVU117
+ 389 0012 8442     		cmp	r4, r0
+ 390 0014 F5D1     		bne	.L13
+ 391 0016 0027     		movs	r7, #0
+ 205:Src/main.c    **** }
+ 392              		.loc 1 205 2 is_stmt 1 view .LVU118
+ 205:Src/main.c    **** }
+ 393              		.loc 1 205 16 is_stmt 0 view .LVU119
+ 394 0018 7A01     		lsls	r2, r7, #5
+ 395 001a 7401     		lsls	r4, r6, #5
+ 396              	.LVL19:
+ 205:Src/main.c    **** }
+ 397              		.loc 1 205 16 view .LVU120
+ 398 001c 42EAD663 		orr	r3, r2, r6, lsr #27
+ 399 0020 A41B     		subs	r4, r4, r6
+ 400 0022 63EB0703 		sbc	r3, r3, r7
+ 401 0026 9A00     		lsls	r2, r3, #2
+ 402 0028 42EA9472 		orr	r2, r2, r4, lsr #30
+ 403 002c A100     		lsls	r1, r4, #2
+ 404 002e 8C19     		adds	r4, r1, r6
+ 405 0030 42EB0707 		adc	r7, r2, r7
+ 406 0034 FB00     		lsls	r3, r7, #3
+ 407 0036 43EA5473 		orr	r3, r3, r4, lsr #29
+ 408 003a E200     		lsls	r2, r4, #3
+ 409 003c 1446     		mov	r4, r2
+ 410 003e 1F46     		mov	r7, r3
+ 205:Src/main.c    **** }
+ 411              		.loc 1 205 43 view .LVU121
+ 412 0040 0748     		ldr	r0, .L15+4
+ 205:Src/main.c    **** }
+ 413              		.loc 1 205 54 view .LVU122
+ 414 0042 4822     		movs	r2, #72
+ 415 0044 0023     		movs	r3, #0
+ 416 0046 401B     		subs	r0, r0, r5
+ 417 0048 4FF00001 		mov	r1, #0
+ 418 004c 61EB0101 		sbc	r1, r1, r1
+ 419 0050 FFF7FEFF 		bl	__aeabi_uldivmod
+ 420              	.LVL20:
+ 206:Src/main.c    **** void processEuler()
+ 421              		.loc 1 206 1 view .LVU123
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 19
+
+
+ 422 0054 2018     		adds	r0, r4, r0
+ 423 0056 47EB0101 		adc	r1, r7, r1
+ 424 005a F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 425              	.LVL21:
+ 426              	.L16:
+ 206:Src/main.c    **** void processEuler()
+ 427              		.loc 1 206 1 view .LVU124
+ 428              		.align	2
+ 429              	.L15:
+ 430 005c 10E000E0 		.word	-536813552
+ 431 0060 40190100 		.word	72000
+ 432              		.cfi_endproc
+ 433              	.LFE69:
+ 435              		.global	__aeabi_fsub
+ 436              		.section	.text.processEuler,"ax",%progbits
+ 437              		.align	1
+ 438              		.global	processEuler
+ 439              		.syntax unified
+ 440              		.thumb
+ 441              		.thumb_func
+ 442              		.fpu softvfp
+ 444              	processEuler:
+ 445              	.LFB70:
+ 208:Src/main.c    **** 
+ 446              		.loc 1 208 1 is_stmt 1 view -0
+ 447              		.cfi_startproc
+ 448              		@ args = 0, pretend = 0, frame = 0
+ 449              		@ frame_needed = 0, uses_anonymous_args = 0
+ 450 0000 10B5     		push	{r4, lr}
+ 451              	.LCFI6:
+ 452              		.cfi_def_cfa_offset 8
+ 453              		.cfi_offset 4, -8
+ 454              		.cfi_offset 14, -4
+ 210:Src/main.c    **** 
+ 455              		.loc 1 210 2 view .LVU126
+ 456 0002 084C     		ldr	r4, .L19
+ 457 0004 2146     		mov	r1, r4
+ 458 0006 1A20     		movs	r0, #26
+ 459 0008 FFF7FEFF 		bl	getEuler
+ 460              	.LVL22:
+ 227:Src/main.c    **** 	  EulerF[1]=Euler[1];
+ 461              		.loc 1 227 4 view .LVU127
+ 227:Src/main.c    **** 	  EulerF[1]=Euler[1];
+ 462              		.loc 1 227 22 is_stmt 0 view .LVU128
+ 463 000c 0649     		ldr	r1, .L19+4
+ 464 000e 2068     		ldr	r0, [r4]	@ float
+ 465 0010 FFF7FEFF 		bl	__aeabi_fsub
+ 466              	.LVL23:
+ 227:Src/main.c    **** 	  EulerF[1]=Euler[1];
+ 467              		.loc 1 227 13 view .LVU129
+ 468 0014 054B     		ldr	r3, .L19+8
+ 469 0016 1860     		str	r0, [r3]	@ float
+ 228:Src/main.c    **** 	  EulerF[2]=Euler[2];
+ 470              		.loc 1 228 4 is_stmt 1 view .LVU130
+ 228:Src/main.c    **** 	  EulerF[2]=Euler[2];
+ 471              		.loc 1 228 19 is_stmt 0 view .LVU131
+ 472 0018 6268     		ldr	r2, [r4, #4]	@ float
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 20
+
+
+ 228:Src/main.c    **** 	  EulerF[2]=Euler[2];
+ 473              		.loc 1 228 13 view .LVU132
+ 474 001a 5A60     		str	r2, [r3, #4]	@ float
+ 229:Src/main.c    **** } 
+ 475              		.loc 1 229 4 is_stmt 1 view .LVU133
+ 229:Src/main.c    **** } 
+ 476              		.loc 1 229 19 is_stmt 0 view .LVU134
+ 477 001c A268     		ldr	r2, [r4, #8]	@ float
+ 229:Src/main.c    **** } 
+ 478              		.loc 1 229 13 view .LVU135
+ 479 001e 9A60     		str	r2, [r3, #8]	@ float
+ 230:Src/main.c    **** 
+ 480              		.loc 1 230 1 view .LVU136
+ 481 0020 10BD     		pop	{r4, pc}
+ 482              	.L20:
+ 483 0022 00BF     		.align	2
+ 484              	.L19:
+ 485 0024 00000000 		.word	Euler
+ 486 0028 00003443 		.word	1127481344
+ 487 002c 00000000 		.word	EulerF
+ 488              		.cfi_endproc
+ 489              	.LFE70:
+ 491              		.global	__aeabi_ul2f
+ 492              		.global	__aeabi_fdiv
+ 493              		.global	__aeabi_fmul
+ 494              		.global	__aeabi_fadd
+ 495              		.section	.text.processcalcAbs,"ax",%progbits
+ 496              		.align	1
+ 497              		.global	processcalcAbs
+ 498              		.syntax unified
+ 499              		.thumb
+ 500              		.thumb_func
+ 501              		.fpu softvfp
+ 503              	processcalcAbs:
+ 504              	.LFB72:
+ 270:Src/main.c    **** 	lastRotationUpdate = now;
+ 505              		.loc 1 270 1 is_stmt 1 view -0
+ 506              		.cfi_startproc
+ 507              		@ args = 0, pretend = 0, frame = 32
+ 508              		@ frame_needed = 0, uses_anonymous_args = 0
+ 509 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 510              	.LCFI7:
+ 511              		.cfi_def_cfa_offset 36
+ 512              		.cfi_offset 4, -36
+ 513              		.cfi_offset 5, -32
+ 514              		.cfi_offset 6, -28
+ 515              		.cfi_offset 7, -24
+ 516              		.cfi_offset 8, -20
+ 517              		.cfi_offset 9, -16
+ 518              		.cfi_offset 10, -12
+ 519              		.cfi_offset 11, -8
+ 520              		.cfi_offset 14, -4
+ 521 0004 89B0     		sub	sp, sp, #36
+ 522              	.LCFI8:
+ 523              		.cfi_def_cfa_offset 72
+ 271:Src/main.c    **** 	now = GetMicros();
+ 524              		.loc 1 271 2 view .LVU138
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 21
+
+
+ 271:Src/main.c    **** 	now = GetMicros();
+ 525              		.loc 1 271 21 is_stmt 0 view .LVU139
+ 526 0006 7F4D     		ldr	r5, .L23
+ 527 0008 D5E90023 		ldrd	r2, [r5]
+ 528 000c 7E4C     		ldr	r4, .L23+4
+ 529 000e C4E90023 		strd	r2, [r4]
+ 272:Src/main.c    **** 	elapsedTime = (now - lastRotationUpdate) / 1000000.0f; // set integration time by time elapsed sin
+ 530              		.loc 1 272 2 is_stmt 1 view .LVU140
+ 272:Src/main.c    **** 	elapsedTime = (now - lastRotationUpdate) / 1000000.0f; // set integration time by time elapsed sin
+ 531              		.loc 1 272 8 is_stmt 0 view .LVU141
+ 532 0012 FFF7FEFF 		bl	GetMicros
+ 533              	.LVL24:
+ 272:Src/main.c    **** 	elapsedTime = (now - lastRotationUpdate) / 1000000.0f; // set integration time by time elapsed sin
+ 534              		.loc 1 272 6 view .LVU142
+ 535 0016 C5E90001 		strd	r0, [r5]
+ 273:Src/main.c    **** 
+ 536              		.loc 1 273 2 is_stmt 1 view .LVU143
+ 273:Src/main.c    **** 
+ 537              		.loc 1 273 21 is_stmt 0 view .LVU144
+ 538 001a D5E90023 		ldrd	r2, [r5]
+ 539 001e 2068     		ldr	r0, [r4]
+ 540 0020 6168     		ldr	r1, [r4, #4]
+ 273:Src/main.c    **** 
+ 541              		.loc 1 273 43 view .LVU145
+ 542 0022 101A     		subs	r0, r2, r0
+ 543 0024 63EB0101 		sbc	r1, r3, r1
+ 544 0028 FFF7FEFF 		bl	__aeabi_ul2f
+ 545              	.LVL25:
+ 546 002c 7749     		ldr	r1, .L23+8
+ 547 002e FFF7FEFF 		bl	__aeabi_fdiv
+ 548              	.LVL26:
+ 273:Src/main.c    **** 
+ 549              		.loc 1 273 14 view .LVU146
+ 550 0032 774E     		ldr	r6, .L23+12
+ 551 0034 3060     		str	r0, [r6]	@ float
+ 275:Src/main.c    **** 
+ 552              		.loc 1 275 5 is_stmt 1 view .LVU147
+ 553 0036 774D     		ldr	r5, .L23+16
+ 554 0038 2946     		mov	r1, r5
+ 555 003a 2820     		movs	r0, #40
+ 556 003c FFF7FEFF 		bl	getLinear
+ 557              	.LVL27:
+ 277:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 558              		.loc 1 277 5 view .LVU148
+ 277:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 559              		.loc 1 277 29 is_stmt 0 view .LVU149
+ 560 0040 754C     		ldr	r4, .L23+20
+ 277:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 561              		.loc 1 277 32 view .LVU150
+ 562 0042 7649     		ldr	r1, .L23+24
+ 563 0044 2068     		ldr	r0, [r4]	@ float
+ 564 0046 FFF7FEFF 		bl	__aeabi_fmul
+ 565              	.LVL28:
+ 566 004a 0746     		mov	r7, r0
+ 277:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 567              		.loc 1 277 49 view .LVU151
+ 568 004c 7449     		ldr	r1, .L23+28
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 22
+
+
+ 569 004e 2868     		ldr	r0, [r5]	@ float
+ 570 0050 FFF7FEFF 		bl	__aeabi_fmul
+ 571              	.LVL29:
+ 277:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 572              		.loc 1 277 39 view .LVU152
+ 573 0054 0146     		mov	r1, r0
+ 574 0056 3846     		mov	r0, r7
+ 575 0058 FFF7FEFF 		bl	__aeabi_fadd
+ 576              	.LVL30:
+ 577 005c 8246     		mov	r10, r0
+ 277:Src/main.c    ****     LINACCOLD[1] = LINACCOLD[1]*0.995f+LINACC[1]*0.005f;
+ 578              		.loc 1 277 18 view .LVU153
+ 579 005e 2060     		str	r0, [r4]	@ float
+ 278:Src/main.c    ****     LINACCOLD[2] = LINACCOLD[2]*0.995f+LINACC[2]*0.005f;
+ 580              		.loc 1 278 5 is_stmt 1 view .LVU154
+ 278:Src/main.c    ****     LINACCOLD[2] = LINACCOLD[2]*0.995f+LINACC[2]*0.005f;
+ 581              		.loc 1 278 32 is_stmt 0 view .LVU155
+ 582 0060 6E49     		ldr	r1, .L23+24
+ 583 0062 6068     		ldr	r0, [r4, #4]	@ float
+ 584 0064 FFF7FEFF 		bl	__aeabi_fmul
+ 585              	.LVL31:
+ 586 0068 0746     		mov	r7, r0
+ 278:Src/main.c    ****     LINACCOLD[2] = LINACCOLD[2]*0.995f+LINACC[2]*0.005f;
+ 587              		.loc 1 278 49 view .LVU156
+ 588 006a 6D49     		ldr	r1, .L23+28
+ 589 006c 6868     		ldr	r0, [r5, #4]	@ float
+ 590 006e FFF7FEFF 		bl	__aeabi_fmul
+ 591              	.LVL32:
+ 278:Src/main.c    ****     LINACCOLD[2] = LINACCOLD[2]*0.995f+LINACC[2]*0.005f;
+ 592              		.loc 1 278 39 view .LVU157
+ 593 0072 0146     		mov	r1, r0
+ 594 0074 3846     		mov	r0, r7
+ 595 0076 FFF7FEFF 		bl	__aeabi_fadd
+ 596              	.LVL33:
+ 597 007a 8146     		mov	r9, r0
+ 278:Src/main.c    ****     LINACCOLD[2] = LINACCOLD[2]*0.995f+LINACC[2]*0.005f;
+ 598              		.loc 1 278 18 view .LVU158
+ 599 007c 6060     		str	r0, [r4, #4]	@ float
+ 279:Src/main.c    **** 
+ 600              		.loc 1 279 5 is_stmt 1 view .LVU159
+ 279:Src/main.c    **** 
+ 601              		.loc 1 279 32 is_stmt 0 view .LVU160
+ 602 007e 6749     		ldr	r1, .L23+24
+ 603 0080 A068     		ldr	r0, [r4, #8]	@ float
+ 604 0082 FFF7FEFF 		bl	__aeabi_fmul
+ 605              	.LVL34:
+ 606 0086 0746     		mov	r7, r0
+ 279:Src/main.c    **** 
+ 607              		.loc 1 279 49 view .LVU161
+ 608 0088 6549     		ldr	r1, .L23+28
+ 609 008a A868     		ldr	r0, [r5, #8]	@ float
+ 610 008c FFF7FEFF 		bl	__aeabi_fmul
+ 611              	.LVL35:
+ 279:Src/main.c    **** 
+ 612              		.loc 1 279 39 view .LVU162
+ 613 0090 0146     		mov	r1, r0
+ 614 0092 3846     		mov	r0, r7
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 23
+
+
+ 615 0094 FFF7FEFF 		bl	__aeabi_fadd
+ 616              	.LVL36:
+ 617 0098 8346     		mov	fp, r0
+ 279:Src/main.c    **** 
+ 618              		.loc 1 279 18 view .LVU163
+ 619 009a A060     		str	r0, [r4, #8]	@ float
+ 281:Src/main.c    ****     newVelocity[1] = prevVelocity[1]+ LINACCOLD[1]* elapsedTime;
+ 620              		.loc 1 281 5 is_stmt 1 view .LVU164
+ 281:Src/main.c    ****     newVelocity[1] = prevVelocity[1]+ LINACCOLD[1]* elapsedTime;
+ 621              		.loc 1 281 34 is_stmt 0 view .LVU165
+ 622 009c 614D     		ldr	r5, .L23+32
+ 623 009e 2F68     		ldr	r7, [r5]	@ float
+ 281:Src/main.c    ****     newVelocity[1] = prevVelocity[1]+ LINACCOLD[1]* elapsedTime;
+ 624              		.loc 1 281 51 view .LVU166
+ 625 00a0 3468     		ldr	r4, [r6]	@ float
+ 626 00a2 2146     		mov	r1, r4
+ 627 00a4 5046     		mov	r0, r10
+ 628 00a6 FFF7FEFF 		bl	__aeabi_fmul
+ 629              	.LVL37:
+ 281:Src/main.c    ****     newVelocity[1] = prevVelocity[1]+ LINACCOLD[1]* elapsedTime;
+ 630              		.loc 1 281 37 view .LVU167
+ 631 00aa 0490     		str	r0, [sp, #16]	@ float
+ 632 00ac 0146     		mov	r1, r0
+ 633 00ae 0197     		str	r7, [sp, #4]	@ float
+ 634 00b0 3846     		mov	r0, r7
+ 635 00b2 FFF7FEFF 		bl	__aeabi_fadd
+ 636              	.LVL38:
+ 281:Src/main.c    ****     newVelocity[1] = prevVelocity[1]+ LINACCOLD[1]* elapsedTime;
+ 637              		.loc 1 281 20 view .LVU168
+ 638 00b6 5C4E     		ldr	r6, .L23+36
+ 639 00b8 0590     		str	r0, [sp, #20]	@ float
+ 640 00ba 3060     		str	r0, [r6]	@ float
+ 282:Src/main.c    ****     newVelocity[2] = prevVelocity[2]+ LINACCOLD[2]* elapsedTime;
+ 641              		.loc 1 282 5 is_stmt 1 view .LVU169
+ 282:Src/main.c    ****     newVelocity[2] = prevVelocity[2]+ LINACCOLD[2]* elapsedTime;
+ 642              		.loc 1 282 34 is_stmt 0 view .LVU170
+ 643 00bc D5F80480 		ldr	r8, [r5, #4]	@ float
+ 282:Src/main.c    ****     newVelocity[2] = prevVelocity[2]+ LINACCOLD[2]* elapsedTime;
+ 644              		.loc 1 282 51 view .LVU171
+ 645 00c0 2146     		mov	r1, r4
+ 646 00c2 4846     		mov	r0, r9
+ 647 00c4 FFF7FEFF 		bl	__aeabi_fmul
+ 648              	.LVL39:
+ 282:Src/main.c    ****     newVelocity[2] = prevVelocity[2]+ LINACCOLD[2]* elapsedTime;
+ 649              		.loc 1 282 37 view .LVU172
+ 650 00c8 0690     		str	r0, [sp, #24]	@ float
+ 651 00ca 0146     		mov	r1, r0
+ 652 00cc CDF80880 		str	r8, [sp, #8]	@ float
+ 653 00d0 4046     		mov	r0, r8
+ 654 00d2 FFF7FEFF 		bl	__aeabi_fadd
+ 655              	.LVL40:
+ 656 00d6 8046     		mov	r8, r0
+ 282:Src/main.c    ****     newVelocity[2] = prevVelocity[2]+ LINACCOLD[2]* elapsedTime;
+ 657              		.loc 1 282 20 view .LVU173
+ 658 00d8 7060     		str	r0, [r6, #4]	@ float
+ 283:Src/main.c    **** 
+ 659              		.loc 1 283 5 is_stmt 1 view .LVU174
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 24
+
+
+ 283:Src/main.c    **** 
+ 660              		.loc 1 283 34 is_stmt 0 view .LVU175
+ 661 00da AA68     		ldr	r2, [r5, #8]	@ float
+ 662 00dc 1746     		mov	r7, r2
+ 283:Src/main.c    **** 
+ 663              		.loc 1 283 51 view .LVU176
+ 664 00de 2146     		mov	r1, r4
+ 665 00e0 5846     		mov	r0, fp
+ 666 00e2 FFF7FEFF 		bl	__aeabi_fmul
+ 667              	.LVL41:
+ 283:Src/main.c    **** 
+ 668              		.loc 1 283 37 view .LVU177
+ 669 00e6 0790     		str	r0, [sp, #28]	@ float
+ 670 00e8 0146     		mov	r1, r0
+ 671 00ea 0397     		str	r7, [sp, #12]	@ float
+ 672 00ec 3846     		mov	r0, r7
+ 673 00ee FFF7FEFF 		bl	__aeabi_fadd
+ 674              	.LVL42:
+ 675 00f2 0746     		mov	r7, r0
+ 283:Src/main.c    **** 
+ 676              		.loc 1 283 20 view .LVU178
+ 677 00f4 B060     		str	r0, [r6, #8]	@ float
+ 285:Src/main.c    ****     nevalgo[1]+= LINACCOLD[1];
+ 678              		.loc 1 285 5 is_stmt 1 view .LVU179
+ 285:Src/main.c    ****     nevalgo[1]+= LINACCOLD[1];
+ 679              		.loc 1 285 15 is_stmt 0 view .LVU180
+ 680 00f6 4D4E     		ldr	r6, .L23+40
+ 681 00f8 5146     		mov	r1, r10
+ 682 00fa 3068     		ldr	r0, [r6]	@ float
+ 683 00fc FFF7FEFF 		bl	__aeabi_fadd
+ 684              	.LVL43:
+ 685 0100 3060     		str	r0, [r6]	@ float
+ 286:Src/main.c    ****     nevalgo[2]+= LINACCOLD[2];
+ 686              		.loc 1 286 5 is_stmt 1 view .LVU181
+ 286:Src/main.c    ****     nevalgo[2]+= LINACCOLD[2];
+ 687              		.loc 1 286 15 is_stmt 0 view .LVU182
+ 688 0102 4946     		mov	r1, r9
+ 689 0104 7068     		ldr	r0, [r6, #4]	@ float
+ 690 0106 FFF7FEFF 		bl	__aeabi_fadd
+ 691              	.LVL44:
+ 692 010a 7060     		str	r0, [r6, #4]	@ float
+ 287:Src/main.c    **** 
+ 693              		.loc 1 287 5 is_stmt 1 view .LVU183
+ 287:Src/main.c    **** 
+ 694              		.loc 1 287 15 is_stmt 0 view .LVU184
+ 695 010c 5946     		mov	r1, fp
+ 696 010e B068     		ldr	r0, [r6, #8]	@ float
+ 697 0110 FFF7FEFF 		bl	__aeabi_fadd
+ 698              	.LVL45:
+ 699 0114 B060     		str	r0, [r6, #8]	@ float
+ 290:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 700              		.loc 1 290 5 is_stmt 1 view .LVU185
+ 290:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 701              		.loc 1 290 36 is_stmt 0 view .LVU186
+ 702 0116 2146     		mov	r1, r4
+ 703 0118 0198     		ldr	r0, [sp, #4]	@ float
+ 704 011a FFF7FEFF 		bl	__aeabi_fmul
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 25
+
+
+ 705              	.LVL46:
+ 706 011e 0646     		mov	r6, r0
+ 290:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 707              		.loc 1 290 78 view .LVU187
+ 708 0120 0499     		ldr	r1, [sp, #16]	@ float
+ 709 0122 2046     		mov	r0, r4
+ 710 0124 FFF7FEFF 		bl	__aeabi_fmul
+ 711              	.LVL47:
+ 290:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 712              		.loc 1 290 92 view .LVU188
+ 713 0128 4FF07C51 		mov	r1, #1056964608
+ 714 012c FFF7FEFF 		bl	__aeabi_fmul
+ 715              	.LVL48:
+ 290:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 716              		.loc 1 290 50 view .LVU189
+ 717 0130 0146     		mov	r1, r0
+ 718 0132 3046     		mov	r0, r6
+ 719 0134 FFF7FEFF 		bl	__aeabi_fadd
+ 720              	.LVL49:
+ 290:Src/main.c    ****     Position[1] += (prevVelocity[1]* elapsedTime + (LINACCOLD[1]* elapsedTime* elapsedTime)/2);
+ 721              		.loc 1 290 17 view .LVU190
+ 722 0138 3D4E     		ldr	r6, .L23+44
+ 723 013a 3168     		ldr	r1, [r6]	@ float
+ 724 013c FFF7FEFF 		bl	__aeabi_fadd
+ 725              	.LVL50:
+ 726 0140 8246     		mov	r10, r0
+ 727 0142 3060     		str	r0, [r6]	@ float
+ 291:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 728              		.loc 1 291 5 is_stmt 1 view .LVU191
+ 291:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 729              		.loc 1 291 36 is_stmt 0 view .LVU192
+ 730 0144 0299     		ldr	r1, [sp, #8]	@ float
+ 731 0146 2046     		mov	r0, r4
+ 732 0148 FFF7FEFF 		bl	__aeabi_fmul
+ 733              	.LVL51:
+ 734 014c 8146     		mov	r9, r0
+ 291:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 735              		.loc 1 291 78 view .LVU193
+ 736 014e 0699     		ldr	r1, [sp, #24]	@ float
+ 737 0150 2046     		mov	r0, r4
+ 738 0152 FFF7FEFF 		bl	__aeabi_fmul
+ 739              	.LVL52:
+ 291:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 740              		.loc 1 291 92 view .LVU194
+ 741 0156 4FF07C51 		mov	r1, #1056964608
+ 742 015a FFF7FEFF 		bl	__aeabi_fmul
+ 743              	.LVL53:
+ 291:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 744              		.loc 1 291 50 view .LVU195
+ 745 015e 0146     		mov	r1, r0
+ 746 0160 4846     		mov	r0, r9
+ 747 0162 FFF7FEFF 		bl	__aeabi_fadd
+ 748              	.LVL54:
+ 291:Src/main.c    ****     Position[2] += (prevVelocity[2]* elapsedTime + (LINACCOLD[2]* elapsedTime* elapsedTime)/2);
+ 749              		.loc 1 291 17 view .LVU196
+ 750 0166 7168     		ldr	r1, [r6, #4]	@ float
+ 751 0168 FFF7FEFF 		bl	__aeabi_fadd
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 26
+
+
+ 752              	.LVL55:
+ 753 016c 8146     		mov	r9, r0
+ 754 016e 7060     		str	r0, [r6, #4]	@ float
+ 292:Src/main.c    **** 
+ 755              		.loc 1 292 5 is_stmt 1 view .LVU197
+ 292:Src/main.c    **** 
+ 756              		.loc 1 292 36 is_stmt 0 view .LVU198
+ 757 0170 0399     		ldr	r1, [sp, #12]	@ float
+ 758 0172 2046     		mov	r0, r4
+ 759 0174 FFF7FEFF 		bl	__aeabi_fmul
+ 760              	.LVL56:
+ 761 0178 8346     		mov	fp, r0
+ 292:Src/main.c    **** 
+ 762              		.loc 1 292 78 view .LVU199
+ 763 017a 0799     		ldr	r1, [sp, #28]	@ float
+ 764 017c 2046     		mov	r0, r4
+ 765 017e FFF7FEFF 		bl	__aeabi_fmul
+ 766              	.LVL57:
+ 292:Src/main.c    **** 
+ 767              		.loc 1 292 92 view .LVU200
+ 768 0182 4FF07C51 		mov	r1, #1056964608
+ 769 0186 FFF7FEFF 		bl	__aeabi_fmul
+ 770              	.LVL58:
+ 292:Src/main.c    **** 
+ 771              		.loc 1 292 50 view .LVU201
+ 772 018a 0146     		mov	r1, r0
+ 773 018c 5846     		mov	r0, fp
+ 774 018e FFF7FEFF 		bl	__aeabi_fadd
+ 775              	.LVL59:
+ 292:Src/main.c    **** 
+ 776              		.loc 1 292 17 view .LVU202
+ 777 0192 B168     		ldr	r1, [r6, #8]	@ float
+ 778 0194 FFF7FEFF 		bl	__aeabi_fadd
+ 779              	.LVL60:
+ 780 0198 8346     		mov	fp, r0
+ 781 019a B060     		str	r0, [r6, #8]	@ float
+ 294:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 782              		.loc 1 294 5 is_stmt 1 view .LVU203
+ 294:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 783              		.loc 1 294 17 is_stmt 0 view .LVU204
+ 784 019c 254C     		ldr	r4, .L23+48
+ 294:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 785              		.loc 1 294 20 view .LVU205
+ 786 019e 2649     		ldr	r1, .L23+52
+ 787 01a0 2068     		ldr	r0, [r4]	@ float
+ 788 01a2 FFF7FEFF 		bl	__aeabi_fmul
+ 789              	.LVL61:
+ 790 01a6 0646     		mov	r6, r0
+ 294:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 791              		.loc 1 294 38 view .LVU206
+ 792 01a8 2449     		ldr	r1, .L23+56
+ 793 01aa 5046     		mov	r0, r10
+ 794 01ac FFF7FEFF 		bl	__aeabi_fmul
+ 795              	.LVL62:
+ 294:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 796              		.loc 1 294 26 view .LVU207
+ 797 01b0 0146     		mov	r1, r0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 27
+
+
+ 798 01b2 3046     		mov	r0, r6
+ 799 01b4 FFF7FEFF 		bl	__aeabi_fadd
+ 800              	.LVL63:
+ 294:Src/main.c    ****     Abs[1] = Abs[1]*0.98f+Position[1]*0.02f;
+ 801              		.loc 1 294 12 view .LVU208
+ 802 01b8 2060     		str	r0, [r4]	@ float
+ 295:Src/main.c    ****     Abs[2] = Abs[2]*0.98f+Position[2]*0.02f;
+ 803              		.loc 1 295 5 is_stmt 1 view .LVU209
+ 295:Src/main.c    ****     Abs[2] = Abs[2]*0.98f+Position[2]*0.02f;
+ 804              		.loc 1 295 20 is_stmt 0 view .LVU210
+ 805 01ba 1F49     		ldr	r1, .L23+52
+ 806 01bc 6068     		ldr	r0, [r4, #4]	@ float
+ 807 01be FFF7FEFF 		bl	__aeabi_fmul
+ 808              	.LVL64:
+ 809 01c2 0646     		mov	r6, r0
+ 295:Src/main.c    ****     Abs[2] = Abs[2]*0.98f+Position[2]*0.02f;
+ 810              		.loc 1 295 38 view .LVU211
+ 811 01c4 1D49     		ldr	r1, .L23+56
+ 812 01c6 4846     		mov	r0, r9
+ 813 01c8 FFF7FEFF 		bl	__aeabi_fmul
+ 814              	.LVL65:
+ 295:Src/main.c    ****     Abs[2] = Abs[2]*0.98f+Position[2]*0.02f;
+ 815              		.loc 1 295 26 view .LVU212
+ 816 01cc 0146     		mov	r1, r0
+ 817 01ce 3046     		mov	r0, r6
+ 818 01d0 FFF7FEFF 		bl	__aeabi_fadd
+ 819              	.LVL66:
+ 295:Src/main.c    ****     Abs[2] = Abs[2]*0.98f+Position[2]*0.02f;
+ 820              		.loc 1 295 12 view .LVU213
+ 821 01d4 6060     		str	r0, [r4, #4]	@ float
+ 296:Src/main.c    **** 
+ 822              		.loc 1 296 5 is_stmt 1 view .LVU214
+ 296:Src/main.c    **** 
+ 823              		.loc 1 296 20 is_stmt 0 view .LVU215
+ 824 01d6 1849     		ldr	r1, .L23+52
+ 825 01d8 A068     		ldr	r0, [r4, #8]	@ float
+ 826 01da FFF7FEFF 		bl	__aeabi_fmul
+ 827              	.LVL67:
+ 828 01de 0646     		mov	r6, r0
+ 296:Src/main.c    **** 
+ 829              		.loc 1 296 38 view .LVU216
+ 830 01e0 1649     		ldr	r1, .L23+56
+ 831 01e2 5846     		mov	r0, fp
+ 832 01e4 FFF7FEFF 		bl	__aeabi_fmul
+ 833              	.LVL68:
+ 296:Src/main.c    **** 
+ 834              		.loc 1 296 26 view .LVU217
+ 835 01e8 0146     		mov	r1, r0
+ 836 01ea 3046     		mov	r0, r6
+ 837 01ec FFF7FEFF 		bl	__aeabi_fadd
+ 838              	.LVL69:
+ 296:Src/main.c    **** 
+ 839              		.loc 1 296 12 view .LVU218
+ 840 01f0 A060     		str	r0, [r4, #8]	@ float
+ 299:Src/main.c    ****     prevVelocity[1]= newVelocity[1];   
+ 841              		.loc 1 299 5 is_stmt 1 view .LVU219
+ 299:Src/main.c    ****     prevVelocity[1]= newVelocity[1];   
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 28
+
+
+ 842              		.loc 1 299 20 is_stmt 0 view .LVU220
+ 843 01f2 059B     		ldr	r3, [sp, #20]	@ float
+ 844 01f4 2B60     		str	r3, [r5]	@ float
+ 300:Src/main.c    ****     prevVelocity[2]= newVelocity[2];
+ 845              		.loc 1 300 5 is_stmt 1 view .LVU221
+ 300:Src/main.c    ****     prevVelocity[2]= newVelocity[2];
+ 846              		.loc 1 300 20 is_stmt 0 view .LVU222
+ 847 01f6 C5F80480 		str	r8, [r5, #4]	@ float
+ 301:Src/main.c    ****    
+ 848              		.loc 1 301 5 is_stmt 1 view .LVU223
+ 301:Src/main.c    ****    
+ 849              		.loc 1 301 20 is_stmt 0 view .LVU224
+ 850 01fa AF60     		str	r7, [r5, #8]	@ float
+ 306:Src/main.c    **** 
+ 851              		.loc 1 306 1 view .LVU225
+ 852 01fc 09B0     		add	sp, sp, #36
+ 853              	.LCFI9:
+ 854              		.cfi_def_cfa_offset 36
+ 855              		@ sp needed
+ 856 01fe BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 857              	.L24:
+ 858 0202 00BF     		.align	2
+ 859              	.L23:
+ 860 0204 00000000 		.word	.LANCHOR0
+ 861 0208 00000000 		.word	.LANCHOR1
+ 862 020c 00247449 		.word	1232348160
+ 863 0210 00000000 		.word	.LANCHOR2
+ 864 0214 00000000 		.word	LINACC
+ 865 0218 00000000 		.word	LINACCOLD
+ 866 021c 52B87E3F 		.word	1065269330
+ 867 0220 0AD7A33B 		.word	1000593162
+ 868 0224 00000000 		.word	prevVelocity
+ 869 0228 00000000 		.word	newVelocity
+ 870 022c 00000000 		.word	nevalgo
+ 871 0230 00000000 		.word	Position
+ 872 0234 00000000 		.word	Abs
+ 873 0238 48E17A3F 		.word	1065017672
+ 874 023c 0AD7A33C 		.word	1017370378
+ 875              		.cfi_endproc
+ 876              	.LFE72:
+ 878              		.section	.text.processQuat,"ax",%progbits
+ 879              		.align	1
+ 880              		.global	processQuat
+ 881              		.syntax unified
+ 882              		.thumb
+ 883              		.thumb_func
+ 884              		.fpu softvfp
+ 886              	processQuat:
+ 887              	.LFB73:
+ 309:Src/main.c    **** 
+ 888              		.loc 1 309 1 is_stmt 1 view -0
+ 889              		.cfi_startproc
+ 890              		@ args = 0, pretend = 0, frame = 0
+ 891              		@ frame_needed = 0, uses_anonymous_args = 0
+ 892 0000 08B5     		push	{r3, lr}
+ 893              	.LCFI10:
+ 894              		.cfi_def_cfa_offset 8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 29
+
+
+ 895              		.cfi_offset 3, -8
+ 896              		.cfi_offset 14, -4
+ 311:Src/main.c    **** 
+ 897              		.loc 1 311 2 view .LVU227
+ 898 0002 0249     		ldr	r1, .L27
+ 899 0004 2020     		movs	r0, #32
+ 900 0006 FFF7FEFF 		bl	getQuat
+ 901              	.LVL70:
+ 313:Src/main.c    **** void ProcessHeadTracking()
+ 902              		.loc 1 313 1 is_stmt 0 view .LVU228
+ 903 000a 08BD     		pop	{r3, pc}
+ 904              	.L28:
+ 905              		.align	2
+ 906              	.L27:
+ 907 000c 00000000 		.word	quatCount
+ 908              		.cfi_endproc
+ 909              	.LFE73:
+ 911              		.section	.text.ProcessHeadTracking,"ax",%progbits
+ 912              		.align	1
+ 913              		.global	ProcessHeadTracking
+ 914              		.syntax unified
+ 915              		.thumb
+ 916              		.thumb_func
+ 917              		.fpu softvfp
+ 919              	ProcessHeadTracking:
+ 920              	.LFB74:
+ 315:Src/main.c    **** 	processQuat();
+ 921              		.loc 1 315 1 is_stmt 1 view -0
+ 922              		.cfi_startproc
+ 923              		@ args = 0, pretend = 0, frame = 0
+ 924              		@ frame_needed = 0, uses_anonymous_args = 0
+ 925 0000 08B5     		push	{r3, lr}
+ 926              	.LCFI11:
+ 927              		.cfi_def_cfa_offset 8
+ 928              		.cfi_offset 3, -8
+ 929              		.cfi_offset 14, -4
+ 316:Src/main.c    **** 	processEuler();
+ 930              		.loc 1 316 2 view .LVU230
+ 931 0002 FFF7FEFF 		bl	processQuat
+ 932              	.LVL71:
+ 317:Src/main.c    **** 	processcalcAbs();
+ 933              		.loc 1 317 2 view .LVU231
+ 934 0006 FFF7FEFF 		bl	processEuler
+ 935              	.LVL72:
+ 318:Src/main.c    **** }
+ 936              		.loc 1 318 2 view .LVU232
+ 937 000a FFF7FEFF 		bl	processcalcAbs
+ 938              	.LVL73:
+ 319:Src/main.c    **** 
+ 939              		.loc 1 319 1 is_stmt 0 view .LVU233
+ 940 000e 08BD     		pop	{r3, pc}
+ 941              		.cfi_endproc
+ 942              	.LFE74:
+ 944              		.section	.text.print,"ax",%progbits
+ 945              		.align	1
+ 946              		.global	print
+ 947              		.syntax unified
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 30
+
+
+ 948              		.thumb
+ 949              		.thumb_func
+ 950              		.fpu softvfp
+ 952              	print:
+ 953              	.LVL74:
+ 954              	.LFB75:
+ 322:Src/main.c    **** 	CDC_Transmit_FS( (unsigned char*) string, strlen(string));
+ 955              		.loc 1 322 1 is_stmt 1 view -0
+ 956              		.cfi_startproc
+ 957              		@ args = 0, pretend = 0, frame = 0
+ 958              		@ frame_needed = 0, uses_anonymous_args = 0
+ 322:Src/main.c    **** 	CDC_Transmit_FS( (unsigned char*) string, strlen(string));
+ 959              		.loc 1 322 1 is_stmt 0 view .LVU235
+ 960 0000 10B5     		push	{r4, lr}
+ 961              	.LCFI12:
+ 962              		.cfi_def_cfa_offset 8
+ 963              		.cfi_offset 4, -8
+ 964              		.cfi_offset 14, -4
+ 965 0002 0446     		mov	r4, r0
+ 323:Src/main.c    **** }
+ 966              		.loc 1 323 2 is_stmt 1 view .LVU236
+ 323:Src/main.c    **** }
+ 967              		.loc 1 323 44 is_stmt 0 view .LVU237
+ 968 0004 FFF7FEFF 		bl	strlen
+ 969              	.LVL75:
+ 323:Src/main.c    **** }
+ 970              		.loc 1 323 2 view .LVU238
+ 971 0008 81B2     		uxth	r1, r0
+ 972 000a 2046     		mov	r0, r4
+ 973 000c FFF7FEFF 		bl	CDC_Transmit_FS
+ 974              	.LVL76:
+ 324:Src/main.c    **** 
+ 975              		.loc 1 324 1 view .LVU239
+ 976 0010 10BD     		pop	{r4, pc}
+ 324:Src/main.c    **** 
+ 977              		.loc 1 324 1 view .LVU240
+ 978              		.cfi_endproc
+ 979              	.LFE75:
+ 981              		.section	.text.CalibrateHeadTracker,"ax",%progbits
+ 982              		.align	1
+ 983              		.global	CalibrateHeadTracker
+ 984              		.syntax unified
+ 985              		.thumb
+ 986              		.thumb_func
+ 987              		.fpu softvfp
+ 989              	CalibrateHeadTracker:
+ 990              	.LFB71:
+ 233:Src/main.c    ****   
+ 991              		.loc 1 233 1 is_stmt 1 view -0
+ 992              		.cfi_startproc
+ 993              		@ args = 0, pretend = 0, frame = 8
+ 994              		@ frame_needed = 0, uses_anonymous_args = 0
+ 235:Src/main.c    ****     {
+ 995              		.loc 1 235 6 view .LVU242
+ 235:Src/main.c    ****     {
+ 996              		.loc 1 235 16 is_stmt 0 view .LVU243
+ 997 0000 3B4B     		ldr	r3, .L40
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 31
+
+
+ 998 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 235:Src/main.c    ****     {
+ 999              		.loc 1 235 11 view .LVU244
+ 1000 0004 032B     		cmp	r3, #3
+ 1001 0006 72D0     		beq	.L39
+ 233:Src/main.c    ****   
+ 1002              		.loc 1 233 1 view .LVU245
+ 1003 0008 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1004              	.LCFI13:
+ 1005              		.cfi_def_cfa_offset 24
+ 1006              		.cfi_offset 4, -24
+ 1007              		.cfi_offset 5, -20
+ 1008              		.cfi_offset 6, -16
+ 1009              		.cfi_offset 7, -12
+ 1010              		.cfi_offset 8, -8
+ 1011              		.cfi_offset 14, -4
+ 1012 000c 82B0     		sub	sp, sp, #8
+ 1013              	.LCFI14:
+ 1014              		.cfi_def_cfa_offset 32
+ 1015              	.L35:
+ 1016              	.LBB6:
+ 237:Src/main.c    ****     getCalibration(&sys, &gyro, &accel, &mag);
+ 1017              		.loc 1 237 6 is_stmt 1 view .LVU246
+ 238:Src/main.c    ****     
+ 1018              		.loc 1 238 5 view .LVU247
+ 1019 000e 394D     		ldr	r5, .L40+4
+ 1020 0010 394E     		ldr	r6, .L40+8
+ 1021 0012 3A4F     		ldr	r7, .L40+12
+ 1022 0014 DFF8D880 		ldr	r8, .L40
+ 1023 0018 2B46     		mov	r3, r5
+ 1024 001a 3246     		mov	r2, r6
+ 1025 001c 3946     		mov	r1, r7
+ 1026 001e 4046     		mov	r0, r8
+ 1027 0020 FFF7FEFF 		bl	getCalibration
+ 1028              	.LVL77:
+ 240:Src/main.c    ****     LED2_TOGGLE;    
+ 1029              		.loc 1 240 5 view .LVU248
+ 1030 0024 364C     		ldr	r4, .L40+16
+ 1031 0026 2021     		movs	r1, #32
+ 1032 0028 2046     		mov	r0, r4
+ 1033 002a FFF7FEFF 		bl	HAL_GPIO_TogglePin
+ 1034              	.LVL78:
+ 240:Src/main.c    ****     LED2_TOGGLE;    
+ 1035              		.loc 1 240 16 view .LVU249
+ 241:Src/main.c    ****     print("CALIBRATION: Sys=");
+ 1036              		.loc 1 241 5 view .LVU250
+ 1037 002e 4021     		movs	r1, #64
+ 1038 0030 2046     		mov	r0, r4
+ 1039 0032 FFF7FEFF 		bl	HAL_GPIO_TogglePin
+ 1040              	.LVL79:
+ 241:Src/main.c    ****     print("CALIBRATION: Sys=");
+ 1041              		.loc 1 241 16 view .LVU251
+ 242:Src/main.c    ****     sprintf(str, "0x%X",sys);
+ 1042              		.loc 1 242 5 view .LVU252
+ 1043 0036 3348     		ldr	r0, .L40+20
+ 1044 0038 FFF7FEFF 		bl	print
+ 1045              	.LVL80:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 32
+
+
+ 243:Src/main.c    ****     HAL_Delay (500);
+ 1046              		.loc 1 243 5 view .LVU253
+ 1047 003c 324C     		ldr	r4, .L40+24
+ 1048 003e 98F80020 		ldrb	r2, [r8]	@ zero_extendqisi2
+ 1049 0042 2146     		mov	r1, r4
+ 1050 0044 6846     		mov	r0, sp
+ 1051 0046 FFF7FEFF 		bl	sprintf
+ 1052              	.LVL81:
+ 244:Src/main.c    ****     SerialPrint(str);
+ 1053              		.loc 1 244 5 view .LVU254
+ 1054 004a 4FF4FA70 		mov	r0, #500
+ 1055 004e FFF7FEFF 		bl	HAL_Delay
+ 1056              	.LVL82:
+ 245:Src/main.c    ****     HAL_Delay (500);
+ 1057              		.loc 1 245 5 view .LVU255
+ 1058 0052 6846     		mov	r0, sp
+ 1059 0054 FFF7FEFF 		bl	SerialPrint
+ 1060              	.LVL83:
+ 246:Src/main.c    ****     SerialPrint(" Gyro=");
+ 1061              		.loc 1 246 5 view .LVU256
+ 1062 0058 4FF4FA70 		mov	r0, #500
+ 1063 005c FFF7FEFF 		bl	HAL_Delay
+ 1064              	.LVL84:
+ 247:Src/main.c    ****     sprintf(str, "0x%X",gyro);
+ 1065              		.loc 1 247 5 view .LVU257
+ 1066 0060 2A48     		ldr	r0, .L40+28
+ 1067 0062 FFF7FEFF 		bl	SerialPrint
+ 1068              	.LVL85:
+ 248:Src/main.c    ****     HAL_Delay (500);
+ 1069              		.loc 1 248 5 view .LVU258
+ 1070 0066 3A78     		ldrb	r2, [r7]	@ zero_extendqisi2
+ 1071 0068 2146     		mov	r1, r4
+ 1072 006a 6846     		mov	r0, sp
+ 1073 006c FFF7FEFF 		bl	sprintf
+ 1074              	.LVL86:
+ 249:Src/main.c    ****     SerialPrint(str);
+ 1075              		.loc 1 249 5 view .LVU259
+ 1076 0070 4FF4FA70 		mov	r0, #500
+ 1077 0074 FFF7FEFF 		bl	HAL_Delay
+ 1078              	.LVL87:
+ 250:Src/main.c    ****     HAL_Delay (500);
+ 1079              		.loc 1 250 5 view .LVU260
+ 1080 0078 6846     		mov	r0, sp
+ 1081 007a FFF7FEFF 		bl	SerialPrint
+ 1082              	.LVL88:
+ 251:Src/main.c    ****     SerialPrint(" Accel=");
+ 1083              		.loc 1 251 5 view .LVU261
+ 1084 007e 4FF4FA70 		mov	r0, #500
+ 1085 0082 FFF7FEFF 		bl	HAL_Delay
+ 1086              	.LVL89:
+ 252:Src/main.c    ****     sprintf(str, "0x%X",accel);
+ 1087              		.loc 1 252 5 view .LVU262
+ 1088 0086 2248     		ldr	r0, .L40+32
+ 1089 0088 FFF7FEFF 		bl	SerialPrint
+ 1090              	.LVL90:
+ 253:Src/main.c    ****     HAL_Delay (500);
+ 1091              		.loc 1 253 5 view .LVU263
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 33
+
+
+ 1092 008c 3278     		ldrb	r2, [r6]	@ zero_extendqisi2
+ 1093 008e 2146     		mov	r1, r4
+ 1094 0090 6846     		mov	r0, sp
+ 1095 0092 FFF7FEFF 		bl	sprintf
+ 1096              	.LVL91:
+ 254:Src/main.c    ****     SerialPrint(str);
+ 1097              		.loc 1 254 5 view .LVU264
+ 1098 0096 4FF4FA70 		mov	r0, #500
+ 1099 009a FFF7FEFF 		bl	HAL_Delay
+ 1100              	.LVL92:
+ 255:Src/main.c    ****     HAL_Delay (500);
+ 1101              		.loc 1 255 5 view .LVU265
+ 1102 009e 6846     		mov	r0, sp
+ 1103 00a0 FFF7FEFF 		bl	SerialPrint
+ 1104              	.LVL93:
+ 256:Src/main.c    ****     SerialPrint(" Mag=");
+ 1105              		.loc 1 256 5 view .LVU266
+ 1106 00a4 4FF4FA70 		mov	r0, #500
+ 1107 00a8 FFF7FEFF 		bl	HAL_Delay
+ 1108              	.LVL94:
+ 257:Src/main.c    ****     sprintf(str, "0x%X",mag);
+ 1109              		.loc 1 257 5 view .LVU267
+ 1110 00ac 1948     		ldr	r0, .L40+36
+ 1111 00ae FFF7FEFF 		bl	SerialPrint
+ 1112              	.LVL95:
+ 258:Src/main.c    ****     HAL_Delay (500);
+ 1113              		.loc 1 258 5 view .LVU268
+ 1114 00b2 2A78     		ldrb	r2, [r5]	@ zero_extendqisi2
+ 1115 00b4 2146     		mov	r1, r4
+ 1116 00b6 6846     		mov	r0, sp
+ 1117 00b8 FFF7FEFF 		bl	sprintf
+ 1118              	.LVL96:
+ 259:Src/main.c    ****     SerialPrint(str);
+ 1119              		.loc 1 259 5 view .LVU269
+ 1120 00bc 4FF4FA70 		mov	r0, #500
+ 1121 00c0 FFF7FEFF 		bl	HAL_Delay
+ 1122              	.LVL97:
+ 260:Src/main.c    ****     HAL_Delay (500);
+ 1123              		.loc 1 260 5 view .LVU270
+ 1124 00c4 6846     		mov	r0, sp
+ 1125 00c6 FFF7FEFF 		bl	SerialPrint
+ 1126              	.LVL98:
+ 261:Src/main.c    **** 
+ 1127              		.loc 1 261 5 view .LVU271
+ 1128 00ca 4FF4FA70 		mov	r0, #500
+ 1129 00ce FFF7FEFF 		bl	HAL_Delay
+ 1130              	.LVL99:
+ 263:Src/main.c    ****     HAL_Delay (500);
+ 1131              		.loc 1 263 5 view .LVU272
+ 1132 00d2 1148     		ldr	r0, .L40+40
+ 1133 00d4 FFF7FEFF 		bl	SerialPrint
+ 1134              	.LVL100:
+ 264:Src/main.c    ****   }
+ 1135              		.loc 1 264 5 view .LVU273
+ 1136 00d8 4FF4FA70 		mov	r0, #500
+ 1137 00dc FFF7FEFF 		bl	HAL_Delay
+ 1138              	.LVL101:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 34
+
+
+ 1139              	.LBE6:
+ 235:Src/main.c    ****     {
+ 1140              		.loc 1 235 16 is_stmt 0 view .LVU274
+ 1141 00e0 034B     		ldr	r3, .L40
+ 1142 00e2 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 235:Src/main.c    ****     {
+ 1143              		.loc 1 235 11 view .LVU275
+ 1144 00e4 032B     		cmp	r3, #3
+ 1145 00e6 92D1     		bne	.L35
+ 266:Src/main.c    **** 
+ 1146              		.loc 1 266 1 view .LVU276
+ 1147 00e8 02B0     		add	sp, sp, #8
+ 1148              	.LCFI15:
+ 1149              		.cfi_def_cfa_offset 24
+ 1150              		@ sp needed
+ 1151 00ea BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1152              	.L39:
+ 1153              	.LCFI16:
+ 1154              		.cfi_def_cfa_offset 0
+ 1155              		.cfi_restore 4
+ 1156              		.cfi_restore 5
+ 1157              		.cfi_restore 6
+ 1158              		.cfi_restore 7
+ 1159              		.cfi_restore 8
+ 1160              		.cfi_restore 14
+ 1161 00ee 7047     		bx	lr
+ 1162              	.L41:
+ 1163              		.align	2
+ 1164              	.L40:
+ 1165 00f0 00000000 		.word	.LANCHOR6
+ 1166 00f4 00000000 		.word	.LANCHOR3
+ 1167 00f8 00000000 		.word	.LANCHOR4
+ 1168 00fc 00000000 		.word	.LANCHOR5
+ 1169 0100 00080140 		.word	1073809408
+ 1170 0104 00000000 		.word	.LC0
+ 1171 0108 14000000 		.word	.LC1
+ 1172 010c 1C000000 		.word	.LC2
+ 1173 0110 24000000 		.word	.LC3
+ 1174 0114 2C000000 		.word	.LC4
+ 1175 0118 34000000 		.word	.LC5
+ 1176              		.cfi_endproc
+ 1177              	.LFE71:
+ 1179              		.section	.text.SystemClock_Config,"ax",%progbits
+ 1180              		.align	1
+ 1181              		.global	SystemClock_Config
+ 1182              		.syntax unified
+ 1183              		.thumb
+ 1184              		.thumb_func
+ 1185              		.fpu softvfp
+ 1187              	SystemClock_Config:
+ 1188              	.LFB77:
+ 449:Src/main.c    ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 1189              		.loc 1 449 1 is_stmt 1 view -0
+ 1190              		.cfi_startproc
+ 1191              		@ args = 0, pretend = 0, frame = 80
+ 1192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1193 0000 30B5     		push	{r4, r5, lr}
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 35
+
+
+ 1194              	.LCFI17:
+ 1195              		.cfi_def_cfa_offset 12
+ 1196              		.cfi_offset 4, -12
+ 1197              		.cfi_offset 5, -8
+ 1198              		.cfi_offset 14, -4
+ 1199 0002 95B0     		sub	sp, sp, #84
+ 1200              	.LCFI18:
+ 1201              		.cfi_def_cfa_offset 96
+ 450:Src/main.c    ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 1202              		.loc 1 450 3 view .LVU278
+ 450:Src/main.c    ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 1203              		.loc 1 450 22 is_stmt 0 view .LVU279
+ 1204 0004 0024     		movs	r4, #0
+ 1205 0006 0C94     		str	r4, [sp, #48]
+ 1206 0008 0D94     		str	r4, [sp, #52]
+ 1207 000a 0F94     		str	r4, [sp, #60]
+ 1208 000c 1094     		str	r4, [sp, #64]
+ 451:Src/main.c    ****   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+ 1209              		.loc 1 451 3 is_stmt 1 view .LVU280
+ 451:Src/main.c    ****   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+ 1210              		.loc 1 451 22 is_stmt 0 view .LVU281
+ 1211 000e 0594     		str	r4, [sp, #20]
+ 1212 0010 0694     		str	r4, [sp, #24]
+ 1213 0012 0794     		str	r4, [sp, #28]
+ 1214 0014 0894     		str	r4, [sp, #32]
+ 1215 0016 0994     		str	r4, [sp, #36]
+ 452:Src/main.c    **** 
+ 1216              		.loc 1 452 3 is_stmt 1 view .LVU282
+ 452:Src/main.c    **** 
+ 1217              		.loc 1 452 28 is_stmt 0 view .LVU283
+ 1218 0018 0194     		str	r4, [sp, #4]
+ 1219 001a 0294     		str	r4, [sp, #8]
+ 1220 001c 0394     		str	r4, [sp, #12]
+ 1221 001e 0494     		str	r4, [sp, #16]
+ 456:Src/main.c    ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+ 1222              		.loc 1 456 3 is_stmt 1 view .LVU284
+ 456:Src/main.c    ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+ 1223              		.loc 1 456 36 is_stmt 0 view .LVU285
+ 1224 0020 0122     		movs	r2, #1
+ 1225 0022 0A92     		str	r2, [sp, #40]
+ 457:Src/main.c    ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+ 1226              		.loc 1 457 3 is_stmt 1 view .LVU286
+ 457:Src/main.c    ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+ 1227              		.loc 1 457 30 is_stmt 0 view .LVU287
+ 1228 0024 4FF48033 		mov	r3, #65536
+ 1229 0028 0B93     		str	r3, [sp, #44]
+ 458:Src/main.c    ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 1230              		.loc 1 458 3 is_stmt 1 view .LVU288
+ 459:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 1231              		.loc 1 459 3 view .LVU289
+ 459:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 1232              		.loc 1 459 30 is_stmt 0 view .LVU290
+ 1233 002a 0E92     		str	r2, [sp, #56]
+ 460:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+ 1234              		.loc 1 460 3 is_stmt 1 view .LVU291
+ 460:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+ 1235              		.loc 1 460 34 is_stmt 0 view .LVU292
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 36
+
+
+ 1236 002c 0225     		movs	r5, #2
+ 1237 002e 1195     		str	r5, [sp, #68]
+ 461:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+ 1238              		.loc 1 461 3 is_stmt 1 view .LVU293
+ 461:Src/main.c    ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+ 1239              		.loc 1 461 35 is_stmt 0 view .LVU294
+ 1240 0030 1293     		str	r3, [sp, #72]
+ 462:Src/main.c    ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 1241              		.loc 1 462 3 is_stmt 1 view .LVU295
+ 462:Src/main.c    ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 1242              		.loc 1 462 32 is_stmt 0 view .LVU296
+ 1243 0032 4FF4E013 		mov	r3, #1835008
+ 1244 0036 1393     		str	r3, [sp, #76]
+ 463:Src/main.c    ****   {
+ 1245              		.loc 1 463 3 is_stmt 1 view .LVU297
+ 463:Src/main.c    ****   {
+ 1246              		.loc 1 463 7 is_stmt 0 view .LVU298
+ 1247 0038 0AA8     		add	r0, sp, #40
+ 1248 003a FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 1249              	.LVL102:
+ 469:Src/main.c    ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 1250              		.loc 1 469 3 is_stmt 1 view .LVU299
+ 469:Src/main.c    ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 1251              		.loc 1 469 31 is_stmt 0 view .LVU300
+ 1252 003e 0F23     		movs	r3, #15
+ 1253 0040 0593     		str	r3, [sp, #20]
+ 471:Src/main.c    ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 1254              		.loc 1 471 3 is_stmt 1 view .LVU301
+ 471:Src/main.c    ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 1255              		.loc 1 471 34 is_stmt 0 view .LVU302
+ 1256 0042 0695     		str	r5, [sp, #24]
+ 472:Src/main.c    ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+ 1257              		.loc 1 472 3 is_stmt 1 view .LVU303
+ 472:Src/main.c    ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+ 1258              		.loc 1 472 35 is_stmt 0 view .LVU304
+ 1259 0044 0794     		str	r4, [sp, #28]
+ 473:Src/main.c    ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 1260              		.loc 1 473 3 is_stmt 1 view .LVU305
+ 473:Src/main.c    ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 1261              		.loc 1 473 36 is_stmt 0 view .LVU306
+ 1262 0046 4FF48063 		mov	r3, #1024
+ 1263 004a 0893     		str	r3, [sp, #32]
+ 474:Src/main.c    **** 
+ 1264              		.loc 1 474 3 is_stmt 1 view .LVU307
+ 474:Src/main.c    **** 
+ 1265              		.loc 1 474 36 is_stmt 0 view .LVU308
+ 1266 004c 0994     		str	r4, [sp, #36]
+ 476:Src/main.c    ****   {
+ 1267              		.loc 1 476 3 is_stmt 1 view .LVU309
+ 476:Src/main.c    ****   {
+ 1268              		.loc 1 476 7 is_stmt 0 view .LVU310
+ 1269 004e 2946     		mov	r1, r5
+ 1270 0050 05A8     		add	r0, sp, #20
+ 1271 0052 FFF7FEFF 		bl	HAL_RCC_ClockConfig
+ 1272              	.LVL103:
+ 480:Src/main.c    ****   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
+ 1273              		.loc 1 480 3 is_stmt 1 view .LVU311
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 37
+
+
+ 480:Src/main.c    ****   PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
+ 1274              		.loc 1 480 38 is_stmt 0 view .LVU312
+ 1275 0056 1023     		movs	r3, #16
+ 1276 0058 0193     		str	r3, [sp, #4]
+ 481:Src/main.c    ****   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+ 1277              		.loc 1 481 3 is_stmt 1 view .LVU313
+ 481:Src/main.c    ****   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+ 1278              		.loc 1 481 35 is_stmt 0 view .LVU314
+ 1279 005a 0494     		str	r4, [sp, #16]
+ 482:Src/main.c    ****   {
+ 1280              		.loc 1 482 3 is_stmt 1 view .LVU315
+ 482:Src/main.c    ****   {
+ 1281              		.loc 1 482 7 is_stmt 0 view .LVU316
+ 1282 005c 01A8     		add	r0, sp, #4
+ 1283 005e FFF7FEFF 		bl	HAL_RCCEx_PeriphCLKConfig
+ 1284              	.LVL104:
+ 486:Src/main.c    **** 
+ 1285              		.loc 1 486 1 view .LVU317
+ 1286 0062 15B0     		add	sp, sp, #84
+ 1287              	.LCFI19:
+ 1288              		.cfi_def_cfa_offset 12
+ 1289              		@ sp needed
+ 1290 0064 30BD     		pop	{r4, r5, pc}
+ 1291              		.cfi_endproc
+ 1292              	.LFE77:
+ 1294              		.section	.text.main,"ax",%progbits
+ 1295              		.align	1
+ 1296              		.global	main
+ 1297              		.syntax unified
+ 1298              		.thumb
+ 1299              		.thumb_func
+ 1300              		.fpu softvfp
+ 1302              	main:
+ 1303              	.LFB76:
+ 336:Src/main.c    ****   /* USER CODE BEGIN 1 */
+ 1304              		.loc 1 336 1 is_stmt 1 view -0
+ 1305              		.cfi_startproc
+ 1306              		@ args = 0, pretend = 0, frame = 0
+ 1307              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1308 0000 08B5     		push	{r3, lr}
+ 1309              	.LCFI20:
+ 1310              		.cfi_def_cfa_offset 8
+ 1311              		.cfi_offset 3, -8
+ 1312              		.cfi_offset 14, -4
+ 345:Src/main.c    **** 
+ 1313              		.loc 1 345 3 view .LVU319
+ 1314 0002 FFF7FEFF 		bl	HAL_Init
+ 1315              	.LVL105:
+ 352:Src/main.c    **** 
+ 1316              		.loc 1 352 3 view .LVU320
+ 1317 0006 FFF7FEFF 		bl	SystemClock_Config
+ 1318              	.LVL106:
+ 359:Src/main.c    ****   MX_USB_DEVICE_Init();
+ 1319              		.loc 1 359 3 view .LVU321
+ 1320 000a FFF7FEFF 		bl	MX_GPIO_Init
+ 1321              	.LVL107:
+ 360:Src/main.c    **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 38
+
+
+ 1322              		.loc 1 360 3 view .LVU322
+ 1323 000e FFF7FEFF 		bl	MX_USB_DEVICE_Init
+ 1324              	.LVL108:
+ 363:Src/main.c    ****   HAL_Delay(50);
+ 1325              		.loc 1 363 3 view .LVU323
+ 1326 0012 FFF7FEFF 		bl	MainPowerOn
+ 1327              	.LVL109:
+ 364:Src/main.c    ****   i2cSoft_Init();
+ 1328              		.loc 1 364 3 view .LVU324
+ 1329 0016 3220     		movs	r0, #50
+ 1330 0018 FFF7FEFF 		bl	HAL_Delay
+ 1331              	.LVL110:
+ 365:Src/main.c    ****   HAL_Delay(150);
+ 1332              		.loc 1 365 3 view .LVU325
+ 1333 001c FFF7FEFF 		bl	i2cSoft_Init
+ 1334              	.LVL111:
+ 366:Src/main.c    ****   for(int i = 0; i < 10; i++)
+ 1335              		.loc 1 366 3 view .LVU326
+ 1336 0020 9620     		movs	r0, #150
+ 1337 0022 FFF7FEFF 		bl	HAL_Delay
+ 1338              	.LVL112:
+ 367:Src/main.c    ****   {
+ 1339              		.loc 1 367 3 view .LVU327
+ 1340              	.LBB7:
+ 367:Src/main.c    ****   {
+ 1341              		.loc 1 367 7 view .LVU328
+ 367:Src/main.c    ****   {
+ 1342              		.loc 1 367 11 is_stmt 0 view .LVU329
+ 1343 0026 0023     		movs	r3, #0
+ 367:Src/main.c    ****   {
+ 1344              		.loc 1 367 3 view .LVU330
+ 1345 0028 00E0     		b	.L45
+ 1346              	.LVL113:
+ 1347              	.L46:
+ 373:Src/main.c    ****   //if(!OLED_OK && i2cSoft_DeviceExists(SSD1306_I2C_ADDR)) OLED_OK = 1;
+ 1348              		.loc 1 373 3 is_stmt 1 discriminator 3 view .LVU331
+ 367:Src/main.c    ****   {
+ 1349              		.loc 1 367 27 is_stmt 0 discriminator 3 view .LVU332
+ 1350 002a 0133     		adds	r3, r3, #1
+ 1351              	.LVL114:
+ 1352              	.L45:
+ 367:Src/main.c    ****   {
+ 1353              		.loc 1 367 3 discriminator 1 view .LVU333
+ 1354 002c 092B     		cmp	r3, #9
+ 1355 002e FCDD     		ble	.L46
+ 1356              	.LBE7:
+ 375:Src/main.c    ****   if(i2cSoft_DeviceExists(BNO055_ADDRESS_A)) HT_OK = 1;
+ 1357              		.loc 1 375 3 is_stmt 1 view .LVU334
+ 375:Src/main.c    ****   if(i2cSoft_DeviceExists(BNO055_ADDRESS_A)) HT_OK = 1;
+ 1358              		.loc 1 375 6 is_stmt 0 view .LVU335
+ 1359 0030 3C20     		movs	r0, #60
+ 1360 0032 FFF7FEFF 		bl	i2cSoft_DeviceExists
+ 1361              	.LVL115:
+ 375:Src/main.c    ****   if(i2cSoft_DeviceExists(BNO055_ADDRESS_A)) HT_OK = 1;
+ 1362              		.loc 1 375 5 view .LVU336
+ 1363 0036 10B1     		cbz	r0, .L47
+ 375:Src/main.c    ****   if(i2cSoft_DeviceExists(BNO055_ADDRESS_A)) HT_OK = 1;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 39
+
+
+ 1364              		.loc 1 375 46 is_stmt 1 discriminator 1 view .LVU337
+ 375:Src/main.c    ****   if(i2cSoft_DeviceExists(BNO055_ADDRESS_A)) HT_OK = 1;
+ 1365              		.loc 1 375 54 is_stmt 0 discriminator 1 view .LVU338
+ 1366 0038 3D4B     		ldr	r3, .L65
+ 1367 003a 0122     		movs	r2, #1
+ 1368 003c 1A70     		strb	r2, [r3]
+ 1369              	.L47:
+ 376:Src/main.c    **** 
+ 1370              		.loc 1 376 3 is_stmt 1 view .LVU339
+ 376:Src/main.c    **** 
+ 1371              		.loc 1 376 6 is_stmt 0 view .LVU340
+ 1372 003e 2920     		movs	r0, #41
+ 1373 0040 FFF7FEFF 		bl	i2cSoft_DeviceExists
+ 1374              	.LVL116:
+ 376:Src/main.c    **** 
+ 1375              		.loc 1 376 5 view .LVU341
+ 1376 0044 10B1     		cbz	r0, .L49
+ 376:Src/main.c    **** 
+ 1377              		.loc 1 376 46 is_stmt 1 discriminator 1 view .LVU342
+ 376:Src/main.c    **** 
+ 1378              		.loc 1 376 52 is_stmt 0 discriminator 1 view .LVU343
+ 1379 0046 3B4B     		ldr	r3, .L65+4
+ 1380 0048 0122     		movs	r2, #1
+ 1381 004a 1A60     		str	r2, [r3]
+ 1382              	.L49:
+ 378:Src/main.c    ****   if(i2cSoft_DeviceExists(TOSHIBA_I2C_ADDR))
+ 1383              		.loc 1 378 3 is_stmt 1 view .LVU344
+ 379:Src/main.c    ****   break;
+ 1384              		.loc 1 379 3 view .LVU345
+ 379:Src/main.c    ****   break;
+ 1385              		.loc 1 379 6 is_stmt 0 view .LVU346
+ 1386 004c 0F20     		movs	r0, #15
+ 1387 004e FFF7FEFF 		bl	i2cSoft_DeviceExists
+ 1388              	.LVL117:
+ 379:Src/main.c    ****   break;
+ 1389              		.loc 1 379 5 view .LVU347
+ 1390 0052 0028     		cmp	r0, #0
+ 1391 0054 FAD0     		beq	.L49
+ 382:Src/main.c    ****   ssd1306_Init();
+ 1392              		.loc 1 382 3 is_stmt 1 view .LVU348
+ 1393 0056 3220     		movs	r0, #50
+ 1394 0058 FFF7FEFF 		bl	HAL_Delay
+ 1395              	.LVL118:
+ 383:Src/main.c    ****   HAL_Delay(50);
+ 1396              		.loc 1 383 3 view .LVU349
+ 1397 005c FFF7FEFF 		bl	ssd1306_Init
+ 1398              	.LVL119:
+ 384:Src/main.c    **** 
+ 1399              		.loc 1 384 3 view .LVU350
+ 1400 0060 3220     		movs	r0, #50
+ 1401 0062 FFF7FEFF 		bl	HAL_Delay
+ 1402              	.LVL120:
+ 386:Src/main.c    ****   {
+ 1403              		.loc 1 386 3 view .LVU351
+ 386:Src/main.c    ****   {
+ 1404              		.loc 1 386 6 is_stmt 0 view .LVU352
+ 1405 0066 324B     		ldr	r3, .L65
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 40
+
+
+ 1406 0068 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 386:Src/main.c    ****   {
+ 1407              		.loc 1 386 5 view .LVU353
+ 1408 006a 63B9     		cbnz	r3, .L59
+ 1409              	.L50:
+ 392:Src/main.c    ****   //while(!VCPInitialized) {}   
+ 1410              		.loc 1 392 3 is_stmt 1 view .LVU354
+ 392:Src/main.c    ****   //while(!VCPInitialized) {}   
+ 1411              		.loc 1 392 11 is_stmt 0 view .LVU355
+ 1412 006c FFF7FEFF 		bl	begin
+ 1413              	.LVL121:
+ 392:Src/main.c    ****   //while(!VCPInitialized) {}   
+ 1414              		.loc 1 392 9 view .LVU356
+ 1415 0070 304B     		ldr	r3, .L65+4
+ 1416 0072 1860     		str	r0, [r3]
+ 395:Src/main.c    **** 
+ 1417              		.loc 1 395 5 is_stmt 1 view .LVU357
+ 395:Src/main.c    **** 
+ 1418              		.loc 1 395 11 is_stmt 0 view .LVU358
+ 1419 0074 FFF7FEFF 		bl	GetMicros
+ 1420              	.LVL122:
+ 395:Src/main.c    **** 
+ 1421              		.loc 1 395 9 view .LVU359
+ 1422 0078 2F4B     		ldr	r3, .L65+8
+ 1423 007a C3E90001 		strd	r0, [r3]
+ 401:Src/main.c    ****   while (1)
+ 1424              		.loc 1 401 1 is_stmt 1 view .LVU360
+ 401:Src/main.c    ****   while (1)
+ 1425              		.loc 1 401 19 is_stmt 0 view .LVU361
+ 1426 007e 2F4B     		ldr	r3, .L65+12
+ 1427 0080 0022     		movs	r2, #0
+ 1428 0082 1A70     		strb	r2, [r3]
+ 1429 0084 20E0     		b	.L56
+ 1430              	.L59:
+ 388:Src/main.c    ****     ssd1306_UpdateScreen();
+ 1431              		.loc 1 388 5 is_stmt 1 view .LVU362
+ 1432 0086 0020     		movs	r0, #0
+ 1433 0088 FFF7FEFF 		bl	ssd1306_Fill
+ 1434              	.LVL123:
+ 389:Src/main.c    ****   }
+ 1435              		.loc 1 389 5 view .LVU363
+ 1436 008c FFF7FEFF 		bl	ssd1306_UpdateScreen
+ 1437              	.LVL124:
+ 1438 0090 ECE7     		b	.L50
+ 1439              	.L61:
+ 407:Src/main.c    ****       }
+ 1440              		.loc 1 407 11 view .LVU364
+ 1441 0092 FFF7FEFF 		bl	PrintScreen
+ 1442              	.LVL125:
+ 1443 0096 1DE0     		b	.L51
+ 1444              	.L62:
+ 412:Src/main.c    ****         if(HT_OK == -1) SerialPrint("Bno is fail....");    
+ 1445              		.loc 1 412 9 view .LVU365
+ 1446 0098 FFF7FEFF 		bl	Cmd_Interface
+ 1447              	.LVL126:
+ 413:Src/main.c    ****       }
+ 1448              		.loc 1 413 9 view .LVU366
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 41
+
+
+ 413:Src/main.c    ****       }
+ 1449              		.loc 1 413 18 is_stmt 0 view .LVU367
+ 1450 009c 254B     		ldr	r3, .L65+4
+ 1451 009e 1B68     		ldr	r3, [r3]
+ 413:Src/main.c    ****       }
+ 1452              		.loc 1 413 11 view .LVU368
+ 1453 00a0 B3F1FF3F 		cmp	r3, #-1
+ 1454 00a4 1CD1     		bne	.L52
+ 413:Src/main.c    ****       }
+ 1455              		.loc 1 413 25 is_stmt 1 discriminator 1 view .LVU369
+ 1456 00a6 2648     		ldr	r0, .L65+16
+ 1457 00a8 FFF7FEFF 		bl	SerialPrint
+ 1458              	.LVL127:
+ 1459 00ac 18E0     		b	.L52
+ 1460              	.L63:
+ 420:Src/main.c    ****     send_report[1] = packet_num;
+ 1461              		.loc 1 420 5 view .LVU370
+ 420:Src/main.c    ****     send_report[1] = packet_num;
+ 1462              		.loc 1 420 20 is_stmt 0 view .LVU371
+ 1463 00ae 254B     		ldr	r3, .L65+20
+ 1464 00b0 1322     		movs	r2, #19
+ 1465 00b2 1A70     		strb	r2, [r3]
+ 1466 00b4 20E0     		b	.L53
+ 1467              	.LVL128:
+ 1468              	.L64:
+ 431:Src/main.c    ****     if(packet_num == 0xFF)  packet_num = 0;
+ 1469              		.loc 1 431 5 is_stmt 1 view .LVU372
+ 1470 00b6 1022     		movs	r2, #16
+ 1471 00b8 2249     		ldr	r1, .L65+20
+ 1472 00ba 2348     		ldr	r0, .L65+24
+ 1473 00bc FFF7FEFF 		bl	USBD_CUSTOM_HID_SendReport
+ 1474              	.LVL129:
+ 432:Src/main.c    ****     /* USER CODE END WHILE */
+ 1475              		.loc 1 432 5 view .LVU373
+ 432:Src/main.c    ****     /* USER CODE END WHILE */
+ 1476              		.loc 1 432 19 is_stmt 0 view .LVU374
+ 1477 00c0 224B     		ldr	r3, .L65+28
+ 1478 00c2 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 432:Src/main.c    ****     /* USER CODE END WHILE */
+ 1479              		.loc 1 432 7 view .LVU375
+ 1480 00c4 FF2B     		cmp	r3, #255
+ 1481 00c6 2ED0     		beq	.L60
+ 1482              	.L56:
+ 402:Src/main.c    ****   {   
+ 1483              		.loc 1 402 3 is_stmt 1 view .LVU376
+ 404:Src/main.c    ****     if(OLED_OK)
+ 1484              		.loc 1 404 5 view .LVU377
+ 1485 00c8 FFF7FEFF 		bl	InitHardware
+ 1486              	.LVL130:
+ 405:Src/main.c    ****     {
+ 1487              		.loc 1 405 5 view .LVU378
+ 405:Src/main.c    ****     {
+ 1488              		.loc 1 405 8 is_stmt 0 view .LVU379
+ 1489 00cc 184B     		ldr	r3, .L65
+ 1490 00ce 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 405:Src/main.c    ****     {
+ 1491              		.loc 1 405 7 view .LVU380
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 42
+
+
+ 1492 00d0 002B     		cmp	r3, #0
+ 1493 00d2 DED1     		bne	.L61
+ 1494              	.L51:
+ 409:Src/main.c    ****     if(VCPInitialized)
+ 1495              		.loc 1 409 5 is_stmt 1 view .LVU381
+ 1496 00d4 FFF7FEFF 		bl	StatusControl
+ 1497              	.LVL131:
+ 410:Src/main.c    ****     {
+ 1498              		.loc 1 410 5 view .LVU382
+ 410:Src/main.c    ****     {
+ 1499              		.loc 1 410 8 is_stmt 0 view .LVU383
+ 1500 00d8 1D4B     		ldr	r3, .L65+32
+ 1501 00da 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 410:Src/main.c    ****     {
+ 1502              		.loc 1 410 7 view .LVU384
+ 1503 00dc 002B     		cmp	r3, #0
+ 1504 00de DBD1     		bne	.L62
+ 1505              	.L52:
+ 415:Src/main.c    ****     processQuat();
+ 1506              		.loc 1 415 5 is_stmt 1 view .LVU385
+ 1507 00e0 FFF7FEFF 		bl	Buttons
+ 1508              	.LVL132:
+ 416:Src/main.c    **** 		
+ 1509              		.loc 1 416 5 view .LVU386
+ 1510 00e4 FFF7FEFF 		bl	processQuat
+ 1511              	.LVL133:
+ 418:Src/main.c    ****     if(status == 0x9F)
+ 1512              		.loc 1 418 3 view .LVU387
+ 418:Src/main.c    ****     if(status == 0x9F)
+ 1513              		.loc 1 418 17 is_stmt 0 view .LVU388
+ 1514 00e8 1A4B     		ldr	r3, .L65+36
+ 1515 00ea 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 1516 00ec 154B     		ldr	r3, .L65+20
+ 1517 00ee 1A70     		strb	r2, [r3]
+ 419:Src/main.c    ****     send_report[0] = 0x13;
+ 1518              		.loc 1 419 5 is_stmt 1 view .LVU389
+ 419:Src/main.c    ****     send_report[0] = 0x13;
+ 1519              		.loc 1 419 15 is_stmt 0 view .LVU390
+ 1520 00f0 194B     		ldr	r3, .L65+40
+ 1521 00f2 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 419:Src/main.c    ****     send_report[0] = 0x13;
+ 1522              		.loc 1 419 7 view .LVU391
+ 1523 00f4 9F2B     		cmp	r3, #159
+ 1524 00f6 DAD0     		beq	.L63
+ 1525              	.L53:
+ 421:Src/main.c    ****     
+ 1526              		.loc 1 421 5 is_stmt 1 view .LVU392
+ 421:Src/main.c    ****     
+ 1527              		.loc 1 421 20 is_stmt 0 view .LVU393
+ 1528 00f8 144A     		ldr	r2, .L65+28
+ 1529 00fa 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 1530 00fc 1149     		ldr	r1, .L65+20
+ 1531 00fe 4B70     		strb	r3, [r1, #1]
+ 423:Src/main.c    ****     for(int i = 0; i < 7; i++)
+ 1532              		.loc 1 423 5 is_stmt 1 view .LVU394
+ 423:Src/main.c    ****     for(int i = 0; i < 7; i++)
+ 1533              		.loc 1 423 15 is_stmt 0 view .LVU395
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 43
+
+
+ 1534 0100 0133     		adds	r3, r3, #1
+ 1535 0102 1370     		strb	r3, [r2]
+ 424:Src/main.c    ****     {
+ 1536              		.loc 1 424 5 is_stmt 1 view .LVU396
+ 1537              	.LBB8:
+ 424:Src/main.c    ****     {
+ 1538              		.loc 1 424 9 view .LVU397
+ 1539              	.LVL134:
+ 424:Src/main.c    ****     {
+ 1540              		.loc 1 424 13 is_stmt 0 view .LVU398
+ 1541 0104 0023     		movs	r3, #0
+ 1542              	.LVL135:
+ 1543              	.L54:
+ 424:Src/main.c    ****     {
+ 1544              		.loc 1 424 5 discriminator 1 view .LVU399
+ 1545 0106 062B     		cmp	r3, #6
+ 1546 0108 D5DC     		bgt	.L64
+ 426:Src/main.c    ****       send_report[i*2+3] = (uint8_t)(quatCount[i] >> 8);
+ 1547              		.loc 1 426 7 is_stmt 1 discriminator 3 view .LVU400
+ 426:Src/main.c    ****       send_report[i*2+3] = (uint8_t)(quatCount[i] >> 8);
+ 1548              		.loc 1 426 47 is_stmt 0 discriminator 3 view .LVU401
+ 1549 010a 144A     		ldr	r2, .L65+44
+ 1550 010c 32F91320 		ldrsh	r2, [r2, r3, lsl #1]
+ 426:Src/main.c    ****       send_report[i*2+3] = (uint8_t)(quatCount[i] >> 8);
+ 1551              		.loc 1 426 22 discriminator 3 view .LVU402
+ 1552 0110 591C     		adds	r1, r3, #1
+ 426:Src/main.c    ****       send_report[i*2+3] = (uint8_t)(quatCount[i] >> 8);
+ 1553              		.loc 1 426 26 discriminator 3 view .LVU403
+ 1554 0112 0C48     		ldr	r0, .L65+20
+ 1555 0114 00F81120 		strb	r2, [r0, r1, lsl #1]
+ 427:Src/main.c    **** 
+ 1556              		.loc 1 427 7 is_stmt 1 discriminator 3 view .LVU404
+ 427:Src/main.c    **** 
+ 1557              		.loc 1 427 20 is_stmt 0 discriminator 3 view .LVU405
+ 1558 0118 5B00     		lsls	r3, r3, #1
+ 1559              	.LVL136:
+ 427:Src/main.c    **** 
+ 1560              		.loc 1 427 22 discriminator 3 view .LVU406
+ 1561 011a 0333     		adds	r3, r3, #3
+ 427:Src/main.c    **** 
+ 1562              		.loc 1 427 28 discriminator 3 view .LVU407
+ 1563 011c C2F30722 		ubfx	r2, r2, #8, #8
+ 427:Src/main.c    **** 
+ 1564              		.loc 1 427 26 discriminator 3 view .LVU408
+ 1565 0120 C254     		strb	r2, [r0, r3]
+ 1566              	.LVL137:
+ 424:Src/main.c    ****     {
+ 1567              		.loc 1 424 28 discriminator 3 view .LVU409
+ 1568 0122 0B46     		mov	r3, r1
+ 1569 0124 EFE7     		b	.L54
+ 1570              	.LVL138:
+ 1571              	.L60:
+ 424:Src/main.c    ****     {
+ 1572              		.loc 1 424 28 discriminator 3 view .LVU410
+ 1573              	.LBE8:
+ 432:Src/main.c    ****     /* USER CODE END WHILE */
+ 1574              		.loc 1 432 29 is_stmt 1 discriminator 1 view .LVU411
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 44
+
+
+ 432:Src/main.c    ****     /* USER CODE END WHILE */
+ 1575              		.loc 1 432 40 is_stmt 0 discriminator 1 view .LVU412
+ 1576 0126 094B     		ldr	r3, .L65+28
+ 1577 0128 0022     		movs	r2, #0
+ 1578 012a 1A70     		strb	r2, [r3]
+ 1579 012c CCE7     		b	.L56
+ 1580              	.L66:
+ 1581 012e 00BF     		.align	2
+ 1582              	.L65:
+ 1583 0130 00000000 		.word	.LANCHOR7
+ 1584 0134 00000000 		.word	.LANCHOR8
+ 1585 0138 00000000 		.word	.LANCHOR0
+ 1586 013c 00000000 		.word	UserRxBufferFS
+ 1587 0140 00000000 		.word	.LC6
+ 1588 0144 00000000 		.word	.LANCHOR9
+ 1589 0148 00000000 		.word	hUsbDeviceFS
+ 1590 014c 00000000 		.word	.LANCHOR12
+ 1591 0150 00000000 		.word	VCPInitialized
+ 1592 0154 00000000 		.word	.LANCHOR10
+ 1593 0158 00000000 		.word	.LANCHOR11
+ 1594 015c 00000000 		.word	quatCount
+ 1595              		.cfi_endproc
+ 1596              	.LFE76:
+ 1598              		.section	.text.Error_Handler,"ax",%progbits
+ 1599              		.align	1
+ 1600              		.global	Error_Handler
+ 1601              		.syntax unified
+ 1602              		.thumb
+ 1603              		.thumb_func
+ 1604              		.fpu softvfp
+ 1606              	Error_Handler:
+ 1607              	.LFB79:
+ 579:Src/main.c    **** 
+ 580:Src/main.c    **** /* USER CODE BEGIN 4 */
+ 581:Src/main.c    **** 
+ 582:Src/main.c    **** /* USER CODE END 4 */
+ 583:Src/main.c    **** 
+ 584:Src/main.c    **** /**
+ 585:Src/main.c    ****   * @brief  This function is executed in case of error occurrence.
+ 586:Src/main.c    ****   * @retval None
+ 587:Src/main.c    ****   */
+ 588:Src/main.c    **** void Error_Handler(void)
+ 589:Src/main.c    **** {
+ 1608              		.loc 1 589 1 is_stmt 1 view -0
+ 1609              		.cfi_startproc
+ 1610              		@ args = 0, pretend = 0, frame = 0
+ 1611              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1612              		@ link register save eliminated.
+ 590:Src/main.c    ****   /* USER CODE BEGIN Error_Handler_Debug */
+ 591:Src/main.c    ****   /* User can add his own implementation to report the HAL error return state */
+ 592:Src/main.c    **** 
+ 593:Src/main.c    ****   /* USER CODE END Error_Handler_Debug */
+ 594:Src/main.c    **** }
+ 1613              		.loc 1 594 1 view .LVU414
+ 1614 0000 7047     		bx	lr
+ 1615              		.cfi_endproc
+ 1616              	.LFE79:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 45
+
+
+ 1618              		.global	HT_OK
+ 1619              		.global	OLED_OK
+ 1620              		.global	mag
+ 1621              		.global	accel
+ 1622              		.global	gyro
+ 1623              		.global	sys
+ 1624              		.comm	error,1,1
+ 1625              		.comm	test_result,1,1
+ 1626              		.global	cnt
+ 1627              		.comm	bufArd,30,4
+ 1628              		.comm	Code,2,2
+ 1629              		.global	optimer
+ 1630              		.global	elapsedTime
+ 1631              		.global	now
+ 1632              		.global	lastRotationUpdate
+ 1633              		.comm	szero,12,4
+ 1634              		.comm	vzero,12,4
+ 1635              		.comm	EulerF2,12,4
+ 1636              		.comm	EulerF,12,4
+ 1637              		.comm	AbsOld,12,4
+ 1638              		.comm	Abs,12,4
+ 1639              		.comm	nevalgo,12,4
+ 1640              		.comm	Position,12,4
+ 1641              		.comm	prevAccel,12,4
+ 1642              		.comm	prevPosition,12,4
+ 1643              		.comm	newVelocity,12,4
+ 1644              		.comm	prevVelocity,12,4
+ 1645              		.global	cosy_cosp
+ 1646              		.global	siny_cosp
+ 1647              		.global	sinp
+ 1648              		.global	cosr_cosp
+ 1649              		.global	sinr_cosp
+ 1650              		.comm	test,4,4
+ 1651              		.comm	Gzbyte,2,2
+ 1652              		.comm	Gybyte,2,2
+ 1653              		.comm	Gxbyte,2,2
+ 1654              		.comm	QuatZbyte,2,2
+ 1655              		.comm	QuatYbyte,2,2
+ 1656              		.comm	QuatXbyte,2,2
+ 1657              		.comm	QuatWbyte,2,2
+ 1658              		.comm	quatCount,14,4
+ 1659              		.global	Gyro
+ 1660              		.global	Quat
+ 1661              		.comm	Euler,12,4
+ 1662              		.comm	LINACCOLD,12,4
+ 1663              		.comm	LINACC,12,4
+ 1664              		.global	PI
+ 1665              		.global	edid_ver
+ 1666              		.global	target_edid
+ 1667              		.global	new_stage
+ 1668              		.global	target_mode
+ 1669              		.comm	dataToSend,16,4
+ 1670              		.global	spiReadPointerRx
+ 1671              		.global	spiWritePointerRx
+ 1672              		.global	spiCountRx
+ 1673              		.comm	spi_rx,160,4
+ 1674              		.global	spiReadPointerTx
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 46
+
+
+ 1675              		.global	spiWritePointerTx
+ 1676              		.global	spiCountTx
+ 1677              		.comm	spi_tx,160,4
+ 1678              		.global	uartBusy
+ 1679              		.global	txLed
+ 1680              		.global	rxLed
+ 1681              		.comm	hUsbDeviceFS,708,4
+ 1682              		.comm	QuatW,4,4
+ 1683              		.comm	QuatZ,4,4
+ 1684              		.comm	QuatY,4,4
+ 1685              		.comm	QuatX,4,4
+ 1686              		.comm	f_report,16,4
+ 1687              		.global	send_report
+ 1688              		.global	packet_num
+ 1689              		.global	video_detected
+ 1690              		.global	hid_ver
+ 1691              		.global	edid
+ 1692              		.global	mode
+ 1693              		.global	stage
+ 1694              		.global	old_status
+ 1695              		.global	lane_status
+ 1696              		.global	status
+ 1697              		.section	.bss.Gyro,"aw",%nobits
+ 1698              		.align	2
+ 1701              	Gyro:
+ 1702 0000 00000000 		.space	12
+ 1702      00000000 
+ 1702      00000000 
+ 1703              		.section	.bss.HT_OK,"aw",%nobits
+ 1704              		.align	2
+ 1705              		.set	.LANCHOR8,. + 0
+ 1708              	HT_OK:
+ 1709 0000 00000000 		.space	4
+ 1710              		.section	.bss.OLED_OK,"aw",%nobits
+ 1711              		.set	.LANCHOR7,. + 0
+ 1714              	OLED_OK:
+ 1715 0000 00       		.space	1
+ 1716              		.section	.bss.accel,"aw",%nobits
+ 1717              		.set	.LANCHOR4,. + 0
+ 1720              	accel:
+ 1721 0000 00       		.space	1
+ 1722              		.section	.bss.cnt,"aw",%nobits
+ 1725              	cnt:
+ 1726 0000 00       		.space	1
+ 1727              		.section	.bss.cosr_cosp,"aw",%nobits
+ 1728              		.align	2
+ 1731              	cosr_cosp:
+ 1732 0000 00000000 		.space	4
+ 1733              		.section	.bss.cosy_cosp,"aw",%nobits
+ 1734              		.align	2
+ 1737              	cosy_cosp:
+ 1738 0000 00000000 		.space	4
+ 1739              		.section	.bss.edid,"aw",%nobits
+ 1742              	edid:
+ 1743 0000 00       		.space	1
+ 1744              		.section	.bss.edid_ver,"aw",%nobits
+ 1747              	edid_ver:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 47
+
+
+ 1748 0000 00       		.space	1
+ 1749              		.section	.bss.elapsedTime,"aw",%nobits
+ 1750              		.align	2
+ 1751              		.set	.LANCHOR2,. + 0
+ 1754              	elapsedTime:
+ 1755 0000 00000000 		.space	4
+ 1756              		.section	.bss.gyro,"aw",%nobits
+ 1757              		.set	.LANCHOR5,. + 0
+ 1760              	gyro:
+ 1761 0000 00       		.space	1
+ 1762              		.section	.bss.lane_status,"aw",%nobits
+ 1765              	lane_status:
+ 1766 0000 00       		.space	1
+ 1767              		.section	.bss.lastRotationUpdate,"aw",%nobits
+ 1768              		.align	3
+ 1769              		.set	.LANCHOR1,. + 0
+ 1772              	lastRotationUpdate:
+ 1773 0000 00000000 		.space	8
+ 1773      00000000 
+ 1774              		.section	.bss.mag,"aw",%nobits
+ 1775              		.set	.LANCHOR3,. + 0
+ 1778              	mag:
+ 1779 0000 00       		.space	1
+ 1780              		.section	.bss.mode,"aw",%nobits
+ 1783              	mode:
+ 1784 0000 00       		.space	1
+ 1785              		.section	.bss.now,"aw",%nobits
+ 1786              		.align	3
+ 1787              		.set	.LANCHOR0,. + 0
+ 1790              	now:
+ 1791 0000 00000000 		.space	8
+ 1791      00000000 
+ 1792              		.section	.bss.old_status,"aw",%nobits
+ 1795              	old_status:
+ 1796 0000 00       		.space	1
+ 1797              		.section	.bss.optimer,"aw",%nobits
+ 1798              		.align	2
+ 1801              	optimer:
+ 1802 0000 00000000 		.space	4
+ 1803              		.section	.bss.packet_num,"aw",%nobits
+ 1804              		.set	.LANCHOR12,. + 0
+ 1807              	packet_num:
+ 1808 0000 00       		.space	1
+ 1809              		.section	.bss.rxLed,"aw",%nobits
+ 1812              	rxLed:
+ 1813 0000 00       		.space	1
+ 1814              		.section	.bss.send_report,"aw",%nobits
+ 1815              		.align	2
+ 1816              		.set	.LANCHOR9,. + 0
+ 1819              	send_report:
+ 1820 0000 00000000 		.space	16
+ 1820      00000000 
+ 1820      00000000 
+ 1820      00000000 
+ 1821              		.section	.bss.sinp,"aw",%nobits
+ 1822              		.align	2
+ 1825              	sinp:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 48
+
+
+ 1826 0000 00000000 		.space	4
+ 1827              		.section	.bss.sinr_cosp,"aw",%nobits
+ 1828              		.align	2
+ 1831              	sinr_cosp:
+ 1832 0000 00000000 		.space	4
+ 1833              		.section	.bss.siny_cosp,"aw",%nobits
+ 1834              		.align	2
+ 1837              	siny_cosp:
+ 1838 0000 00000000 		.space	4
+ 1839              		.section	.bss.spiCountRx,"aw",%nobits
+ 1842              	spiCountRx:
+ 1843 0000 00       		.space	1
+ 1844              		.section	.bss.spiCountTx,"aw",%nobits
+ 1847              	spiCountTx:
+ 1848 0000 00       		.space	1
+ 1849              		.section	.bss.spiReadPointerRx,"aw",%nobits
+ 1852              	spiReadPointerRx:
+ 1853 0000 00       		.space	1
+ 1854              		.section	.bss.spiReadPointerTx,"aw",%nobits
+ 1857              	spiReadPointerTx:
+ 1858 0000 00       		.space	1
+ 1859              		.section	.bss.spiWritePointerRx,"aw",%nobits
+ 1862              	spiWritePointerRx:
+ 1863 0000 00       		.space	1
+ 1864              		.section	.bss.spiWritePointerTx,"aw",%nobits
+ 1867              	spiWritePointerTx:
+ 1868 0000 00       		.space	1
+ 1869              		.section	.bss.stage,"aw",%nobits
+ 1872              	stage:
+ 1873 0000 00       		.space	1
+ 1874              		.section	.bss.status,"aw",%nobits
+ 1875              		.set	.LANCHOR11,. + 0
+ 1878              	status:
+ 1879 0000 00       		.space	1
+ 1880              		.section	.bss.sys,"aw",%nobits
+ 1881              		.set	.LANCHOR6,. + 0
+ 1884              	sys:
+ 1885 0000 00       		.space	1
+ 1886              		.section	.bss.target_edid,"aw",%nobits
+ 1889              	target_edid:
+ 1890 0000 00       		.space	1
+ 1891              		.section	.bss.target_mode,"aw",%nobits
+ 1894              	target_mode:
+ 1895 0000 00       		.space	1
+ 1896              		.section	.bss.txLed,"aw",%nobits
+ 1899              	txLed:
+ 1900 0000 00       		.space	1
+ 1901              		.section	.bss.uartBusy,"aw",%nobits
+ 1904              	uartBusy:
+ 1905 0000 00       		.space	1
+ 1906              		.section	.bss.video_detected,"aw",%nobits
+ 1909              	video_detected:
+ 1910 0000 00       		.space	1
+ 1911              		.section	.data.PI,"aw"
+ 1912              		.align	2
+ 1915              	PI:
+ 1916 0000 DB0F4940 		.word	1078530011
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 49
+
+
+ 1917              		.section	.data.Quat,"aw"
+ 1918              		.align	2
+ 1921              	Quat:
+ 1922 0000 0000803F 		.word	1065353216
+ 1923 0004 00000000 		.word	0
+ 1924 0008 00000000 		.word	0
+ 1925 000c 00000000 		.word	0
+ 1926              		.section	.data.hid_ver,"aw"
+ 1927              		.set	.LANCHOR10,. + 0
+ 1930              	hid_ver:
+ 1931 0000 03       		.byte	3
+ 1932              		.section	.data.new_stage,"aw"
+ 1935              	new_stage:
+ 1936 0000 02       		.byte	2
+ 1937              		.section	.rodata.CalibrateHeadTracker.str1.4,"aMS",%progbits,1
+ 1938              		.align	2
+ 1939              	.LC0:
+ 1940 0000 43414C49 		.ascii	"CALIBRATION: Sys=\000"
+ 1940      42524154 
+ 1940      494F4E3A 
+ 1940      20537973 
+ 1940      3D00
+ 1941 0012 0000     		.space	2
+ 1942              	.LC1:
+ 1943 0014 30782558 		.ascii	"0x%X\000"
+ 1943      00
+ 1944 0019 000000   		.space	3
+ 1945              	.LC2:
+ 1946 001c 20477972 		.ascii	" Gyro=\000"
+ 1946      6F3D00
+ 1947 0023 00       		.space	1
+ 1948              	.LC3:
+ 1949 0024 20416363 		.ascii	" Accel=\000"
+ 1949      656C3D00 
+ 1950              	.LC4:
+ 1951 002c 204D6167 		.ascii	" Mag=\000"
+ 1951      3D00
+ 1952 0032 0000     		.space	2
+ 1953              	.LC5:
+ 1954 0034 0D0A00   		.ascii	"\015\012\000"
+ 1955              		.section	.rodata.main.str1.4,"aMS",%progbits,1
+ 1956              		.align	2
+ 1957              	.LC6:
+ 1958 0000 426E6F20 		.ascii	"Bno is fail....\000"
+ 1958      69732066 
+ 1958      61696C2E 
+ 1958      2E2E2E00 
+ 1959              		.text
+ 1960              	.Letext0:
+ 1961              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1962              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 1963              		.file 4 "Drivers/CMSIS/Include/core_cm3.h"
+ 1964              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 1965              		.file 6 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 1966              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h"
+ 1967              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h"
+ 1968              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 50
+
+
+ 1969              		.file 10 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 1970              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 1971              		.file 12 "Inc/main.h"
+ 1972              		.file 13 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1973              		.file 14 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1974              		.file 15 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-non
+ 1975              		.file 16 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1976              		.file 17 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1977              		.file 18 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 1978              		.file 19 "Inc/usbd_desc.h"
+ 1979              		.file 20 "Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc/usbd_customhid.h"
+ 1980              		.file 21 "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h"
+ 1981              		.file 22 "Inc/usbd_cdc_if.h"
+ 1982              		.file 23 "Inc/usbd_custom_hid_if.h"
+ 1983              		.file 24 "Middlewares/ST/STM32_USB_Device_Library/Class/Composite_CDC_CHID/Inc/usbd_cdc_hid.h"
+ 1984              		.file 25 "Inc/hardware.h"
+ 1985              		.file 26 "Inc/SerialTrans.h"
+ 1986              		.file 27 "Drivers/Tc358870/Inc/Toshiba_TC358870_china.h"
+ 1987              		.file 28 "Drivers/Ssd1306/Inc/fonts.h"
+ 1988              		.file 29 "Drivers/Ssd1306/Inc/ssd1306.h"
+ 1989              		.file 30 "Inc/usb_device.h"
+ 1990              		.file 31 "Drivers/SoftI2C/Inc/i2cSoft.h"
+ 1991              		.file 32 "Drivers/Bno055/Inc/bno055.h"
+ 1992              		.file 33 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 1993              		.file 34 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 51
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:16     .text.MX_GPIO_Init:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:23     .text.MX_GPIO_Init:0000000000000000 MX_GPIO_Init
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:278    .text.MX_GPIO_Init:0000000000000140 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:286    .text.floatToByteArray:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:293    .text.floatToByteArray:0000000000000000 floatToByteArray
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:347    .text.GetMicros:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:354    .text.GetMicros:0000000000000000 GetMicros
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:430    .text.GetMicros:000000000000005c $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:437    .text.processEuler:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:444    .text.processEuler:0000000000000000 processEuler
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:485    .text.processEuler:0000000000000024 $d
+                            *COM*:000000000000000c Euler
+                            *COM*:000000000000000c EulerF
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:496    .text.processcalcAbs:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:503    .text.processcalcAbs:0000000000000000 processcalcAbs
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:860    .text.processcalcAbs:0000000000000204 $d
+                            *COM*:000000000000000c LINACC
+                            *COM*:000000000000000c LINACCOLD
+                            *COM*:000000000000000c prevVelocity
+                            *COM*:000000000000000c newVelocity
+                            *COM*:000000000000000c nevalgo
+                            *COM*:000000000000000c Position
+                            *COM*:000000000000000c Abs
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:879    .text.processQuat:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:886    .text.processQuat:0000000000000000 processQuat
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:907    .text.processQuat:000000000000000c $d
+                            *COM*:000000000000000e quatCount
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:912    .text.ProcessHeadTracking:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:919    .text.ProcessHeadTracking:0000000000000000 ProcessHeadTracking
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:945    .text.print:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:952    .text.print:0000000000000000 print
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:982    .text.CalibrateHeadTracker:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:989    .text.CalibrateHeadTracker:0000000000000000 CalibrateHeadTracker
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1165   .text.CalibrateHeadTracker:00000000000000f0 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1180   .text.SystemClock_Config:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1187   .text.SystemClock_Config:0000000000000000 SystemClock_Config
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1295   .text.main:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1302   .text.main:0000000000000000 main
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1583   .text.main:0000000000000130 $d
+                            *COM*:00000000000002c4 hUsbDeviceFS
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1599   .text.Error_Handler:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1606   .text.Error_Handler:0000000000000000 Error_Handler
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1708   .bss.HT_OK:0000000000000000 HT_OK
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1714   .bss.OLED_OK:0000000000000000 OLED_OK
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1778   .bss.mag:0000000000000000 mag
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1720   .bss.accel:0000000000000000 accel
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1760   .bss.gyro:0000000000000000 gyro
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1884   .bss.sys:0000000000000000 sys
+                            *COM*:0000000000000001 error
+                            *COM*:0000000000000001 test_result
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1725   .bss.cnt:0000000000000000 cnt
+                            *COM*:000000000000001e bufArd
+                            *COM*:0000000000000002 Code
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1801   .bss.optimer:0000000000000000 optimer
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1754   .bss.elapsedTime:0000000000000000 elapsedTime
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 52
+
+
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1790   .bss.now:0000000000000000 now
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1772   .bss.lastRotationUpdate:0000000000000000 lastRotationUpdate
+                            *COM*:000000000000000c szero
+                            *COM*:000000000000000c vzero
+                            *COM*:000000000000000c EulerF2
+                            *COM*:000000000000000c AbsOld
+                            *COM*:000000000000000c prevAccel
+                            *COM*:000000000000000c prevPosition
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1737   .bss.cosy_cosp:0000000000000000 cosy_cosp
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1837   .bss.siny_cosp:0000000000000000 siny_cosp
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1825   .bss.sinp:0000000000000000 sinp
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1731   .bss.cosr_cosp:0000000000000000 cosr_cosp
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1831   .bss.sinr_cosp:0000000000000000 sinr_cosp
+                            *COM*:0000000000000004 test
+                            *COM*:0000000000000002 Gzbyte
+                            *COM*:0000000000000002 Gybyte
+                            *COM*:0000000000000002 Gxbyte
+                            *COM*:0000000000000002 QuatZbyte
+                            *COM*:0000000000000002 QuatYbyte
+                            *COM*:0000000000000002 QuatXbyte
+                            *COM*:0000000000000002 QuatWbyte
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1701   .bss.Gyro:0000000000000000 Gyro
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1921   .data.Quat:0000000000000000 Quat
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1915   .data.PI:0000000000000000 PI
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1747   .bss.edid_ver:0000000000000000 edid_ver
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1889   .bss.target_edid:0000000000000000 target_edid
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1935   .data.new_stage:0000000000000000 new_stage
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1894   .bss.target_mode:0000000000000000 target_mode
+                            *COM*:0000000000000010 dataToSend
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1852   .bss.spiReadPointerRx:0000000000000000 spiReadPointerRx
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1862   .bss.spiWritePointerRx:0000000000000000 spiWritePointerRx
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1842   .bss.spiCountRx:0000000000000000 spiCountRx
+                            *COM*:00000000000000a0 spi_rx
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1857   .bss.spiReadPointerTx:0000000000000000 spiReadPointerTx
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1867   .bss.spiWritePointerTx:0000000000000000 spiWritePointerTx
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1847   .bss.spiCountTx:0000000000000000 spiCountTx
+                            *COM*:00000000000000a0 spi_tx
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1904   .bss.uartBusy:0000000000000000 uartBusy
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1899   .bss.txLed:0000000000000000 txLed
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1812   .bss.rxLed:0000000000000000 rxLed
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1819   .bss.send_report:0000000000000000 send_report
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1807   .bss.packet_num:0000000000000000 packet_num
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1909   .bss.video_detected:0000000000000000 video_detected
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1930   .data.hid_ver:0000000000000000 hid_ver
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1742   .bss.edid:0000000000000000 edid
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1783   .bss.mode:0000000000000000 mode
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1872   .bss.stage:0000000000000000 stage
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1795   .bss.old_status:0000000000000000 old_status
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1765   .bss.lane_status:0000000000000000 lane_status
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1878   .bss.status:0000000000000000 status
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1698   .bss.Gyro:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1704   .bss.HT_OK:0000000000000000 $d
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 53
+
+
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1715   .bss.OLED_OK:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1721   .bss.accel:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1726   .bss.cnt:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1728   .bss.cosr_cosp:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1734   .bss.cosy_cosp:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1743   .bss.edid:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1748   .bss.edid_ver:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1750   .bss.elapsedTime:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1761   .bss.gyro:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1766   .bss.lane_status:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1768   .bss.lastRotationUpdate:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1779   .bss.mag:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1784   .bss.mode:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1786   .bss.now:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1796   .bss.old_status:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1798   .bss.optimer:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1808   .bss.packet_num:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1813   .bss.rxLed:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1815   .bss.send_report:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1822   .bss.sinp:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1828   .bss.sinr_cosp:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1834   .bss.siny_cosp:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1843   .bss.spiCountRx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1848   .bss.spiCountTx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1853   .bss.spiReadPointerRx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1858   .bss.spiReadPointerTx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1863   .bss.spiWritePointerRx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1868   .bss.spiWritePointerTx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1873   .bss.stage:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1879   .bss.status:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1885   .bss.sys:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1890   .bss.target_edid:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1895   .bss.target_mode:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1900   .bss.txLed:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1905   .bss.uartBusy:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1910   .bss.video_detected:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1912   .data.PI:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1918   .data.Quat:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1938   .rodata.CalibrateHeadTracker.str1.4:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s:1956   .rodata.main.str1.4:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+HAL_GPIO_Init
+__aeabi_uldivmod
+HAL_GetTick
+__aeabi_fsub
+getEuler
+__aeabi_ul2f
+__aeabi_fdiv
+__aeabi_fmul
+__aeabi_fadd
+getLinear
+getQuat
+strlen
+CDC_Transmit_FS
+getCalibration
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccyH2IQd.s 			page 54
+
+
+HAL_GPIO_TogglePin
+sprintf
+HAL_Delay
+SerialPrint
+HAL_RCC_OscConfig
+HAL_RCC_ClockConfig
+HAL_RCCEx_PeriphCLKConfig
+HAL_Init
+MX_USB_DEVICE_Init
+MainPowerOn
+i2cSoft_Init
+i2cSoft_DeviceExists
+ssd1306_Init
+begin
+ssd1306_Fill
+ssd1306_UpdateScreen
+PrintScreen
+Cmd_Interface
+USBD_CUSTOM_HID_SendReport
+InitHardware
+StatusControl
+Buttons
+UserRxBufferFS
+VCPInitialized

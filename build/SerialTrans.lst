@@ -1,0 +1,1577 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"SerialTrans.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.SerialPrint,"ax",%progbits
+  16              		.align	1
+  17              		.global	SerialPrint
+  18              		.arch armv7-m
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	SerialPrint:
+  25              	.LVL0:
+  26              	.LFB68:
+  27              		.file 1 "Src/SerialTrans.c"
+   1:Src/SerialTrans.c **** #include "SerialTrans.h"
+   2:Src/SerialTrans.c **** #include "usb_device.h"
+   3:Src/SerialTrans.c **** //#include "usbd_cdc_hid.h"
+   4:Src/SerialTrans.c **** #include <stdint.h>
+   5:Src/SerialTrans.c **** #include "hardware.h"
+   6:Src/SerialTrans.c **** #include "i2cSoft.h"
+   7:Src/SerialTrans.c **** #include "Handler.h"
+   8:Src/SerialTrans.c **** #include "ssd1306.h"
+   9:Src/SerialTrans.c **** #include <stdbool.h>
+  10:Src/SerialTrans.c **** #include "usbd_cdc_if.h"
+  11:Src/SerialTrans.c **** 
+  12:Src/SerialTrans.c **** 
+  13:Src/SerialTrans.c **** /*CDC buffers declaration*/
+  14:Src/SerialTrans.c **** extern uint8_t status;
+  15:Src/SerialTrans.c **** 
+  16:Src/SerialTrans.c **** char uart_tx[BUF_SIZE];
+  17:Src/SerialTrans.c **** uint8_t countTx=0;
+  18:Src/SerialTrans.c **** uint8_t writePointerTx=0, readPointerTx=0;
+  19:Src/SerialTrans.c **** 
+  20:Src/SerialTrans.c **** char uart_rx[BUF_SIZE];
+  21:Src/SerialTrans.c **** uint8_t countRx=0;
+  22:Src/SerialTrans.c **** uint8_t writePointerRx=0, readPointerRx=0;
+  23:Src/SerialTrans.c **** 
+  24:Src/SerialTrans.c **** char tmp[BUF_SIZE];
+  25:Src/SerialTrans.c **** 
+  26:Src/SerialTrans.c **** 
+  27:Src/SerialTrans.c **** 
+  28:Src/SerialTrans.c **** char cmd[APP_RX_DATA_SIZE + 1];
+  29:Src/SerialTrans.c **** /*
+  30:Src/SerialTrans.c **** void cdcTransmit(uint8_t size){
+  31:Src/SerialTrans.c **** 	blinkRX();
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 2
+
+
+  32:Src/SerialTrans.c **** 	for(int i=0;i<size;i++){
+  33:Src/SerialTrans.c **** 		tmp[i]=uart_rx[readPointerRx];
+  34:Src/SerialTrans.c **** 		readPointerRx=(readPointerRx+1)%BUF_SIZE;
+  35:Src/SerialTrans.c **** 		if(i==49){
+  36:Src/SerialTrans.c **** 			CDC_Transmit_FS((uint8_t*)tmp, 50);
+  37:Src/SerialTrans.c **** 			countRx-=50;
+  38:Src/SerialTrans.c **** 			size-=50;
+  39:Src/SerialTrans.c **** 			i=-1;
+  40:Src/SerialTrans.c **** 		}
+  41:Src/SerialTrans.c **** 	}
+  42:Src/SerialTrans.c **** 	if(size!=0){
+  43:Src/SerialTrans.c **** 		CDC_Transmit_FS((uint8_t*)tmp, size);
+  44:Src/SerialTrans.c **** 		countRx-=size;
+  45:Src/SerialTrans.c **** 	}
+  46:Src/SerialTrans.c **** }
+  47:Src/SerialTrans.c **** */
+  48:Src/SerialTrans.c **** /*
+  49:Src/SerialTrans.c **** void VCP_write(uint8_t *buf, uint16_t size)
+  50:Src/SerialTrans.c **** {
+  51:Src/SerialTrans.c ****   CDC_Transmit_FS((uint8_t*)buf, size);
+  52:Src/SerialTrans.c **** 
+  53:Src/SerialTrans.c **** 
+  54:Src/SerialTrans.c **** }
+  55:Src/SerialTrans.c **** */
+  56:Src/SerialTrans.c **** /*
+  57:Src/SerialTrans.c **** void uartTransmit(uint8_t size){
+  58:Src/SerialTrans.c **** 
+  59:Src/SerialTrans.c **** 	for(int i=0;i<size;i++){
+  60:Src/SerialTrans.c **** 		tmp[i]=uart_tx[readPointerTx];
+  61:Src/SerialTrans.c **** 		readPointerTx=(readPointerTx+1)%BUF_SIZE;
+  62:Src/SerialTrans.c **** 		if(i==31){
+  63:Src/SerialTrans.c **** 
+  64:Src/SerialTrans.c **** 			countTx-=32;
+  65:Src/SerialTrans.c **** 			size-=32;
+  66:Src/SerialTrans.c **** 			i=-1;
+  67:Src/SerialTrans.c **** 		}
+  68:Src/SerialTrans.c **** 	}
+  69:Src/SerialTrans.c **** 	if(size!=0){
+  70:Src/SerialTrans.c **** 		countTx-=size;
+  71:Src/SerialTrans.c **** 
+  72:Src/SerialTrans.c **** 	}
+  73:Src/SerialTrans.c **** }
+  74:Src/SerialTrans.c **** */
+  75:Src/SerialTrans.c **** void SerialPrint(char* str)
+  76:Src/SerialTrans.c **** {
+  28              		.loc 1 76 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 76 1 is_stmt 0 view .LVU1
+  33 0000 08B5     		push	{r3, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 3, -8
+  37              		.cfi_offset 14, -4
+  77:Src/SerialTrans.c ****   if(VCPInitialized)
+  38              		.loc 1 77 3 is_stmt 1 view .LVU2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 3
+
+
+  39              		.loc 1 77 6 is_stmt 0 view .LVU3
+  40 0002 064B     		ldr	r3, .L6
+  41 0004 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  42              		.loc 1 77 5 view .LVU4
+  43 0006 3BB1     		cbz	r3, .L1
+  44              	.LBB2:
+  78:Src/SerialTrans.c ****   {
+  79:Src/SerialTrans.c ****         uint8_t len = 0;
+  45              		.loc 1 79 17 view .LVU5
+  46 0008 0021     		movs	r1, #0
+  47              	.L4:
+  48              	.LVL1:
+  80:Src/SerialTrans.c ****     while(1)
+  49              		.loc 1 80 5 is_stmt 1 view .LVU6
+  81:Src/SerialTrans.c ****     {
+  82:Src/SerialTrans.c ****         if (*(str + len)!=0 )
+  50              		.loc 1 82 9 view .LVU7
+  51              		.loc 1 82 13 is_stmt 0 view .LVU8
+  52 000a 435C     		ldrb	r3, [r0, r1]	@ zero_extendqisi2
+  53              		.loc 1 82 12 view .LVU9
+  54 000c 13B1     		cbz	r3, .L3
+  83:Src/SerialTrans.c ****         {
+  84:Src/SerialTrans.c ****             len++;
+  55              		.loc 1 84 13 is_stmt 1 view .LVU10
+  56              		.loc 1 84 16 is_stmt 0 view .LVU11
+  57 000e 0131     		adds	r1, r1, #1
+  58              	.LVL2:
+  59              		.loc 1 84 16 view .LVU12
+  60 0010 C9B2     		uxtb	r1, r1
+  61              	.LVL3:
+  82:Src/SerialTrans.c ****         {
+  62              		.loc 1 82 12 view .LVU13
+  63 0012 FAE7     		b	.L4
+  64              	.L3:
+  85:Src/SerialTrans.c ****         }
+  86:Src/SerialTrans.c ****         else
+  87:Src/SerialTrans.c ****         {
+  88:Src/SerialTrans.c ****             break;
+  89:Src/SerialTrans.c ****         }
+  90:Src/SerialTrans.c ****        
+  91:Src/SerialTrans.c ****     }
+  92:Src/SerialTrans.c ****     VCP_write((uint8_t *) str, len);
+  65              		.loc 1 92 5 is_stmt 1 view .LVU14
+  66 0014 FFF7FEFF 		bl	VCP_write
+  67              	.LVL4:
+  68              	.L1:
+  69              		.loc 1 92 5 is_stmt 0 view .LVU15
+  70              	.LBE2:
+  93:Src/SerialTrans.c ****   }
+  94:Src/SerialTrans.c **** 
+  95:Src/SerialTrans.c **** 
+  96:Src/SerialTrans.c **** }
+  71              		.loc 1 96 1 view .LVU16
+  72 0018 08BD     		pop	{r3, pc}
+  73              	.L7:
+  74 001a 00BF     		.align	2
+  75              	.L6:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 4
+
+
+  76 001c 00000000 		.word	VCPInitialized
+  77              		.cfi_endproc
+  78              	.LFE68:
+  80              		.section	.text.Display_software_version,"ax",%progbits
+  81              		.align	1
+  82              		.syntax unified
+  83              		.thumb
+  84              		.thumb_func
+  85              		.fpu softvfp
+  87              	Display_software_version:
+  88              	.LFB70:
+  97:Src/SerialTrans.c **** static void Display_firmware_details(void)
+  98:Src/SerialTrans.c **** {
+  99:Src/SerialTrans.c **** 	SerialPrint("Firmware Variant: HDK_OLED");
+ 100:Src/SerialTrans.c ****   SerialPrint("\r\n");
+ 101:Src/SerialTrans.c **** 	SerialPrint("Revision: ");
+ 102:Src/SerialTrans.c **** 	SerialPrint("DEV 0.0.0.1");
+ 103:Src/SerialTrans.c ****   SerialPrint("\r\n");
+ 104:Src/SerialTrans.c **** 	SerialPrint("Build info: ");
+ 105:Src/SerialTrans.c **** 	SerialPrint("Special Config Defines:  [none]");
+ 106:Src/SerialTrans.c **** 
+ 107:Src/SerialTrans.c **** }
+ 108:Src/SerialTrans.c **** 
+ 109:Src/SerialTrans.c **** 
+ 110:Src/SerialTrans.c **** static void Display_software_version(void)
+ 111:Src/SerialTrans.c **** {
+  89              		.loc 1 111 1 is_stmt 1 view -0
+  90              		.cfi_startproc
+  91              		@ args = 0, pretend = 0, frame = 24
+  92              		@ frame_needed = 0, uses_anonymous_args = 0
+  93 0000 00B5     		push	{lr}
+  94              	.LCFI1:
+  95              		.cfi_def_cfa_offset 4
+  96              		.cfi_offset 14, -4
+  97 0002 89B0     		sub	sp, sp, #36
+  98              	.LCFI2:
+  99              		.cfi_def_cfa_offset 40
+ 112:Src/SerialTrans.c **** 	char OutString[20];
+ 100              		.loc 1 112 2 view .LVU18
+ 113:Src/SerialTrans.c **** 
+ 114:Src/SerialTrans.c **** 	SerialPrint("Version ");
+ 101              		.loc 1 114 2 view .LVU19
+ 102 0004 0C48     		ldr	r0, .L10
+ 103 0006 FFF7FEFF 		bl	SerialPrint
+ 104              	.LVL5:
+ 115:Src/SerialTrans.c **** 	sprintf(OutString, "%d.%2.2d%s", 2, 00, " (DEV-IDE)");
+ 105              		.loc 1 115 2 view .LVU20
+ 106 000a 0C4B     		ldr	r3, .L10+4
+ 107 000c 0093     		str	r3, [sp]
+ 108 000e 0023     		movs	r3, #0
+ 109 0010 0222     		movs	r2, #2
+ 110 0012 0B49     		ldr	r1, .L10+8
+ 111 0014 03A8     		add	r0, sp, #12
+ 112 0016 FFF7FEFF 		bl	sprintf
+ 113              	.LVL6:
+ 116:Src/SerialTrans.c **** 	SerialPrint(OutString);
+ 114              		.loc 1 116 2 view .LVU21
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 5
+
+
+ 115 001a 03A8     		add	r0, sp, #12
+ 116 001c FFF7FEFF 		bl	SerialPrint
+ 117              	.LVL7:
+ 117:Src/SerialTrans.c **** 	SerialPrint("  ");
+ 118              		.loc 1 117 2 view .LVU22
+ 119 0020 0848     		ldr	r0, .L10+12
+ 120 0022 FFF7FEFF 		bl	SerialPrint
+ 121              	.LVL8:
+ 118:Src/SerialTrans.c **** 	SerialPrint(__DATE__);
+ 122              		.loc 1 118 2 view .LVU23
+ 123 0026 0848     		ldr	r0, .L10+16
+ 124 0028 FFF7FEFF 		bl	SerialPrint
+ 125              	.LVL9:
+ 119:Src/SerialTrans.c ****   SerialPrint("\r\n");
+ 126              		.loc 1 119 3 view .LVU24
+ 127 002c 0748     		ldr	r0, .L10+20
+ 128 002e FFF7FEFF 		bl	SerialPrint
+ 129              	.LVL10:
+ 120:Src/SerialTrans.c **** }
+ 130              		.loc 1 120 1 is_stmt 0 view .LVU25
+ 131 0032 09B0     		add	sp, sp, #36
+ 132              	.LCFI3:
+ 133              		.cfi_def_cfa_offset 4
+ 134              		@ sp needed
+ 135 0034 5DF804FB 		ldr	pc, [sp], #4
+ 136              	.L11:
+ 137              		.align	2
+ 138              	.L10:
+ 139 0038 00000000 		.word	.LC0
+ 140 003c 18000000 		.word	.LC2
+ 141 0040 0C000000 		.word	.LC1
+ 142 0044 24000000 		.word	.LC3
+ 143 0048 28000000 		.word	.LC4
+ 144 004c 34000000 		.word	.LC5
+ 145              		.cfi_endproc
+ 146              	.LFE70:
+ 148              		.section	.text.Display_firmware_details,"ax",%progbits
+ 149              		.align	1
+ 150              		.syntax unified
+ 151              		.thumb
+ 152              		.thumb_func
+ 153              		.fpu softvfp
+ 155              	Display_firmware_details:
+ 156              	.LFB69:
+  98:Src/SerialTrans.c **** 	SerialPrint("Firmware Variant: HDK_OLED");
+ 157              		.loc 1 98 1 is_stmt 1 view -0
+ 158              		.cfi_startproc
+ 159              		@ args = 0, pretend = 0, frame = 0
+ 160              		@ frame_needed = 0, uses_anonymous_args = 0
+ 161 0000 10B5     		push	{r4, lr}
+ 162              	.LCFI4:
+ 163              		.cfi_def_cfa_offset 8
+ 164              		.cfi_offset 4, -8
+ 165              		.cfi_offset 14, -4
+  99:Src/SerialTrans.c ****   SerialPrint("\r\n");
+ 166              		.loc 1 99 2 view .LVU27
+ 167 0002 0B48     		ldr	r0, .L14
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 6
+
+
+ 168 0004 FFF7FEFF 		bl	SerialPrint
+ 169              	.LVL11:
+ 100:Src/SerialTrans.c **** 	SerialPrint("Revision: ");
+ 170              		.loc 1 100 3 view .LVU28
+ 171 0008 0A4C     		ldr	r4, .L14+4
+ 172 000a 2046     		mov	r0, r4
+ 173 000c FFF7FEFF 		bl	SerialPrint
+ 174              	.LVL12:
+ 101:Src/SerialTrans.c **** 	SerialPrint("DEV 0.0.0.1");
+ 175              		.loc 1 101 2 view .LVU29
+ 176 0010 0948     		ldr	r0, .L14+8
+ 177 0012 FFF7FEFF 		bl	SerialPrint
+ 178              	.LVL13:
+ 102:Src/SerialTrans.c ****   SerialPrint("\r\n");
+ 179              		.loc 1 102 2 view .LVU30
+ 180 0016 0948     		ldr	r0, .L14+12
+ 181 0018 FFF7FEFF 		bl	SerialPrint
+ 182              	.LVL14:
+ 103:Src/SerialTrans.c **** 	SerialPrint("Build info: ");
+ 183              		.loc 1 103 3 view .LVU31
+ 184 001c 2046     		mov	r0, r4
+ 185 001e FFF7FEFF 		bl	SerialPrint
+ 186              	.LVL15:
+ 104:Src/SerialTrans.c **** 	SerialPrint("Special Config Defines:  [none]");
+ 187              		.loc 1 104 2 view .LVU32
+ 188 0022 0748     		ldr	r0, .L14+16
+ 189 0024 FFF7FEFF 		bl	SerialPrint
+ 190              	.LVL16:
+ 105:Src/SerialTrans.c **** 
+ 191              		.loc 1 105 2 view .LVU33
+ 192 0028 0648     		ldr	r0, .L14+20
+ 193 002a FFF7FEFF 		bl	SerialPrint
+ 194              	.LVL17:
+ 107:Src/SerialTrans.c **** 
+ 195              		.loc 1 107 1 is_stmt 0 view .LVU34
+ 196 002e 10BD     		pop	{r4, pc}
+ 197              	.L15:
+ 198              		.align	2
+ 199              	.L14:
+ 200 0030 00000000 		.word	.LC6
+ 201 0034 34000000 		.word	.LC5
+ 202 0038 1C000000 		.word	.LC7
+ 203 003c 28000000 		.word	.LC8
+ 204 0040 34000000 		.word	.LC9
+ 205 0044 44000000 		.word	.LC10
+ 206              		.cfi_endproc
+ 207              	.LFE69:
+ 209              		.section	.text.ProcessInfoCommands,"ax",%progbits
+ 210              		.align	1
+ 211              		.global	ProcessInfoCommands
+ 212              		.syntax unified
+ 213              		.thumb
+ 214              		.thumb_func
+ 215              		.fpu softvfp
+ 217              	ProcessInfoCommands:
+ 218              	.LFB71:
+ 121:Src/SerialTrans.c **** void ProcessInfoCommands(void)
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 7
+
+
+ 122:Src/SerialTrans.c **** 
+ 123:Src/SerialTrans.c **** // process commands that start with '?'
+ 124:Src/SerialTrans.c **** 
+ 125:Src/SerialTrans.c **** {
+ 219              		.loc 1 125 1 is_stmt 1 view -0
+ 220              		.cfi_startproc
+ 221              		@ args = 0, pretend = 0, frame = 16
+ 222              		@ frame_needed = 0, uses_anonymous_args = 0
+ 223 0000 00B5     		push	{lr}
+ 224              	.LCFI5:
+ 225              		.cfi_def_cfa_offset 4
+ 226              		.cfi_offset 14, -4
+ 227 0002 85B0     		sub	sp, sp, #20
+ 228              	.LCFI6:
+ 229              		.cfi_def_cfa_offset 24
+ 126:Src/SerialTrans.c **** 	char OutString[12];
+ 230              		.loc 1 126 2 view .LVU36
+ 127:Src/SerialTrans.c **** 
+ 128:Src/SerialTrans.c **** 	switch (cmd[1])
+ 231              		.loc 1 128 2 view .LVU37
+ 232              		.loc 1 128 13 is_stmt 0 view .LVU38
+ 233 0004 174B     		ldr	r3, .L23
+ 234 0006 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 235              		.loc 1 128 2 view .LVU39
+ 236 0008 433B     		subs	r3, r3, #67
+ 237 000a 332B     		cmp	r3, #51
+ 238 000c 1DD8     		bhi	.L16
+ 239 000e DFE803F0 		tbb	[pc, r3]
+ 240              	.L19:
+ 241 0012 22       		.byte	(.L21-.L19)/2
+ 242 0013 1C       		.byte	(.L16-.L19)/2
+ 243 0014 1C       		.byte	(.L16-.L19)/2
+ 244 0015 1F       		.byte	(.L20-.L19)/2
+ 245 0016 1C       		.byte	(.L16-.L19)/2
+ 246 0017 1C       		.byte	(.L16-.L19)/2
+ 247 0018 1C       		.byte	(.L16-.L19)/2
+ 248 0019 1C       		.byte	(.L16-.L19)/2
+ 249 001a 1C       		.byte	(.L16-.L19)/2
+ 250 001b 1C       		.byte	(.L16-.L19)/2
+ 251 001c 1C       		.byte	(.L16-.L19)/2
+ 252 001d 1C       		.byte	(.L16-.L19)/2
+ 253 001e 1C       		.byte	(.L16-.L19)/2
+ 254 001f 1C       		.byte	(.L16-.L19)/2
+ 255 0020 1C       		.byte	(.L16-.L19)/2
+ 256 0021 1C       		.byte	(.L16-.L19)/2
+ 257 0022 1C       		.byte	(.L16-.L19)/2
+ 258 0023 1C       		.byte	(.L16-.L19)/2
+ 259 0024 1C       		.byte	(.L16-.L19)/2
+ 260 0025 1A       		.byte	(.L18-.L19)/2
+ 261 0026 1C       		.byte	(.L16-.L19)/2
+ 262 0027 1C       		.byte	(.L16-.L19)/2
+ 263 0028 1C       		.byte	(.L16-.L19)/2
+ 264 0029 1C       		.byte	(.L16-.L19)/2
+ 265 002a 1C       		.byte	(.L16-.L19)/2
+ 266 002b 1C       		.byte	(.L16-.L19)/2
+ 267 002c 1C       		.byte	(.L16-.L19)/2
+ 268 002d 1C       		.byte	(.L16-.L19)/2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 8
+
+
+ 269 002e 1C       		.byte	(.L16-.L19)/2
+ 270 002f 1C       		.byte	(.L16-.L19)/2
+ 271 0030 1C       		.byte	(.L16-.L19)/2
+ 272 0031 1C       		.byte	(.L16-.L19)/2
+ 273 0032 22       		.byte	(.L21-.L19)/2
+ 274 0033 1C       		.byte	(.L16-.L19)/2
+ 275 0034 1C       		.byte	(.L16-.L19)/2
+ 276 0035 1F       		.byte	(.L20-.L19)/2
+ 277 0036 1C       		.byte	(.L16-.L19)/2
+ 278 0037 1C       		.byte	(.L16-.L19)/2
+ 279 0038 1C       		.byte	(.L16-.L19)/2
+ 280 0039 1C       		.byte	(.L16-.L19)/2
+ 281 003a 1C       		.byte	(.L16-.L19)/2
+ 282 003b 1C       		.byte	(.L16-.L19)/2
+ 283 003c 1C       		.byte	(.L16-.L19)/2
+ 284 003d 1C       		.byte	(.L16-.L19)/2
+ 285 003e 1C       		.byte	(.L16-.L19)/2
+ 286 003f 1C       		.byte	(.L16-.L19)/2
+ 287 0040 1C       		.byte	(.L16-.L19)/2
+ 288 0041 1C       		.byte	(.L16-.L19)/2
+ 289 0042 1C       		.byte	(.L16-.L19)/2
+ 290 0043 1C       		.byte	(.L16-.L19)/2
+ 291 0044 1C       		.byte	(.L16-.L19)/2
+ 292 0045 1A       		.byte	(.L18-.L19)/2
+ 293              		.p2align 1
+ 294              	.L18:
+ 129:Src/SerialTrans.c **** 	{
+ 130:Src/SerialTrans.c **** 	case 'V':  // version
+ 131:Src/SerialTrans.c **** 	case 'v':
+ 132:Src/SerialTrans.c **** 	
+ 133:Src/SerialTrans.c **** 		Display_software_version();
+ 295              		.loc 1 133 3 is_stmt 1 view .LVU40
+ 296 0046 FFF7FEFF 		bl	Display_software_version
+ 297              	.LVL18:
+ 134:Src/SerialTrans.c **** 		break;
+ 298              		.loc 1 134 3 view .LVU41
+ 299              	.L16:
+ 135:Src/SerialTrans.c **** 	
+ 136:Src/SerialTrans.c **** 	case 'F':  // firmware variant/config
+ 137:Src/SerialTrans.c **** 	case 'f':
+ 138:Src/SerialTrans.c **** 	
+ 139:Src/SerialTrans.c **** 		Display_firmware_details();
+ 140:Src/SerialTrans.c **** 		break;
+ 141:Src/SerialTrans.c **** 	
+ 142:Src/SerialTrans.c **** 	case 'C':  // clock
+ 143:Src/SerialTrans.c **** 	case 'c':
+ 144:Src/SerialTrans.c **** 	
+ 145:Src/SerialTrans.c **** 		// todo: add back clock
+ 146:Src/SerialTrans.c **** 		// sprintf(OutString, "%2.2d:%2.2d:%2.2d:%2.2d", day,hour,minute,second);
+ 147:Src/SerialTrans.c **** 		SerialPrint(OutString);
+ 148:Src/SerialTrans.c ****     SerialPrint("\r\n");
+ 149:Src/SerialTrans.c **** 	  break;
+ 150:Src/SerialTrans.c **** 
+ 151:Src/SerialTrans.c **** 	
+ 152:Src/SerialTrans.c **** 	case 'h':  // hardware
+ 153:Src/SerialTrans.c **** 	case 'H':
+ 154:Src/SerialTrans.c **** 	//	PrintHardwareInfoCommand();
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 9
+
+
+ 155:Src/SerialTrans.c **** 		break;
+ 156:Src/SerialTrans.c **** 	}
+ 157:Src/SerialTrans.c **** }
+ 300              		.loc 1 157 1 is_stmt 0 view .LVU42
+ 301 004a 05B0     		add	sp, sp, #20
+ 302              	.LCFI7:
+ 303              		.cfi_remember_state
+ 304              		.cfi_def_cfa_offset 4
+ 305              		@ sp needed
+ 306 004c 5DF804FB 		ldr	pc, [sp], #4
+ 307              	.L20:
+ 308              	.LCFI8:
+ 309              		.cfi_restore_state
+ 139:Src/SerialTrans.c **** 		break;
+ 310              		.loc 1 139 3 is_stmt 1 view .LVU43
+ 311 0050 FFF7FEFF 		bl	Display_firmware_details
+ 312              	.LVL19:
+ 140:Src/SerialTrans.c **** 	
+ 313              		.loc 1 140 3 view .LVU44
+ 314 0054 F9E7     		b	.L16
+ 315              	.L21:
+ 147:Src/SerialTrans.c ****     SerialPrint("\r\n");
+ 316              		.loc 1 147 3 view .LVU45
+ 317 0056 01A8     		add	r0, sp, #4
+ 318 0058 FFF7FEFF 		bl	SerialPrint
+ 319              	.LVL20:
+ 148:Src/SerialTrans.c **** 	  break;
+ 320              		.loc 1 148 5 view .LVU46
+ 321 005c 0248     		ldr	r0, .L23+4
+ 322 005e FFF7FEFF 		bl	SerialPrint
+ 323              	.LVL21:
+ 149:Src/SerialTrans.c **** 
+ 324              		.loc 1 149 4 view .LVU47
+ 325              		.loc 1 157 1 is_stmt 0 view .LVU48
+ 326 0062 F2E7     		b	.L16
+ 327              	.L24:
+ 328              		.align	2
+ 329              	.L23:
+ 330 0064 00000000 		.word	cmd
+ 331 0068 34000000 		.word	.LC5
+ 332              		.cfi_endproc
+ 333              	.LFE71:
+ 335              		.section	.text.Cmd_Interface,"ax",%progbits
+ 336              		.align	1
+ 337              		.global	Cmd_Interface
+ 338              		.syntax unified
+ 339              		.thumb
+ 340              		.thumb_func
+ 341              		.fpu softvfp
+ 343              	Cmd_Interface:
+ 344              	.LFB72:
+ 158:Src/SerialTrans.c **** 
+ 159:Src/SerialTrans.c **** void Cmd_Interface ()
+ 160:Src/SerialTrans.c **** {
+ 345              		.loc 1 160 1 is_stmt 1 view -0
+ 346              		.cfi_startproc
+ 347              		@ args = 0, pretend = 0, frame = 8
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 10
+
+
+ 348              		@ frame_needed = 0, uses_anonymous_args = 0
+ 349 0000 10B5     		push	{r4, lr}
+ 350              	.LCFI9:
+ 351              		.cfi_def_cfa_offset 8
+ 352              		.cfi_offset 4, -8
+ 353              		.cfi_offset 14, -4
+ 354 0002 82B0     		sub	sp, sp, #8
+ 355              	.LCFI10:
+ 356              		.cfi_def_cfa_offset 16
+ 161:Src/SerialTrans.c **** 
+ 162:Src/SerialTrans.c ****    
+ 163:Src/SerialTrans.c ****     uint32_t size = VCP_read(cmd, APP_RX_DATA_SIZE);
+ 357              		.loc 1 163 5 view .LVU50
+ 358              		.loc 1 163 21 is_stmt 0 view .LVU51
+ 359 0004 4021     		movs	r1, #64
+ 360 0006 6D48     		ldr	r0, .L54
+ 361 0008 FFF7FEFF 		bl	VCP_read
+ 362              	.LVL22:
+ 164:Src/SerialTrans.c ****    
+ 165:Src/SerialTrans.c ****    if(size)
+ 363              		.loc 1 165 4 is_stmt 1 view .LVU52
+ 364              		.loc 1 165 6 is_stmt 0 view .LVU53
+ 365 000c 60B3     		cbz	r0, .L25
+ 366              	.LBB3:
+ 166:Src/SerialTrans.c ****    {
+ 167:Src/SerialTrans.c **** 
+ 168:Src/SerialTrans.c ****     uint8_t buf[] = {0, 0, 0};
+ 367              		.loc 1 168 5 is_stmt 1 view .LVU54
+ 368              		.loc 1 168 13 is_stmt 0 view .LVU55
+ 369 000e 0023     		movs	r3, #0
+ 370 0010 8DF80030 		strb	r3, [sp]
+ 371 0014 8DF80130 		strb	r3, [sp, #1]
+ 372 0018 8DF80230 		strb	r3, [sp, #2]
+ 169:Src/SerialTrans.c **** 
+ 170:Src/SerialTrans.c **** 
+ 171:Src/SerialTrans.c **** 
+ 172:Src/SerialTrans.c ****     switch(cmd[0])    
+ 373              		.loc 1 172 5 is_stmt 1 view .LVU56
+ 374              		.loc 1 172 15 is_stmt 0 view .LVU57
+ 375 001c 674B     		ldr	r3, .L54
+ 376 001e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 377              		.loc 1 172 5 view .LVU58
+ 378 0020 3F3B     		subs	r3, r3, #63
+ 379 0022 372B     		cmp	r3, #55
+ 380 0024 00F2C380 		bhi	.L27
+ 381 0028 DFE803F0 		tbb	[pc, r3]
+ 382              	.L29:
+ 383 002c 1C       		.byte	(.L36-.L29)/2
+ 384 002d C1       		.byte	(.L27-.L29)/2
+ 385 002e C1       		.byte	(.L27-.L29)/2
+ 386 002f C1       		.byte	(.L27-.L29)/2
+ 387 0030 C1       		.byte	(.L27-.L29)/2
+ 388 0031 74       		.byte	(.L35-.L29)/2
+ 389 0032 C1       		.byte	(.L27-.L29)/2
+ 390 0033 B1       		.byte	(.L48-.L29)/2
+ 391 0034 C1       		.byte	(.L27-.L29)/2
+ 392 0035 20       		.byte	(.L33-.L29)/2
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 11
+
+
+ 393 0036 39       		.byte	(.L32-.L29)/2
+ 394 0037 C1       		.byte	(.L27-.L29)/2
+ 395 0038 C1       		.byte	(.L27-.L29)/2
+ 396 0039 C1       		.byte	(.L27-.L29)/2
+ 397 003a C1       		.byte	(.L27-.L29)/2
+ 398 003b C1       		.byte	(.L27-.L29)/2
+ 399 003c B3       		.byte	(.L31-.L29)/2
+ 400 003d C1       		.byte	(.L27-.L29)/2
+ 401 003e C1       		.byte	(.L27-.L29)/2
+ 402 003f C1       		.byte	(.L27-.L29)/2
+ 403 0040 8A       		.byte	(.L30-.L29)/2
+ 404 0041 C1       		.byte	(.L27-.L29)/2
+ 405 0042 C1       		.byte	(.L27-.L29)/2
+ 406 0043 1E       		.byte	(.L25-.L29)/2
+ 407 0044 C1       		.byte	(.L27-.L29)/2
+ 408 0045 C1       		.byte	(.L27-.L29)/2
+ 409 0046 C1       		.byte	(.L27-.L29)/2
+ 410 0047 C1       		.byte	(.L27-.L29)/2
+ 411 0048 C1       		.byte	(.L27-.L29)/2
+ 412 0049 C1       		.byte	(.L27-.L29)/2
+ 413 004a C1       		.byte	(.L27-.L29)/2
+ 414 004b C1       		.byte	(.L27-.L29)/2
+ 415 004c C1       		.byte	(.L27-.L29)/2
+ 416 004d C1       		.byte	(.L27-.L29)/2
+ 417 004e C1       		.byte	(.L27-.L29)/2
+ 418 004f C1       		.byte	(.L27-.L29)/2
+ 419 0050 C1       		.byte	(.L27-.L29)/2
+ 420 0051 74       		.byte	(.L35-.L29)/2
+ 421 0052 C1       		.byte	(.L27-.L29)/2
+ 422 0053 B1       		.byte	(.L48-.L29)/2
+ 423 0054 C1       		.byte	(.L27-.L29)/2
+ 424 0055 20       		.byte	(.L33-.L29)/2
+ 425 0056 39       		.byte	(.L32-.L29)/2
+ 426 0057 C1       		.byte	(.L27-.L29)/2
+ 427 0058 C1       		.byte	(.L27-.L29)/2
+ 428 0059 C1       		.byte	(.L27-.L29)/2
+ 429 005a C1       		.byte	(.L27-.L29)/2
+ 430 005b C1       		.byte	(.L27-.L29)/2
+ 431 005c B3       		.byte	(.L31-.L29)/2
+ 432 005d C1       		.byte	(.L27-.L29)/2
+ 433 005e C1       		.byte	(.L27-.L29)/2
+ 434 005f C1       		.byte	(.L27-.L29)/2
+ 435 0060 8A       		.byte	(.L30-.L29)/2
+ 436 0061 C1       		.byte	(.L27-.L29)/2
+ 437 0062 C1       		.byte	(.L27-.L29)/2
+ 438 0063 1E       		.byte	(.L25-.L29)/2
+ 439              		.p2align 1
+ 440              	.L36:
+ 441              	.LBB4:
+ 173:Src/SerialTrans.c ****     {
+ 174:Src/SerialTrans.c ****       case '?':		
+ 175:Src/SerialTrans.c **** 			    ProcessInfoCommands();
+ 442              		.loc 1 175 8 is_stmt 1 view .LVU59
+ 443 0064 FFF7FEFF 		bl	ProcessInfoCommands
+ 444              	.LVL23:
+ 176:Src/SerialTrans.c **** 			break;
+ 445              		.loc 1 176 4 view .LVU60
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 12
+
+
+ 446              	.L25:
+ 447              	.LBE4:
+ 448              	.LBE3:
+ 177:Src/SerialTrans.c **** 		
+ 178:Src/SerialTrans.c ****       case 'H':
+ 179:Src/SerialTrans.c ****       case 'h': 
+ 180:Src/SerialTrans.c ****        // SerialPrint(&buff[1]);
+ 181:Src/SerialTrans.c ****         SerialPrint("\r\n\r\nCommands list:");
+ 182:Src/SerialTrans.c ****         SerialPrint("\r\nH - help");
+ 183:Src/SerialTrans.c ****         SerialPrint("\r\nS - status register");
+ 184:Src/SerialTrans.c ****         SerialPrint("\r\nD - Diasplay status register on OLED");
+ 185:Src/SerialTrans.c ****         SerialPrint("\r\nI - get chip ID");
+ 186:Src/SerialTrans.c ****         SerialPrint("\r\nF - find I2C devices");        
+ 187:Src/SerialTrans.c ****         SerialPrint("\r\n");
+ 188:Src/SerialTrans.c ****         SerialPrint("\r\nInsert command");
+ 189:Src/SerialTrans.c **** 
+ 190:Src/SerialTrans.c ****         //ssd1306_UpdateScreen();
+ 191:Src/SerialTrans.c **** 
+ 192:Src/SerialTrans.c ****       return;
+ 193:Src/SerialTrans.c **** 
+ 194:Src/SerialTrans.c ****       case 'I': // cmd is "I" 
+ 195:Src/SerialTrans.c ****       case 'i':
+ 196:Src/SerialTrans.c ****             buf[0]=0x00;
+ 197:Src/SerialTrans.c ****             buf[1]=0x00;
+ 198:Src/SerialTrans.c ****             if(i2cSoft_WriteBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 199:Src/SerialTrans.c ****                   {
+ 200:Src/SerialTrans.c ****                           SerialPrint("\r\nI2C error - device not found");
+ 201:Src/SerialTrans.c ****                                 return;
+ 202:Src/SerialTrans.c ****                   }
+ 203:Src/SerialTrans.c ****                    else if(i2cSoft_ReadBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 204:Src/SerialTrans.c ****                          {
+ 205:Src/SerialTrans.c ****                                    SerialPrint("\r\nI2C error - device not responding");
+ 206:Src/SerialTrans.c ****                                            return;
+ 207:Src/SerialTrans.c ****                           }
+ 208:Src/SerialTrans.c **** 
+ 209:Src/SerialTrans.c ****             char a[2];
+ 210:Src/SerialTrans.c ****             SerialPrint("Toshiba chip ID = 0x");
+ 211:Src/SerialTrans.c **** 
+ 212:Src/SerialTrans.c **** 
+ 213:Src/SerialTrans.c ****             itoa(buf[0], a, 16);
+ 214:Src/SerialTrans.c ****             SerialPrint(a);
+ 215:Src/SerialTrans.c ****             if(buf[0] == 0)SerialPrint(a);
+ 216:Src/SerialTrans.c ****             itoa(buf[1], a, 16);
+ 217:Src/SerialTrans.c ****             SerialPrint(a);
+ 218:Src/SerialTrans.c ****             if(buf[1] == 0)SerialPrint(a);
+ 219:Src/SerialTrans.c ****             SerialPrint("\r\n\r\nInsert command");
+ 220:Src/SerialTrans.c ****                   return;
+ 221:Src/SerialTrans.c ****       case 'D': //Cmd is "D"
+ 222:Src/SerialTrans.c ****       case 'd':
+ 223:Src/SerialTrans.c ****       switch (DisplayStatus)
+ 224:Src/SerialTrans.c ****       {
+ 225:Src/SerialTrans.c ****         case 0:
+ 226:Src/SerialTrans.c ****         SerialPrint("\r\nStatus register display ON");
+ 227:Src/SerialTrans.c ****         DisplayStatus = true;
+ 228:Src/SerialTrans.c ****         OledNeedUpdate = true;
+ 229:Src/SerialTrans.c ****         break;
+ 230:Src/SerialTrans.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 13
+
+
+ 231:Src/SerialTrans.c ****         case 1:
+ 232:Src/SerialTrans.c ****         SerialPrint("\r\nStatus register display Off");
+ 233:Src/SerialTrans.c ****         DisplayStatus = false;
+ 234:Src/SerialTrans.c ****         OledNeedUpdate = true;
+ 235:Src/SerialTrans.c ****         break;
+ 236:Src/SerialTrans.c **** 
+ 237:Src/SerialTrans.c ****       }
+ 238:Src/SerialTrans.c **** 
+ 239:Src/SerialTrans.c ****       return;
+ 240:Src/SerialTrans.c ****   
+ 241:Src/SerialTrans.c ****       case 'S': //Cmd is "S"
+ 242:Src/SerialTrans.c ****       case 's':
+ 243:Src/SerialTrans.c ****       
+ 244:Src/SerialTrans.c ****       sprintf((char *)buf, "%02X", (const char )status);
+ 245:Src/SerialTrans.c ****       
+ 246:Src/SerialTrans.c ****       SerialPrint("\r\nStatus register: 0x");
+ 247:Src/SerialTrans.c ****       SerialPrint((char *)buf);
+ 248:Src/SerialTrans.c ****                   return;
+ 249:Src/SerialTrans.c **** 
+ 250:Src/SerialTrans.c ****       case 'F': //cmd is "F"
+ 251:Src/SerialTrans.c ****       case 'f':
+ 252:Src/SerialTrans.c ****             for (uint8_t i = 8; i < 127; i++)
+ 253:Src/SerialTrans.c ****                   {
+ 254:Src/SerialTrans.c ****                        if(i2cSoft_DeviceExists(i))
+ 255:Src/SerialTrans.c ****                              {
+ 256:Src/SerialTrans.c ****                                 SerialPrint("\r\nFound device from address - 0x");         
+ 257:Src/SerialTrans.c ****                                 //char myValue = i;
+ 258:Src/SerialTrans.c ****                                 char a[3];
+ 259:Src/SerialTrans.c ****                                 itoa((char)i, a, 16);
+ 260:Src/SerialTrans.c ****                                 VCP_write(&a, 3);
+ 261:Src/SerialTrans.c ****                                 HAL_Delay(10);
+ 262:Src/SerialTrans.c ****                               }                                                                    
+ 263:Src/SerialTrans.c ****                     }
+ 264:Src/SerialTrans.c ****                           return;      
+ 265:Src/SerialTrans.c ****       
+ 266:Src/SerialTrans.c ****             case 'O': //cmd is "O"
+ 267:Src/SerialTrans.c ****             case 'o':
+ 268:Src/SerialTrans.c **** 
+ 269:Src/SerialTrans.c ****             switch(cmd[1])
+ 270:Src/SerialTrans.c ****             {
+ 271:Src/SerialTrans.c ****               case '\r':
+ 272:Src/SerialTrans.c ****               case '\n':
+ 273:Src/SerialTrans.c ****               SerialPrint("Test print 1234567890");
+ 274:Src/SerialTrans.c **** 
+ 275:Src/SerialTrans.c ****               break;
+ 276:Src/SerialTrans.c ****               default:
+ 277:Src/SerialTrans.c ****               SerialPrint("Default");
+ 278:Src/SerialTrans.c ****               break;
+ 279:Src/SerialTrans.c ****             }
+ 280:Src/SerialTrans.c ****               case 'V': //SxS video mode toggle
+ 281:Src/SerialTrans.c ****               case 'v':
+ 282:Src/SerialTrans.c ****               /*
+ 283:Src/SerialTrans.c ****               if(mode)
+ 284:Src/SerialTrans.c ****               {
+ 285:Src/SerialTrans.c ****                 new_stage = 2;
+ 286:Src/SerialTrans.c ****               target_mode = !mode;
+ 287:Src/SerialTrans.c ****               SerialPrint("Target node = 0");
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 14
+
+
+ 288:Src/SerialTrans.c **** 
+ 289:Src/SerialTrans.c ****               }
+ 290:Src/SerialTrans.c **** 
+ 291:Src/SerialTrans.c ****               else
+ 292:Src/SerialTrans.c ****               {
+ 293:Src/SerialTrans.c ****                 new_stage = 2;
+ 294:Src/SerialTrans.c ****                 target_mode = !mode;
+ 295:Src/SerialTrans.c ****                 SerialPrint("Target node = 1");
+ 296:Src/SerialTrans.c ****               }
+ 297:Src/SerialTrans.c ****               */
+ 298:Src/SerialTrans.c **** 
+ 299:Src/SerialTrans.c ****               break;
+ 300:Src/SerialTrans.c **** 
+ 301:Src/SerialTrans.c ****       default:
+ 302:Src/SerialTrans.c **** 
+ 303:Src/SerialTrans.c ****     SerialPrint("\r\n");
+ 304:Src/SerialTrans.c ****     SerialPrint(" - Unknown command, send - H for help.");
+ 305:Src/SerialTrans.c **** 
+ 306:Src/SerialTrans.c ****       break;
+ 307:Src/SerialTrans.c **** 
+ 308:Src/SerialTrans.c ****     }
+ 309:Src/SerialTrans.c ****    // return;
+ 310:Src/SerialTrans.c **** 
+ 311:Src/SerialTrans.c **** 
+ 312:Src/SerialTrans.c ****    }
+ 313:Src/SerialTrans.c **** }...
+ 449              		.loc 1 313 1 is_stmt 0 view .LVU61
+ 450 0068 02B0     		add	sp, sp, #8
+ 451              	.LCFI11:
+ 452              		.cfi_remember_state
+ 453              		.cfi_def_cfa_offset 8
+ 454              		@ sp needed
+ 455 006a 10BD     		pop	{r4, pc}
+ 456              	.LVL24:
+ 457              	.L33:
+ 458              	.LCFI12:
+ 459              		.cfi_restore_state
+ 460              	.LBB8:
+ 461              	.LBB7:
+ 181:Src/SerialTrans.c ****         SerialPrint("\r\n\r\nCommands list:");
+ 462              		.loc 1 181 9 is_stmt 1 view .LVU62
+ 463 006c 5448     		ldr	r0, .L54+4
+ 464              	.LVL25:
+ 181:Src/SerialTrans.c ****         SerialPrint("\r\n\r\nCommands list:");
+ 465              		.loc 1 181 9 is_stmt 0 view .LVU63
+ 466 006e FFF7FEFF 		bl	SerialPrint
+ 467              	.LVL26:
+ 182:Src/SerialTrans.c ****         SerialPrint("\r\nH - help");
+ 468              		.loc 1 182 9 is_stmt 1 view .LVU64
+ 469 0072 5448     		ldr	r0, .L54+8
+ 470 0074 FFF7FEFF 		bl	SerialPrint
+ 471              	.LVL27:
+ 183:Src/SerialTrans.c ****         SerialPrint("\r\nS - status register");
+ 472              		.loc 1 183 9 view .LVU65
+ 473 0078 5348     		ldr	r0, .L54+12
+ 474 007a FFF7FEFF 		bl	SerialPrint
+ 475              	.LVL28:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 15
+
+
+ 184:Src/SerialTrans.c ****         SerialPrint("\r\nD - Diasplay status register on OLED");
+ 476              		.loc 1 184 9 view .LVU66
+ 477 007e 5348     		ldr	r0, .L54+16
+ 478 0080 FFF7FEFF 		bl	SerialPrint
+ 479              	.LVL29:
+ 185:Src/SerialTrans.c ****         SerialPrint("\r\nI - get chip ID");
+ 480              		.loc 1 185 9 view .LVU67
+ 481 0084 5248     		ldr	r0, .L54+20
+ 482 0086 FFF7FEFF 		bl	SerialPrint
+ 483              	.LVL30:
+ 186:Src/SerialTrans.c ****         SerialPrint("\r\nF - find I2C devices");        
+ 484              		.loc 1 186 9 view .LVU68
+ 485 008a 5248     		ldr	r0, .L54+24
+ 486 008c FFF7FEFF 		bl	SerialPrint
+ 487              	.LVL31:
+ 187:Src/SerialTrans.c ****         SerialPrint("\r\n");
+ 488              		.loc 1 187 9 view .LVU69
+ 489 0090 5148     		ldr	r0, .L54+28
+ 490 0092 FFF7FEFF 		bl	SerialPrint
+ 491              	.LVL32:
+ 188:Src/SerialTrans.c ****         SerialPrint("\r\nInsert command");
+ 492              		.loc 1 188 9 view .LVU70
+ 493 0096 5148     		ldr	r0, .L54+32
+ 494 0098 FFF7FEFF 		bl	SerialPrint
+ 495              	.LVL33:
+ 192:Src/SerialTrans.c ****       return;
+ 496              		.loc 1 192 7 view .LVU71
+ 497 009c E4E7     		b	.L25
+ 498              	.LVL34:
+ 499              	.L32:
+ 196:Src/SerialTrans.c ****             buf[0]=0x00;
+ 500              		.loc 1 196 13 view .LVU72
+ 197:Src/SerialTrans.c ****             buf[1]=0x00;
+ 501              		.loc 1 197 13 view .LVU73
+ 198:Src/SerialTrans.c ****             if(i2cSoft_WriteBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 502              		.loc 1 198 13 view .LVU74
+ 198:Src/SerialTrans.c ****             if(i2cSoft_WriteBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 503              		.loc 1 198 16 is_stmt 0 view .LVU75
+ 504 009e 0222     		movs	r2, #2
+ 505 00a0 6946     		mov	r1, sp
+ 506 00a2 0F20     		movs	r0, #15
+ 507              	.LVL35:
+ 198:Src/SerialTrans.c ****             if(i2cSoft_WriteBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 508              		.loc 1 198 16 view .LVU76
+ 509 00a4 FFF7FEFF 		bl	i2cSoft_WriteBuffer
+ 510              	.LVL36:
+ 198:Src/SerialTrans.c ****             if(i2cSoft_WriteBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 511              		.loc 1 198 15 view .LVU77
+ 512 00a8 48B9     		cbnz	r0, .L50
+ 203:Src/SerialTrans.c ****                    else if(i2cSoft_ReadBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 513              		.loc 1 203 25 is_stmt 1 view .LVU78
+ 203:Src/SerialTrans.c ****                    else if(i2cSoft_ReadBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 514              		.loc 1 203 28 is_stmt 0 view .LVU79
+ 515 00aa 0222     		movs	r2, #2
+ 516 00ac 6946     		mov	r1, sp
+ 517 00ae 0F20     		movs	r0, #15
+ 518 00b0 FFF7FEFF 		bl	i2cSoft_ReadBuffer
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 16
+
+
+ 519              	.LVL37:
+ 203:Src/SerialTrans.c ****                    else if(i2cSoft_ReadBuffer ( TOSHIBA_I2C_ADDR, (uint8_t *)buf, 2 ) != 0)
+ 520              		.loc 1 203 27 view .LVU80
+ 521 00b4 38B1     		cbz	r0, .L39
+ 205:Src/SerialTrans.c ****                                    SerialPrint("\r\nI2C error - device not responding");
+ 522              		.loc 1 205 36 is_stmt 1 view .LVU81
+ 523 00b6 4A48     		ldr	r0, .L54+36
+ 524 00b8 FFF7FEFF 		bl	SerialPrint
+ 525              	.LVL38:
+ 206:Src/SerialTrans.c ****                                            return;
+ 526              		.loc 1 206 44 view .LVU82
+ 527 00bc D4E7     		b	.L25
+ 528              	.L50:
+ 200:Src/SerialTrans.c ****                           SerialPrint("\r\nI2C error - device not found");
+ 529              		.loc 1 200 27 view .LVU83
+ 530 00be 4948     		ldr	r0, .L54+40
+ 531 00c0 FFF7FEFF 		bl	SerialPrint
+ 532              	.LVL39:
+ 201:Src/SerialTrans.c ****                                 return;
+ 533              		.loc 1 201 33 view .LVU84
+ 534 00c4 D0E7     		b	.L25
+ 535              	.L39:
+ 209:Src/SerialTrans.c ****             char a[2];
+ 536              		.loc 1 209 13 view .LVU85
+ 210:Src/SerialTrans.c ****             SerialPrint("Toshiba chip ID = 0x");
+ 537              		.loc 1 210 13 view .LVU86
+ 538 00c6 4848     		ldr	r0, .L54+44
+ 539 00c8 FFF7FEFF 		bl	SerialPrint
+ 540              	.LVL40:
+ 213:Src/SerialTrans.c ****             itoa(buf[0], a, 16);
+ 541              		.loc 1 213 13 view .LVU87
+ 542 00cc 1022     		movs	r2, #16
+ 543 00ce 01A9     		add	r1, sp, #4
+ 544 00d0 9DF80000 		ldrb	r0, [sp]	@ zero_extendqisi2
+ 545 00d4 FFF7FEFF 		bl	itoa
+ 546              	.LVL41:
+ 214:Src/SerialTrans.c ****             SerialPrint(a);
+ 547              		.loc 1 214 13 view .LVU88
+ 548 00d8 01A8     		add	r0, sp, #4
+ 549 00da FFF7FEFF 		bl	SerialPrint
+ 550              	.LVL42:
+ 215:Src/SerialTrans.c ****             if(buf[0] == 0)SerialPrint(a);
+ 551              		.loc 1 215 13 view .LVU89
+ 215:Src/SerialTrans.c ****             if(buf[0] == 0)SerialPrint(a);
+ 552              		.loc 1 215 19 is_stmt 0 view .LVU90
+ 553 00de 9DF80030 		ldrb	r3, [sp]	@ zero_extendqisi2
+ 215:Src/SerialTrans.c ****             if(buf[0] == 0)SerialPrint(a);
+ 554              		.loc 1 215 15 view .LVU91
+ 555 00e2 7BB1     		cbz	r3, .L51
+ 556              	.L40:
+ 216:Src/SerialTrans.c ****             itoa(buf[1], a, 16);
+ 557              		.loc 1 216 13 is_stmt 1 view .LVU92
+ 558 00e4 1022     		movs	r2, #16
+ 559 00e6 01A9     		add	r1, sp, #4
+ 560 00e8 9DF80100 		ldrb	r0, [sp, #1]	@ zero_extendqisi2
+ 561 00ec FFF7FEFF 		bl	itoa
+ 562              	.LVL43:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 17
+
+
+ 217:Src/SerialTrans.c ****             SerialPrint(a);
+ 563              		.loc 1 217 13 view .LVU93
+ 564 00f0 01A8     		add	r0, sp, #4
+ 565 00f2 FFF7FEFF 		bl	SerialPrint
+ 566              	.LVL44:
+ 218:Src/SerialTrans.c ****             if(buf[1] == 0)SerialPrint(a);
+ 567              		.loc 1 218 13 view .LVU94
+ 218:Src/SerialTrans.c ****             if(buf[1] == 0)SerialPrint(a);
+ 568              		.loc 1 218 19 is_stmt 0 view .LVU95
+ 569 00f6 9DF80130 		ldrb	r3, [sp, #1]	@ zero_extendqisi2
+ 218:Src/SerialTrans.c ****             if(buf[1] == 0)SerialPrint(a);
+ 570              		.loc 1 218 15 view .LVU96
+ 571 00fa 3BB1     		cbz	r3, .L52
+ 572              	.L41:
+ 219:Src/SerialTrans.c ****             SerialPrint("\r\n\r\nInsert command");
+ 573              		.loc 1 219 13 is_stmt 1 view .LVU97
+ 574 00fc 3B48     		ldr	r0, .L54+48
+ 575 00fe FFF7FEFF 		bl	SerialPrint
+ 576              	.LVL45:
+ 220:Src/SerialTrans.c ****                   return;
+ 577              		.loc 1 220 19 view .LVU98
+ 578 0102 B1E7     		b	.L25
+ 579              	.L51:
+ 215:Src/SerialTrans.c ****             if(buf[0] == 0)SerialPrint(a);
+ 580              		.loc 1 215 28 discriminator 1 view .LVU99
+ 581 0104 01A8     		add	r0, sp, #4
+ 582 0106 FFF7FEFF 		bl	SerialPrint
+ 583              	.LVL46:
+ 584 010a EBE7     		b	.L40
+ 585              	.L52:
+ 218:Src/SerialTrans.c ****             if(buf[1] == 0)SerialPrint(a);
+ 586              		.loc 1 218 28 discriminator 1 view .LVU100
+ 587 010c 01A8     		add	r0, sp, #4
+ 588 010e FFF7FEFF 		bl	SerialPrint
+ 589              	.LVL47:
+ 590 0112 F3E7     		b	.L41
+ 591              	.LVL48:
+ 592              	.L35:
+ 223:Src/SerialTrans.c ****       switch (DisplayStatus)
+ 593              		.loc 1 223 7 view .LVU101
+ 594 0114 364B     		ldr	r3, .L54+52
+ 595 0116 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 596 0118 43B9     		cbnz	r3, .L42
+ 226:Src/SerialTrans.c ****         SerialPrint("\r\nStatus register display ON");
+ 597              		.loc 1 226 9 view .LVU102
+ 598 011a 3648     		ldr	r0, .L54+56
+ 599              	.LVL49:
+ 226:Src/SerialTrans.c ****         SerialPrint("\r\nStatus register display ON");
+ 600              		.loc 1 226 9 is_stmt 0 view .LVU103
+ 601 011c FFF7FEFF 		bl	SerialPrint
+ 602              	.LVL50:
+ 227:Src/SerialTrans.c ****         DisplayStatus = true;
+ 603              		.loc 1 227 9 is_stmt 1 view .LVU104
+ 227:Src/SerialTrans.c ****         DisplayStatus = true;
+ 604              		.loc 1 227 23 is_stmt 0 view .LVU105
+ 605 0120 0123     		movs	r3, #1
+ 606 0122 334A     		ldr	r2, .L54+52
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 18
+
+
+ 607 0124 1370     		strb	r3, [r2]
+ 228:Src/SerialTrans.c ****         OledNeedUpdate = true;
+ 608              		.loc 1 228 9 is_stmt 1 view .LVU106
+ 228:Src/SerialTrans.c ****         OledNeedUpdate = true;
+ 609              		.loc 1 228 24 is_stmt 0 view .LVU107
+ 610 0126 344A     		ldr	r2, .L54+60
+ 611 0128 1370     		strb	r3, [r2]
+ 229:Src/SerialTrans.c ****         break;
+ 612              		.loc 1 229 9 is_stmt 1 view .LVU108
+ 613 012a 9DE7     		b	.L25
+ 614              	.LVL51:
+ 615              	.L42:
+ 232:Src/SerialTrans.c ****         SerialPrint("\r\nStatus register display Off");
+ 616              		.loc 1 232 9 view .LVU109
+ 617 012c 3348     		ldr	r0, .L54+64
+ 618              	.LVL52:
+ 232:Src/SerialTrans.c ****         SerialPrint("\r\nStatus register display Off");
+ 619              		.loc 1 232 9 is_stmt 0 view .LVU110
+ 620 012e FFF7FEFF 		bl	SerialPrint
+ 621              	.LVL53:
+ 233:Src/SerialTrans.c ****         DisplayStatus = false;
+ 622              		.loc 1 233 9 is_stmt 1 view .LVU111
+ 233:Src/SerialTrans.c ****         DisplayStatus = false;
+ 623              		.loc 1 233 23 is_stmt 0 view .LVU112
+ 624 0132 2F4B     		ldr	r3, .L54+52
+ 625 0134 0022     		movs	r2, #0
+ 626 0136 1A70     		strb	r2, [r3]
+ 234:Src/SerialTrans.c ****         OledNeedUpdate = true;
+ 627              		.loc 1 234 9 is_stmt 1 view .LVU113
+ 234:Src/SerialTrans.c ****         OledNeedUpdate = true;
+ 628              		.loc 1 234 24 is_stmt 0 view .LVU114
+ 629 0138 2F4B     		ldr	r3, .L54+60
+ 630 013a 0122     		movs	r2, #1
+ 631 013c 1A70     		strb	r2, [r3]
+ 235:Src/SerialTrans.c ****         break;
+ 632              		.loc 1 235 9 is_stmt 1 view .LVU115
+ 239:Src/SerialTrans.c ****       return;
+ 633              		.loc 1 239 7 view .LVU116
+ 634 013e 93E7     		b	.L25
+ 635              	.LVL54:
+ 636              	.L30:
+ 244:Src/SerialTrans.c ****       sprintf((char *)buf, "%02X", (const char )status);
+ 637              		.loc 1 244 7 view .LVU117
+ 638 0140 2F4B     		ldr	r3, .L54+68
+ 639 0142 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 640 0144 2F49     		ldr	r1, .L54+72
+ 641 0146 6846     		mov	r0, sp
+ 642              	.LVL55:
+ 244:Src/SerialTrans.c ****       sprintf((char *)buf, "%02X", (const char )status);
+ 643              		.loc 1 244 7 is_stmt 0 view .LVU118
+ 644 0148 FFF7FEFF 		bl	sprintf
+ 645              	.LVL56:
+ 246:Src/SerialTrans.c ****       SerialPrint("\r\nStatus register: 0x");
+ 646              		.loc 1 246 7 is_stmt 1 view .LVU119
+ 647 014c 2E48     		ldr	r0, .L54+76
+ 648 014e FFF7FEFF 		bl	SerialPrint
+ 649              	.LVL57:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 19
+
+
+ 247:Src/SerialTrans.c ****       SerialPrint((char *)buf);
+ 650              		.loc 1 247 7 view .LVU120
+ 651 0152 6846     		mov	r0, sp
+ 652 0154 FFF7FEFF 		bl	SerialPrint
+ 653              	.LVL58:
+ 248:Src/SerialTrans.c ****                   return;
+ 654              		.loc 1 248 19 view .LVU121
+ 655 0158 86E7     		b	.L25
+ 656              	.LVL59:
+ 657              	.L53:
+ 658              	.LBB5:
+ 659              	.LBB6:
+ 256:Src/SerialTrans.c ****                                 SerialPrint("\r\nFound device from address - 0x");         
+ 660              		.loc 1 256 33 view .LVU122
+ 661 015a 2C48     		ldr	r0, .L54+80
+ 662 015c FFF7FEFF 		bl	SerialPrint
+ 663              	.LVL60:
+ 258:Src/SerialTrans.c ****                                 char a[3];
+ 664              		.loc 1 258 33 view .LVU123
+ 259:Src/SerialTrans.c ****                                 itoa((char)i, a, 16);
+ 665              		.loc 1 259 33 view .LVU124
+ 666 0160 1022     		movs	r2, #16
+ 667 0162 01A9     		add	r1, sp, #4
+ 668 0164 2046     		mov	r0, r4
+ 669 0166 FFF7FEFF 		bl	itoa
+ 670              	.LVL61:
+ 260:Src/SerialTrans.c ****                                 VCP_write(&a, 3);
+ 671              		.loc 1 260 33 view .LVU125
+ 672 016a 0321     		movs	r1, #3
+ 673 016c 01A8     		add	r0, sp, #4
+ 674 016e FFF7FEFF 		bl	VCP_write
+ 675              	.LVL62:
+ 261:Src/SerialTrans.c ****                                 HAL_Delay(10);
+ 676              		.loc 1 261 33 view .LVU126
+ 677 0172 0A20     		movs	r0, #10
+ 678 0174 FFF7FEFF 		bl	HAL_Delay
+ 679              	.LVL63:
+ 680              	.L44:
+ 681              	.LBE6:
+ 252:Src/SerialTrans.c ****             for (uint8_t i = 8; i < 127; i++)
+ 682              		.loc 1 252 43 is_stmt 0 discriminator 2 view .LVU127
+ 683 0178 0134     		adds	r4, r4, #1
+ 684              	.LVL64:
+ 252:Src/SerialTrans.c ****             for (uint8_t i = 8; i < 127; i++)
+ 685              		.loc 1 252 43 discriminator 2 view .LVU128
+ 686 017a E4B2     		uxtb	r4, r4
+ 687              	.LVL65:
+ 688              	.L34:
+ 252:Src/SerialTrans.c ****             for (uint8_t i = 8; i < 127; i++)
+ 689              		.loc 1 252 13 discriminator 1 view .LVU129
+ 690 017c 7E2C     		cmp	r4, #126
+ 691 017e 3FF673AF 		bhi	.L25
+ 254:Src/SerialTrans.c ****                        if(i2cSoft_DeviceExists(i))
+ 692              		.loc 1 254 24 is_stmt 1 view .LVU130
+ 254:Src/SerialTrans.c ****                        if(i2cSoft_DeviceExists(i))
+ 693              		.loc 1 254 27 is_stmt 0 view .LVU131
+ 694 0182 2046     		mov	r0, r4
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 20
+
+
+ 695 0184 FFF7FEFF 		bl	i2cSoft_DeviceExists
+ 696              	.LVL66:
+ 254:Src/SerialTrans.c ****                        if(i2cSoft_DeviceExists(i))
+ 697              		.loc 1 254 26 view .LVU132
+ 698 0188 0028     		cmp	r0, #0
+ 699 018a F5D0     		beq	.L44
+ 700 018c E5E7     		b	.L53
+ 701              	.LVL67:
+ 702              	.L48:
+ 252:Src/SerialTrans.c ****             for (uint8_t i = 8; i < 127; i++)
+ 703              		.loc 1 252 26 view .LVU133
+ 704 018e 0824     		movs	r4, #8
+ 705 0190 F4E7     		b	.L34
+ 706              	.L31:
+ 707              	.LBE5:
+ 269:Src/SerialTrans.c ****             switch(cmd[1])
+ 708              		.loc 1 269 13 is_stmt 1 view .LVU134
+ 269:Src/SerialTrans.c ****             switch(cmd[1])
+ 709              		.loc 1 269 23 is_stmt 0 view .LVU135
+ 710 0192 0A4B     		ldr	r3, .L54
+ 711 0194 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 712 0196 0A2B     		cmp	r3, #10
+ 713 0198 05D0     		beq	.L46
+ 714 019a 0D2B     		cmp	r3, #13
+ 715 019c 03D0     		beq	.L46
+ 277:Src/SerialTrans.c ****               SerialPrint("Default");
+ 716              		.loc 1 277 15 is_stmt 1 view .LVU136
+ 717 019e 1C48     		ldr	r0, .L54+84
+ 718              	.LVL68:
+ 277:Src/SerialTrans.c ****               SerialPrint("Default");
+ 719              		.loc 1 277 15 is_stmt 0 view .LVU137
+ 720 01a0 FFF7FEFF 		bl	SerialPrint
+ 721              	.LVL69:
+ 278:Src/SerialTrans.c ****               break;
+ 722              		.loc 1 278 15 is_stmt 1 view .LVU138
+ 723 01a4 60E7     		b	.L25
+ 724              	.LVL70:
+ 725              	.L46:
+ 273:Src/SerialTrans.c ****               SerialPrint("Test print 1234567890");
+ 726              		.loc 1 273 15 view .LVU139
+ 727 01a6 1B48     		ldr	r0, .L54+88
+ 728              	.LVL71:
+ 273:Src/SerialTrans.c ****               SerialPrint("Test print 1234567890");
+ 729              		.loc 1 273 15 is_stmt 0 view .LVU140
+ 730 01a8 FFF7FEFF 		bl	SerialPrint
+ 731              	.LVL72:
+ 275:Src/SerialTrans.c ****               break;
+ 732              		.loc 1 275 15 is_stmt 1 view .LVU141
+ 733 01ac 5CE7     		b	.L25
+ 734              	.LVL73:
+ 735              	.L27:
+ 303:Src/SerialTrans.c ****     SerialPrint("\r\n");
+ 736              		.loc 1 303 5 view .LVU142
+ 737 01ae 0A48     		ldr	r0, .L54+28
+ 738              	.LVL74:
+ 303:Src/SerialTrans.c ****     SerialPrint("\r\n");
+ 739              		.loc 1 303 5 is_stmt 0 view .LVU143
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 21
+
+
+ 740 01b0 FFF7FEFF 		bl	SerialPrint
+ 741              	.LVL75:
+ 304:Src/SerialTrans.c ****     SerialPrint(" - Unknown command, send - H for help.");
+ 742              		.loc 1 304 5 is_stmt 1 view .LVU144
+ 743 01b4 1848     		ldr	r0, .L54+92
+ 744 01b6 FFF7FEFF 		bl	SerialPrint
+ 745              	.LVL76:
+ 306:Src/SerialTrans.c ****       break;
+ 746              		.loc 1 306 7 view .LVU145
+ 747 01ba 55E7     		b	.L25
+ 748              	.L55:
+ 749              		.align	2
+ 750              	.L54:
+ 751 01bc 00000000 		.word	cmd
+ 752 01c0 00000000 		.word	.LC11
+ 753 01c4 14000000 		.word	.LC12
+ 754 01c8 20000000 		.word	.LC13
+ 755 01cc 38000000 		.word	.LC14
+ 756 01d0 60000000 		.word	.LC15
+ 757 01d4 74000000 		.word	.LC16
+ 758 01d8 34000000 		.word	.LC5
+ 759 01dc 8C000000 		.word	.LC17
+ 760 01e0 C0000000 		.word	.LC19
+ 761 01e4 A0000000 		.word	.LC18
+ 762 01e8 E4000000 		.word	.LC20
+ 763 01ec FC000000 		.word	.LC21
+ 764 01f0 00000000 		.word	DisplayStatus
+ 765 01f4 10010000 		.word	.LC22
+ 766 01f8 00000000 		.word	OledNeedUpdate
+ 767 01fc 30010000 		.word	.LC23
+ 768 0200 00000000 		.word	status
+ 769 0204 50010000 		.word	.LC24
+ 770 0208 58010000 		.word	.LC25
+ 771 020c 70010000 		.word	.LC26
+ 772 0210 AC010000 		.word	.LC28
+ 773 0214 94010000 		.word	.LC27
+ 774 0218 B4010000 		.word	.LC29
+ 775              	.LBE7:
+ 776              	.LBE8:
+ 777              		.cfi_endproc
+ 778              	.LFE72:
+ 780              		.comm	cmd,65,4
+ 781              		.comm	tmp,160,4
+ 782              		.global	readPointerRx
+ 783              		.global	writePointerRx
+ 784              		.global	countRx
+ 785              		.comm	uart_rx,160,4
+ 786              		.global	readPointerTx
+ 787              		.global	writePointerTx
+ 788              		.global	countTx
+ 789              		.comm	uart_tx,160,4
+ 790              		.comm	QuatW,4,4
+ 791              		.comm	QuatZ,4,4
+ 792              		.comm	QuatY,4,4
+ 793              		.comm	QuatX,4,4
+ 794              		.comm	f_report,16,4
+ 795              		.comm	send_report,16,4
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 22
+
+
+ 796              		.comm	packet_num,1,1
+ 797              		.comm	video_detected,1,1
+ 798              		.comm	hid_ver,1,1
+ 799              		.comm	edid,1,1
+ 800              		.comm	mode,1,1
+ 801              		.comm	stage,1,1
+ 802              		.comm	old_status,1,1
+ 803              		.comm	lane_status,1,1
+ 804              		.comm	status,1,1
+ 805              		.section	.bss.countRx,"aw",%nobits
+ 808              	countRx:
+ 809 0000 00       		.space	1
+ 810              		.section	.bss.countTx,"aw",%nobits
+ 813              	countTx:
+ 814 0000 00       		.space	1
+ 815              		.section	.bss.readPointerRx,"aw",%nobits
+ 818              	readPointerRx:
+ 819 0000 00       		.space	1
+ 820              		.section	.bss.readPointerTx,"aw",%nobits
+ 823              	readPointerTx:
+ 824 0000 00       		.space	1
+ 825              		.section	.bss.writePointerRx,"aw",%nobits
+ 828              	writePointerRx:
+ 829 0000 00       		.space	1
+ 830              		.section	.bss.writePointerTx,"aw",%nobits
+ 833              	writePointerTx:
+ 834 0000 00       		.space	1
+ 835              		.section	.rodata.Cmd_Interface.str1.4,"aMS",%progbits,1
+ 836              		.align	2
+ 837              	.LC11:
+ 838 0000 0D0A0D0A 		.ascii	"\015\012\015\012Commands list:\000"
+ 838      436F6D6D 
+ 838      616E6473 
+ 838      206C6973 
+ 838      743A00
+ 839 0013 00       		.space	1
+ 840              	.LC12:
+ 841 0014 0D0A4820 		.ascii	"\015\012H - help\000"
+ 841      2D206865 
+ 841      6C7000
+ 842 001f 00       		.space	1
+ 843              	.LC13:
+ 844 0020 0D0A5320 		.ascii	"\015\012S - status register\000"
+ 844      2D207374 
+ 844      61747573 
+ 844      20726567 
+ 844      69737465 
+ 845 0036 0000     		.space	2
+ 846              	.LC14:
+ 847 0038 0D0A4420 		.ascii	"\015\012D - Diasplay status register on OLED\000"
+ 847      2D204469 
+ 847      6173706C 
+ 847      61792073 
+ 847      74617475 
+ 848 005f 00       		.space	1
+ 849              	.LC15:
+ 850 0060 0D0A4920 		.ascii	"\015\012I - get chip ID\000"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 23
+
+
+ 850      2D206765 
+ 850      74206368 
+ 850      69702049 
+ 850      4400
+ 851 0072 0000     		.space	2
+ 852              	.LC16:
+ 853 0074 0D0A4620 		.ascii	"\015\012F - find I2C devices\000"
+ 853      2D206669 
+ 853      6E642049 
+ 853      32432064 
+ 853      65766963 
+ 854 008b 00       		.space	1
+ 855              	.LC17:
+ 856 008c 0D0A496E 		.ascii	"\015\012Insert command\000"
+ 856      73657274 
+ 856      20636F6D 
+ 856      6D616E64 
+ 856      00
+ 857 009d 000000   		.space	3
+ 858              	.LC18:
+ 859 00a0 0D0A4932 		.ascii	"\015\012I2C error - device not found\000"
+ 859      43206572 
+ 859      726F7220 
+ 859      2D206465 
+ 859      76696365 
+ 860 00bf 00       		.space	1
+ 861              	.LC19:
+ 862 00c0 0D0A4932 		.ascii	"\015\012I2C error - device not responding\000"
+ 862      43206572 
+ 862      726F7220 
+ 862      2D206465 
+ 862      76696365 
+ 863              	.LC20:
+ 864 00e4 546F7368 		.ascii	"Toshiba chip ID = 0x\000"
+ 864      69626120 
+ 864      63686970 
+ 864      20494420 
+ 864      3D203078 
+ 865 00f9 000000   		.space	3
+ 866              	.LC21:
+ 867 00fc 0D0A0D0A 		.ascii	"\015\012\015\012Insert command\000"
+ 867      496E7365 
+ 867      72742063 
+ 867      6F6D6D61 
+ 867      6E6400
+ 868 010f 00       		.space	1
+ 869              	.LC22:
+ 870 0110 0D0A5374 		.ascii	"\015\012Status register display ON\000"
+ 870      61747573 
+ 870      20726567 
+ 870      69737465 
+ 870      72206469 
+ 871 012d 000000   		.space	3
+ 872              	.LC23:
+ 873 0130 0D0A5374 		.ascii	"\015\012Status register display Off\000"
+ 873      61747573 
+ 873      20726567 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 24
+
+
+ 873      69737465 
+ 873      72206469 
+ 874 014e 0000     		.space	2
+ 875              	.LC24:
+ 876 0150 25303258 		.ascii	"%02X\000"
+ 876      00
+ 877 0155 000000   		.space	3
+ 878              	.LC25:
+ 879 0158 0D0A5374 		.ascii	"\015\012Status register: 0x\000"
+ 879      61747573 
+ 879      20726567 
+ 879      69737465 
+ 879      723A2030 
+ 880 016e 0000     		.space	2
+ 881              	.LC26:
+ 882 0170 0D0A466F 		.ascii	"\015\012Found device from address - 0x\000"
+ 882      756E6420 
+ 882      64657669 
+ 882      63652066 
+ 882      726F6D20 
+ 883 0191 000000   		.space	3
+ 884              	.LC27:
+ 885 0194 54657374 		.ascii	"Test print 1234567890\000"
+ 885      20707269 
+ 885      6E742031 
+ 885      32333435 
+ 885      36373839 
+ 886 01aa 0000     		.space	2
+ 887              	.LC28:
+ 888 01ac 44656661 		.ascii	"Default\000"
+ 888      756C7400 
+ 889              	.LC29:
+ 890 01b4 202D2055 		.ascii	" - Unknown command, send - H for help.\000"
+ 890      6E6B6E6F 
+ 890      776E2063 
+ 890      6F6D6D61 
+ 890      6E642C20 
+ 891              		.section	.rodata.Display_firmware_details.str1.4,"aMS",%progbits,1
+ 892              		.align	2
+ 893              	.LC6:
+ 894 0000 4669726D 		.ascii	"Firmware Variant: HDK_OLED\000"
+ 894      77617265 
+ 894      20566172 
+ 894      69616E74 
+ 894      3A204844 
+ 895 001b 00       		.space	1
+ 896              	.LC7:
+ 897 001c 52657669 		.ascii	"Revision: \000"
+ 897      73696F6E 
+ 897      3A2000
+ 898 0027 00       		.space	1
+ 899              	.LC8:
+ 900 0028 44455620 		.ascii	"DEV 0.0.0.1\000"
+ 900      302E302E 
+ 900      302E3100 
+ 901              	.LC9:
+ 902 0034 4275696C 		.ascii	"Build info: \000"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 25
+
+
+ 902      6420696E 
+ 902      666F3A20 
+ 902      00
+ 903 0041 000000   		.space	3
+ 904              	.LC10:
+ 905 0044 53706563 		.ascii	"Special Config Defines:  [none]\000"
+ 905      69616C20 
+ 905      436F6E66 
+ 905      69672044 
+ 905      6566696E 
+ 906              		.section	.rodata.Display_software_version.str1.4,"aMS",%progbits,1
+ 907              		.align	2
+ 908              	.LC0:
+ 909 0000 56657273 		.ascii	"Version \000"
+ 909      696F6E20 
+ 909      00
+ 910 0009 000000   		.space	3
+ 911              	.LC1:
+ 912 000c 25642E25 		.ascii	"%d.%2.2d%s\000"
+ 912      322E3264 
+ 912      257300
+ 913 0017 00       		.space	1
+ 914              	.LC2:
+ 915 0018 20284445 		.ascii	" (DEV-IDE)\000"
+ 915      562D4944 
+ 915      452900
+ 916 0023 00       		.space	1
+ 917              	.LC3:
+ 918 0024 202000   		.ascii	"  \000"
+ 919 0027 00       		.space	1
+ 920              	.LC4:
+ 921 0028 4D617920 		.ascii	"May  7 2022\000"
+ 921      20372032 
+ 921      30323200 
+ 922              	.LC5:
+ 923 0034 0D0A00   		.ascii	"\015\012\000"
+ 924              		.text
+ 925              	.Letext0:
+ 926              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 927              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 928              		.file 4 "Inc/SerialTrans.h"
+ 929              		.file 5 "Drivers/CMSIS/Include/core_cm3.h"
+ 930              		.file 6 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 931              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 932              		.file 8 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 933              		.file 9 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 934              		.file 10 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-non
+ 935              		.file 11 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 936              		.file 12 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ 937              		.file 13 "Inc/main.h"
+ 938              		.file 14 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 939              		.file 15 "Inc/hardware.h"
+ 940              		.file 16 "Drivers/Ssd1306/Inc/fonts.h"
+ 941              		.file 17 "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h"
+ 942              		.file 18 "Inc/usbd_cdc_if.h"
+ 943              		.file 19 "Drivers/SoftI2C/Inc/i2cSoft.h"
+ 944              		.file 20 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\in
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 26
+
+
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 27
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 SerialTrans.c
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:16     .text.SerialPrint:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:24     .text.SerialPrint:0000000000000000 SerialPrint
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:76     .text.SerialPrint:000000000000001c $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:81     .text.Display_software_version:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:87     .text.Display_software_version:0000000000000000 Display_software_version
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:139    .text.Display_software_version:0000000000000038 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:149    .text.Display_firmware_details:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:155    .text.Display_firmware_details:0000000000000000 Display_firmware_details
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:200    .text.Display_firmware_details:0000000000000030 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:210    .text.ProcessInfoCommands:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:217    .text.ProcessInfoCommands:0000000000000000 ProcessInfoCommands
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:241    .text.ProcessInfoCommands:0000000000000012 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:293    .text.ProcessInfoCommands:0000000000000046 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:330    .text.ProcessInfoCommands:0000000000000064 $d
+                            *COM*:0000000000000041 cmd
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:336    .text.Cmd_Interface:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:343    .text.Cmd_Interface:0000000000000000 Cmd_Interface
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:383    .text.Cmd_Interface:000000000000002c $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:439    .text.Cmd_Interface:0000000000000064 $t
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:751    .text.Cmd_Interface:00000000000001bc $d
+                            *COM*:0000000000000001 status
+                            *COM*:00000000000000a0 tmp
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:818    .bss.readPointerRx:0000000000000000 readPointerRx
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:828    .bss.writePointerRx:0000000000000000 writePointerRx
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:808    .bss.countRx:0000000000000000 countRx
+                            *COM*:00000000000000a0 uart_rx
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:823    .bss.readPointerTx:0000000000000000 readPointerTx
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:833    .bss.writePointerTx:0000000000000000 writePointerTx
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:813    .bss.countTx:0000000000000000 countTx
+                            *COM*:00000000000000a0 uart_tx
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+                            *COM*:0000000000000010 send_report
+                            *COM*:0000000000000001 packet_num
+                            *COM*:0000000000000001 video_detected
+                            *COM*:0000000000000001 hid_ver
+                            *COM*:0000000000000001 edid
+                            *COM*:0000000000000001 mode
+                            *COM*:0000000000000001 stage
+                            *COM*:0000000000000001 old_status
+                            *COM*:0000000000000001 lane_status
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:809    .bss.countRx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:814    .bss.countTx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:819    .bss.readPointerRx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:824    .bss.readPointerTx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:829    .bss.writePointerRx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:834    .bss.writePointerTx:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:836    .rodata.Cmd_Interface.str1.4:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:892    .rodata.Display_firmware_details.str1.4:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s:907    .rodata.Display_software_version.str1.4:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccluVkVK.s 			page 28
+
+
+VCP_write
+VCPInitialized
+sprintf
+VCP_read
+i2cSoft_WriteBuffer
+i2cSoft_ReadBuffer
+itoa
+HAL_Delay
+i2cSoft_DeviceExists
+DisplayStatus
+OledNeedUpdate

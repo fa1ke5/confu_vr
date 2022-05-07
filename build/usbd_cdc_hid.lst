@@ -1,0 +1,1133 @@
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 1
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"usbd_cdc_hid.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.USBD_CDC_HID_GetCfgDesc,"ax",%progbits
+  16              		.align	1
+  17              		.arch armv7-m
+  18              		.syntax unified
+  19              		.thumb
+  20              		.thumb_func
+  21              		.fpu softvfp
+  23              	USBD_CDC_HID_GetCfgDesc:
+  24              	.LVL0:
+  25              	.LFB74:
+  26              		.file 1 "Middlewares/ST\\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c"
+   1:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+   2:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   ******************************************************************************
+   3:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @file    usbd_cdc_hid.c
+   4:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @author  Oleksandr Lisovyi
+   5:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @version V1.0
+   6:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @date    09-December-2016
+   7:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @verbatim
+   8:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *      
+   9:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *          ===================================================================      
+  10:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *                                composite CDC_HID
+  11:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *          =================================================================== 
+  12:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *      
+  13:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @endverbatim
+  14:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   ******************************************************************************
+  15:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   */ 
+  16:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   
+  17:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /* Includes ------------------------------------------------------------------*/
+  18:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** #include "usbd_cdc_hid.h"
+  19:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  20:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  21:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+  22:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** *********************************************
+  23:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****    CDC Device library callbacks
+  24:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****  *********************************************/
+  25:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+  26:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CDC_DeInit (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+  27:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CDC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+  28:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CDC_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum);
+  29:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CDC_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum);
+  30:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CDC_EP0_RxReady (USBD_HandleTypeDef *pdev);
+  31:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  *USBD_CDC_GetFSCfgDesc (uint16_t *length);
+  32:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  *USBD_CDC_GetHSCfgDesc (uint16_t *length);
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 2
+
+
+  33:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  *USBD_CDC_GetOtherSpeedCfgDesc (uint16_t *length);
+  34:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  *USBD_CDC_GetDeviceQualifierDescriptor (uint16_t *length);
+  35:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  36:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /*********************************************
+  37:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****    Custon HID Device library callbacks
+  38:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** *********************************************/
+  39:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CUSTOM_HID_Init (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+  40:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CUSTOM_HID_DeInit (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+  41:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CUSTOM_HID_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+  42:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  *USBD_CUSTOM_HID_GetCfgDesc (uint16_t *length);
+  43:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  *USBD_CUSTOM_HID_GetDeviceQualifierDesc (uint16_t *length);
+  44:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CUSTOM_HID_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum);
+  45:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CUSTOM_HID_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum);
+  46:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** extern uint8_t  USBD_CUSTOM_HID_EP0_RxReady (USBD_HandleTypeDef  *pdev);
+  47:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  48:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /** @defgroup USBD_CDC_HID_Private_Variables
+  49:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** * @{
+  50:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** */ 
+  51:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_Init (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+  52:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_DeInit (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+  53:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
+  54:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum);
+  55:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum);
+  56:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_EP0_RxReady (USBD_HandleTypeDef *pdev);
+  57:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t *USBD_CDC_HID_GetCfgDesc (uint16_t *length);
+  58:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t *USBD_CDC_HID_GetDeviceQualifierDesc (uint16_t *length);
+  59:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  60:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** USBD_CDC_HID_ItfTypeDef CDC_HID = 
+  61:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+  62:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	&USBD_CustomHID_fops_FS,
+  63:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	&USBD_Interface_fops_FS,
+  64:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** };
+  65:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  66:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /* CDC_HID interface class callbacks structure */
+  67:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** USBD_ClassTypeDef  USBD_CDC_HID = 
+  68:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+  69:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_Init,
+  70:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_DeInit,
+  71:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_Setup,
+  72:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	NULL,                 /* EP0_TxSent, */
+  73:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_EP0_RxReady, /*EP0_RxReady*/ /* STATUS STAGE IN */
+  74:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_DataIn,    /*DataIn*/
+  75:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_DataOut,
+  76:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	NULL,    /*SOF */
+  77:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	NULL,
+  78:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	NULL,     
+  79:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_GetCfgDesc,  
+  80:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_GetCfgDesc,    
+  81:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_GetCfgDesc, 
+  82:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_HID_GetDeviceQualifierDesc,
+  83:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** };
+  84:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+  85:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /* USB CDC_HID device Configuration Descriptor */
+  86:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** __ALIGN_BEGIN static uint8_t USBD_CDC_HID_CfgDesc[USB_CDC_CONFIG_DESC_SIZ] __ALIGN_END =
+  87:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+  88:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x09, /* bLength: Configuration Descriptor size */
+  89:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_CONFIGURATION, /* bDescriptorType: Configuration */
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 3
+
+
+  90:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_CDC_CONFIG_DESC_SIZ,
+  91:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****     ////USB_CDC_HID_CONFIG_DESC_SIZ,
+  92:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* wTotalLength: Bytes returned */
+  93:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,
+  94:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x03,         /*bNumInterfaces: 3 interfaces (2 for CDC, 1 for HID)*/
+  95:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,         /*bConfigurationValue: Configuration value*/
+  96:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,         /*iConfiguration: Index of string descriptor describing
+  97:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	the configuration*/
+  98:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0xC0,         /*bmAttributes: bus powered */
+  99:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x32,         /*MaxPower 100 mA: this current is used for detecting Vbus*/
+ 100:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*9*/
+ 101:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/******** /IAD should be positioned just before the CDC interfaces ******
+ 102:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****                 IAD to associate the two CDC interfaces */
+ 103:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   
+ 104:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x08, /* bLength */
+ 105:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x0B, /* bDescriptorType */
+ 106:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00, /* bFirstInterface */
+ 107:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02, /* bInterfaceCount */
+ 108:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02, /* bFunctionClass */
+ 109:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02, /* bFunctionSubClass */
+ 110:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01, /* bFunctionProtocol */
+ 111:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02, /* iFunction (Index of string descriptor describing this function) */
+ 112:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*17*/
+ 113:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 114:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/************************  CDC interface ********************************/
+ 115:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x09,   /* bLength: Interface Descriptor size */
+ 116:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_INTERFACE,  /* bDescriptorType: Interface */
+ 117:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* Interface descriptor type */
+ 118:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CDC_INTERFACE0,   /* bInterfaceNumber: Number of Interface */	
+ 119:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bAlternateSetting: Alternate setting */
+ 120:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,   /* bNumEndpoints: One endpoints used */
+ 121:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,   /* bInterfaceClass: Communication Interface Class */
+ 122:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,   /* bInterfaceSubClass: Abstract Control Model */
+ 123:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,   /* bInterfaceProtocol: Common AT commands */
+ 124:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* iInterface: */
+ 125:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*26*/
+ 126:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 127:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Header Functional Descriptor*/
+ 128:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x05,   /* bLength: Endpoint Descriptor size */
+ 129:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x24,   /* bDescriptorType: CS_INTERFACE */
+ 130:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bDescriptorSubtype: Header Func Desc */
+ 131:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x10,   /* bcdCDC: spec release number */
+ 132:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,
+ 133:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*31*/
+ 134:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 135:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Call Management Functional Descriptor*/
+ 136:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x05,   /* bFunctionLength */
+ 137:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x24,   /* bDescriptorType: CS_INTERFACE */
+ 138:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,   /* bDescriptorSubtype: Call Management Func Desc */
+ 139:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bmCapabilities: D0+D1 */
+ 140:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,   /* bDataInterface: 1 */
+ 141:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*36*/
+ 142:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 143:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*ACM Functional Descriptor*/
+ 144:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x04,   /* bFunctionLength */
+ 145:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x24,   /* bDescriptorType: CS_INTERFACE */
+ 146:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,   /* bDescriptorSubtype: Abstract Control Management desc */
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 4
+
+
+ 147:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,   /* bmCapabilities */
+ 148:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*40*/
+ 149:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 150:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Union Functional Descriptor*/
+ 151:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x05,   /* bFunctionLength */
+ 152:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x24,   /* bDescriptorType: CS_INTERFACE */
+ 153:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x06,   /* bDescriptorSubtype: Union func desc */
+ 154:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bMasterInterface: Communication class interface */
+ 155:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,   /* bSlaveInterface0: Data Class Interface */
+ 156:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*45*/
+ 157:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 158:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Endpoint 2 Descriptor*/
+ 159:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x07,                           /* bLength: Endpoint Descriptor size */
+ 160:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_ENDPOINT,   /* bDescriptorType: Endpoint */
+ 161:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CDC_CMD_EP,                     /* bEndpointAddress */
+ 162:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x03,                           /* bmAttributes: Interrupt */
+ 163:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	LOBYTE(CDC_CMD_PACKET_SIZE),     /* wMaxPacketSize: */
+ 164:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	HIBYTE(CDC_CMD_PACKET_SIZE),
+ 165:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x10,                           /* bInterval: */ 
+ 166:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*52*/
+ 167:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 168:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*---------------------------------------------------------------------------*/
+ 169:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   
+ 170:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Data class interface descriptor*/
+ 171:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x09,   /* bLength: Endpoint Descriptor size */
+ 172:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_INTERFACE,  /* bDescriptorType: */
+ 173:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CDC_INTERFACE1,   /* bInterfaceNumber: Number of Interface */
+ 174:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bAlternateSetting: Alternate setting */
+ 175:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,   /* bNumEndpoints: Two endpoints used */
+ 176:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x0A,   /* bInterfaceClass: CDC */
+ 177:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bInterfaceSubClass: */
+ 178:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* bInterfaceProtocol: */
+ 179:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,   /* iInterface: */
+ 180:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*61*/
+ 181:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 182:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Endpoint OUT Descriptor*/
+ 183:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x07,   /* bLength: Endpoint Descriptor size */
+ 184:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_ENDPOINT,      /* bDescriptorType: Endpoint */
+ 185:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CDC_OUT_EP,                        /* bEndpointAddress */
+ 186:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,                              /* bmAttributes: Bulk */
+ 187:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	LOBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),  /* wMaxPacketSize: */
+ 188:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	HIBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),
+ 189:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,                              /* bInterval: ignore for Bulk transfer */
+ 190:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*68*/
+ 191:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 192:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*Endpoint IN Descriptor*/
+ 193:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x07,   /* bLength: Endpoint Descriptor size */
+ 194:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_ENDPOINT,      /* bDescriptorType: Endpoint */
+ 195:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CDC_IN_EP,                         /* bEndpointAddress */
+ 196:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,                              /* bmAttributes: Bulk */
+ 197:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	LOBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),  /* wMaxPacketSize: */
+ 198:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	HIBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),
+ 199:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,                               /* bInterval: ignore for Bulk transfer */
+ 200:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*75*/
+ 201:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 202:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 203:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 5
+
+
+ 204:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****     
+ 205:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/**************IAD  Descriptor of CUSTOM HID interface ****************/
+ 206:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x08,         /*bLength: Interface Descriptor size*/
+ 207:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x0B,/*bDescriptorType: Interface descriptor type*/
+ 208:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	HID_INTERFACE,         /*bInterfaceNumber: Number of Interface*/
+ 209:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x01,        // bInterfaceCount                    //no of interfaces used in function. for abov
+ 210:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x03,         /*bInterfaceClass: CUSTOM_HID*/
+ 211:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x00,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
+ 212:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x00,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
+ 213:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //	0x02,   //*iInterface: Index of string descriptor*/
+ 214:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*83*/
+ 215:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 216:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 217:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 218:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/************** Descriptor of CUSTOM HID interface ****************/
+ 219:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x09,         /*bLength: Interface Descriptor size*/
+ 220:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_INTERFACE,/*bDescriptorType: Interface descriptor type*/
+ 221:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	HID_INTERFACE,         /*bInterfaceNumber: Number of Interface*/
+ 222:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,         /*bAlternateSetting: Alternate setting*/
+ 223:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x02,         /*bNumEndpoints*/
+ 224:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x03,         /*bInterfaceClass: CUSTOM_HID*/
+ 225:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,         /*bInterfaceSubClass : 1=BOOT, 0=no boot*/
+ 226:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,         /*nInterfaceProtocol : 0=none, 1=keyboard, 2=mouse*/
+ 227:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0,            /*iInterface: Index of string descriptor*/
+ 228:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*92*/
+ 229:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 230:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/******************** Descriptor of CUSTOM_HID *************************/
+ 231:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x09,         /*bLength: CUSTOM_HID Descriptor size*/
+ 232:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CUSTOM_HID_DESCRIPTOR_TYPE, /*bDescriptorType: CUSTOM_HID*/
+ 233:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x11,         /*bCUSTOM_HIDUSTOM_HID: CUSTOM_HID Class Spec release number*/
+ 234:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,
+ 235:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,         /*bCountryCode: Hardware target country*/
+ 236:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,         /*bNumDescriptors: Number of CUSTOM_HID class descriptors to follow*/
+ 237:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x22,         /*bDescriptorType*/
+ 238:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CUSTOM_HID_REPORT_DESC_SIZE,/*wItemLength: Total length of Report descriptor*/
+ 239:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,
+ 240:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*101*/
+ 241:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 242:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/******************** Descriptor of Custom HID endpoints ********************/
+ 243:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x07,          /*bLength: Endpoint Descriptor size*/
+ 244:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_ENDPOINT, /*bDescriptorType:*/
+ 245:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CUSTOM_HID_EPIN_ADDR,     /*bEndpointAddress: Endpoint Address (IN)*/
+ 246:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x03,          /*bmAttributes: Interrupt endpoint*/
+ 247:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CUSTOM_HID_EPIN_SIZE, /*wMaxPacketSize: 64 Byte max */
+ 248:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,
+ 249:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,          /*bInterval: Polling Interval (20 ms)*///0x20//////////////////////////////////////
+ 250:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*109*/
+ 251:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 252:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x07,	         /* bLength: Endpoint Descriptor size */
+ 253:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USB_DESC_TYPE_ENDPOINT,	/* bDescriptorType: */
+ 254:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CUSTOM_HID_EPOUT_ADDR,  /*bEndpointAddress: Endpoint Address (OUT)*/
+ 255:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x03,	/* bmAttributes: Interrupt endpoint */
+ 256:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	CUSTOM_HID_EPOUT_SIZE,	/* wMaxPacketSize: 2 Bytes max  */
+ 257:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x00,
+ 258:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	0x01,	/* bInterval: Polling Interval (20 ms) *//////////0x20//////////////////////////////////////
+ 259:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*115*/
+ 260:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 6
+
+
+ 261:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 262:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** } ;
+ 263:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 264:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 265:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /* USB Standard Device Descriptor */
+ 266:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** __ALIGN_BEGIN static uint8_t USBD_CDC_HID_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_DESC] __ALIGN_E
+ 267:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 268:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   USB_LEN_DEV_QUALIFIER_DESC,
+ 269:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   USB_DESC_TYPE_DEVICE_QUALIFIER,
+ 270:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x00,
+ 271:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x02,
+ 272:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x00,
+ 273:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x00,
+ 274:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x00,
+ 275:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x40,
+ 276:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x01,
+ 277:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   0x00,
+ 278:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** };
+ 279:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 280:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 281:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_Init
+ 282:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         Initialize the CDC and HID interfaces
+ 283:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: device instance
+ 284:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  cfgidx: Configuration index
+ 285:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 286:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   */
+ 287:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_Init (USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+ 288:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 289:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* HID initialization */
+ 290:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CUSTOM_HID_Init(pdev, cfgidx);
+ 291:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* CDC initialization */
+ 292:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_Init(pdev, cfgidx);
+ 293:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 294:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	return USBD_OK;
+ 295:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 296:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 297:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 298:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_DeInit
+ 299:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         DeInitialize the CDC and HID interfaces
+ 300:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: device instance
+ 301:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  cfgidx: Configuration index
+ 302:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 303:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   */
+ 304:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_DeInit (USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+ 305:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 306:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* HID deinitialization */
+ 307:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CUSTOM_HID_DeInit(pdev, cfgidx);
+ 308:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* CDC deinitialization */
+ 309:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_DeInit(pdev, cfgidx);
+ 310:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 311:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	return USBD_OK;
+ 312:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 313:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 314:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 315:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_Setup
+ 316:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         Handle the CDC and HID specific requests
+ 317:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: instance
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 7
+
+
+ 318:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  req: USBD requests
+ 319:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 320:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** */
+ 321:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+ 322:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 323:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	if (req->wIndex == HID_INTERFACE)
+ 324:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_Setup (pdev, req));
+ 325:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 326:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CDC_Setup(pdev, req));
+ 327:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 328:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 329:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 330:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_DataIn
+ 331:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         handle data IN Stage
+ 332:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: device instance
+ 333:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  epnum: endpoint index
+ 334:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 335:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****  */
+ 336:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_DataIn (USBD_HandleTypeDef *pdev, uint8_t epnum)
+ 337:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 338:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*DataIN can be for CDC or HID */
+ 339:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	if (epnum == (CUSTOM_HID_EPIN_ADDR&~0x80))
+ 340:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_DataIn(pdev, epnum));
+ 341:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 342:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CDC_DataIn(pdev, epnum));
+ 343:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		
+ 344:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 345:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 346:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 347:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_DataOut
+ 348:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         handle data OUT Stage
+ 349:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: device instance
+ 350:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  epnum: endpoint index
+ 351:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 352:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   */
+ 353:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum)
+ 354:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 355:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*DataOUT can be for CDC or HID */
+ 356:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	if (epnum == (CUSTOM_HID_EPOUT_ADDR&~0x80))
+ 357:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_DataOut(pdev, epnum));
+ 358:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 359:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CDC_DataOut(pdev, epnum));
+ 360:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 361:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 362:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 363:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_EP0_RxReady
+ 364:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         Handles control request data.
+ 365:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: device instance
+ 366:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 367:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** */
+ 368:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t USBD_CDC_HID_EP0_RxReady (USBD_HandleTypeDef *pdev)
+ 369:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 370:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CUSTOM_HID_EP0_RxReady(pdev);
+ 371:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 372:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_EP0_RxReady(pdev);
+ 373:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 374:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	return USBD_OK;
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 8
+
+
+ 375:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 376:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 377:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 378:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @brief  USBD_CDC_HID_GetCfgDesc 
+ 379:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   *         return configuration descriptor
+ 380:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  length : pointer data length
+ 381:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval pointer to descriptor buffer
+ 382:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   */
+ 383:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t *USBD_CDC_HID_GetCfgDesc (uint16_t *length)
+ 384:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+  27              		.loc 1 384 1 view -0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+ 385:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	*length = sizeof (USBD_CDC_HID_CfgDesc);
+  32              		.loc 1 385 2 view .LVU1
+  33              		.loc 1 385 10 is_stmt 0 view .LVU2
+  34 0000 6B23     		movs	r3, #107
+  35 0002 0380     		strh	r3, [r0]	@ movhi
+ 386:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	return USBD_CDC_HID_CfgDesc;
+  36              		.loc 1 386 2 is_stmt 1 view .LVU3
+ 387:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+  37              		.loc 1 387 1 is_stmt 0 view .LVU4
+  38 0004 0048     		ldr	r0, .L2
+  39              	.LVL1:
+  40              		.loc 1 387 1 view .LVU5
+  41 0006 7047     		bx	lr
+  42              	.L3:
+  43              		.align	2
+  44              	.L2:
+  45 0008 00000000 		.word	.LANCHOR0
+  46              		.cfi_endproc
+  47              	.LFE74:
+  49              		.section	.text.USBD_CDC_HID_GetDeviceQualifierDesc,"ax",%progbits
+  50              		.align	1
+  51              		.syntax unified
+  52              		.thumb
+  53              		.thumb_func
+  54              		.fpu softvfp
+  56              	USBD_CDC_HID_GetDeviceQualifierDesc:
+  57              	.LVL2:
+  58              	.LFB75:
+ 388:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 389:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 390:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** * @brief  DeviceQualifierDescriptor 
+ 391:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** *         return Device Qualifier descriptor
+ 392:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** * @param  length : pointer data length
+ 393:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** * @retval pointer to descriptor buffer
+ 394:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** */
+ 395:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** static uint8_t *USBD_CDC_HID_GetDeviceQualifierDesc (uint16_t *length)
+ 396:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+  59              		.loc 1 396 1 is_stmt 1 view -0
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 0
+  62              		@ frame_needed = 0, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 9
+
+
+ 397:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	*length = sizeof (USBD_CDC_HID_DeviceQualifierDesc);
+  64              		.loc 1 397 2 view .LVU7
+  65              		.loc 1 397 10 is_stmt 0 view .LVU8
+  66 0000 0A23     		movs	r3, #10
+  67 0002 0380     		strh	r3, [r0]	@ movhi
+ 398:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	return USBD_CDC_HID_DeviceQualifierDesc;
+  68              		.loc 1 398 2 is_stmt 1 view .LVU9
+ 399:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+  69              		.loc 1 399 1 is_stmt 0 view .LVU10
+  70 0004 0048     		ldr	r0, .L5
+  71              	.LVL3:
+  72              		.loc 1 399 1 view .LVU11
+  73 0006 7047     		bx	lr
+  74              	.L6:
+  75              		.align	2
+  76              	.L5:
+  77 0008 00000000 		.word	.LANCHOR1
+  78              		.cfi_endproc
+  79              	.LFE75:
+  81              		.section	.text.USBD_CDC_HID_DataOut,"ax",%progbits
+  82              		.align	1
+  83              		.syntax unified
+  84              		.thumb
+  85              		.thumb_func
+  86              		.fpu softvfp
+  88              	USBD_CDC_HID_DataOut:
+  89              	.LVL4:
+  90              	.LFB72:
+ 354:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*DataOUT can be for CDC or HID */
+  91              		.loc 1 354 1 is_stmt 1 view -0
+  92              		.cfi_startproc
+  93              		@ args = 0, pretend = 0, frame = 0
+  94              		@ frame_needed = 0, uses_anonymous_args = 0
+ 354:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*DataOUT can be for CDC or HID */
+  95              		.loc 1 354 1 is_stmt 0 view .LVU13
+  96 0000 08B5     		push	{r3, lr}
+  97              	.LCFI0:
+  98              		.cfi_def_cfa_offset 8
+  99              		.cfi_offset 3, -8
+ 100              		.cfi_offset 14, -4
+ 356:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_DataOut(pdev, epnum));
+ 101              		.loc 1 356 2 is_stmt 1 view .LVU14
+ 356:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_DataOut(pdev, epnum));
+ 102              		.loc 1 356 5 is_stmt 0 view .LVU15
+ 103 0002 0129     		cmp	r1, #1
+ 104 0004 02D0     		beq	.L11
+ 359:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 105              		.loc 1 359 3 is_stmt 1 view .LVU16
+ 359:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 106              		.loc 1 359 11 is_stmt 0 view .LVU17
+ 107 0006 FFF7FEFF 		bl	USBD_CDC_DataOut
+ 108              	.LVL5:
+ 109              	.L9:
+ 360:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 110              		.loc 1 360 1 view .LVU18
+ 111 000a 08BD     		pop	{r3, pc}
+ 112              	.LVL6:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 10
+
+
+ 113              	.L11:
+ 357:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 114              		.loc 1 357 3 is_stmt 1 view .LVU19
+ 357:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 115              		.loc 1 357 11 is_stmt 0 view .LVU20
+ 116 000c FFF7FEFF 		bl	USBD_CUSTOM_HID_DataOut
+ 117              	.LVL7:
+ 357:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 118              		.loc 1 357 11 view .LVU21
+ 119 0010 FBE7     		b	.L9
+ 120              		.cfi_endproc
+ 121              	.LFE72:
+ 123              		.section	.text.USBD_CDC_HID_DataIn,"ax",%progbits
+ 124              		.align	1
+ 125              		.syntax unified
+ 126              		.thumb
+ 127              		.thumb_func
+ 128              		.fpu softvfp
+ 130              	USBD_CDC_HID_DataIn:
+ 131              	.LVL8:
+ 132              	.LFB71:
+ 337:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*DataIN can be for CDC or HID */
+ 133              		.loc 1 337 1 is_stmt 1 view -0
+ 134              		.cfi_startproc
+ 135              		@ args = 0, pretend = 0, frame = 0
+ 136              		@ frame_needed = 0, uses_anonymous_args = 0
+ 337:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/*DataIN can be for CDC or HID */
+ 137              		.loc 1 337 1 is_stmt 0 view .LVU23
+ 138 0000 08B5     		push	{r3, lr}
+ 139              	.LCFI1:
+ 140              		.cfi_def_cfa_offset 8
+ 141              		.cfi_offset 3, -8
+ 142              		.cfi_offset 14, -4
+ 339:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_DataIn(pdev, epnum));
+ 143              		.loc 1 339 2 is_stmt 1 view .LVU24
+ 339:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_DataIn(pdev, epnum));
+ 144              		.loc 1 339 5 is_stmt 0 view .LVU25
+ 145 0002 0129     		cmp	r1, #1
+ 146 0004 02D0     		beq	.L16
+ 342:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		
+ 147              		.loc 1 342 3 is_stmt 1 view .LVU26
+ 342:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		
+ 148              		.loc 1 342 11 is_stmt 0 view .LVU27
+ 149 0006 FFF7FEFF 		bl	USBD_CDC_DataIn
+ 150              	.LVL9:
+ 151              	.L14:
+ 344:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 152              		.loc 1 344 1 view .LVU28
+ 153 000a 08BD     		pop	{r3, pc}
+ 154              	.LVL10:
+ 155              	.L16:
+ 340:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 156              		.loc 1 340 3 is_stmt 1 view .LVU29
+ 340:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 157              		.loc 1 340 11 is_stmt 0 view .LVU30
+ 158 000c FFF7FEFF 		bl	USBD_CUSTOM_HID_DataIn
+ 159              	.LVL11:
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 11
+
+
+ 340:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 160              		.loc 1 340 11 view .LVU31
+ 161 0010 FBE7     		b	.L14
+ 162              		.cfi_endproc
+ 163              	.LFE71:
+ 165              		.section	.text.USBD_CDC_HID_EP0_RxReady,"ax",%progbits
+ 166              		.align	1
+ 167              		.syntax unified
+ 168              		.thumb
+ 169              		.thumb_func
+ 170              		.fpu softvfp
+ 172              	USBD_CDC_HID_EP0_RxReady:
+ 173              	.LVL12:
+ 174              	.LFB73:
+ 369:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CUSTOM_HID_EP0_RxReady(pdev);
+ 175              		.loc 1 369 1 is_stmt 1 view -0
+ 176              		.cfi_startproc
+ 177              		@ args = 0, pretend = 0, frame = 0
+ 178              		@ frame_needed = 0, uses_anonymous_args = 0
+ 369:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CUSTOM_HID_EP0_RxReady(pdev);
+ 179              		.loc 1 369 1 is_stmt 0 view .LVU33
+ 180 0000 10B5     		push	{r4, lr}
+ 181              	.LCFI2:
+ 182              		.cfi_def_cfa_offset 8
+ 183              		.cfi_offset 4, -8
+ 184              		.cfi_offset 14, -4
+ 185 0002 0446     		mov	r4, r0
+ 370:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 186              		.loc 1 370 2 is_stmt 1 view .LVU34
+ 187 0004 FFF7FEFF 		bl	USBD_CUSTOM_HID_EP0_RxReady
+ 188              	.LVL13:
+ 372:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 189              		.loc 1 372 2 view .LVU35
+ 190 0008 2046     		mov	r0, r4
+ 191 000a FFF7FEFF 		bl	USBD_CDC_EP0_RxReady
+ 192              	.LVL14:
+ 374:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 193              		.loc 1 374 2 view .LVU36
+ 375:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 194              		.loc 1 375 1 is_stmt 0 view .LVU37
+ 195 000e 0020     		movs	r0, #0
+ 196 0010 10BD     		pop	{r4, pc}
+ 375:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 197              		.loc 1 375 1 view .LVU38
+ 198              		.cfi_endproc
+ 199              	.LFE73:
+ 201              		.section	.text.USBD_CDC_HID_Setup,"ax",%progbits
+ 202              		.align	1
+ 203              		.syntax unified
+ 204              		.thumb
+ 205              		.thumb_func
+ 206              		.fpu softvfp
+ 208              	USBD_CDC_HID_Setup:
+ 209              	.LVL15:
+ 210              	.LFB70:
+ 322:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	if (req->wIndex == HID_INTERFACE)
+ 211              		.loc 1 322 1 is_stmt 1 view -0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 12
+
+
+ 212              		.cfi_startproc
+ 213              		@ args = 0, pretend = 0, frame = 0
+ 214              		@ frame_needed = 0, uses_anonymous_args = 0
+ 322:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	if (req->wIndex == HID_INTERFACE)
+ 215              		.loc 1 322 1 is_stmt 0 view .LVU40
+ 216 0000 08B5     		push	{r3, lr}
+ 217              	.LCFI3:
+ 218              		.cfi_def_cfa_offset 8
+ 219              		.cfi_offset 3, -8
+ 220              		.cfi_offset 14, -4
+ 323:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_Setup (pdev, req));
+ 221              		.loc 1 323 2 is_stmt 1 view .LVU41
+ 323:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_Setup (pdev, req));
+ 222              		.loc 1 323 9 is_stmt 0 view .LVU42
+ 223 0002 8B88     		ldrh	r3, [r1, #4]
+ 323:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 		return (USBD_CUSTOM_HID_Setup (pdev, req));
+ 224              		.loc 1 323 5 view .LVU43
+ 225 0004 022B     		cmp	r3, #2
+ 226 0006 02D0     		beq	.L23
+ 326:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 227              		.loc 1 326 3 is_stmt 1 view .LVU44
+ 326:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 228              		.loc 1 326 11 is_stmt 0 view .LVU45
+ 229 0008 FFF7FEFF 		bl	USBD_CDC_Setup
+ 230              	.LVL16:
+ 231              	.L21:
+ 327:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 232              		.loc 1 327 1 view .LVU46
+ 233 000c 08BD     		pop	{r3, pc}
+ 234              	.LVL17:
+ 235              	.L23:
+ 324:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 236              		.loc 1 324 3 is_stmt 1 view .LVU47
+ 324:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 237              		.loc 1 324 11 is_stmt 0 view .LVU48
+ 238 000e FFF7FEFF 		bl	USBD_CUSTOM_HID_Setup
+ 239              	.LVL18:
+ 324:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	else
+ 240              		.loc 1 324 11 view .LVU49
+ 241 0012 FBE7     		b	.L21
+ 242              		.cfi_endproc
+ 243              	.LFE70:
+ 245              		.section	.text.USBD_CDC_HID_DeInit,"ax",%progbits
+ 246              		.align	1
+ 247              		.syntax unified
+ 248              		.thumb
+ 249              		.thumb_func
+ 250              		.fpu softvfp
+ 252              	USBD_CDC_HID_DeInit:
+ 253              	.LVL19:
+ 254              	.LFB69:
+ 305:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* HID deinitialization */
+ 255              		.loc 1 305 1 is_stmt 1 view -0
+ 256              		.cfi_startproc
+ 257              		@ args = 0, pretend = 0, frame = 0
+ 258              		@ frame_needed = 0, uses_anonymous_args = 0
+ 305:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* HID deinitialization */
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 13
+
+
+ 259              		.loc 1 305 1 is_stmt 0 view .LVU51
+ 260 0000 38B5     		push	{r3, r4, r5, lr}
+ 261              	.LCFI4:
+ 262              		.cfi_def_cfa_offset 16
+ 263              		.cfi_offset 3, -16
+ 264              		.cfi_offset 4, -12
+ 265              		.cfi_offset 5, -8
+ 266              		.cfi_offset 14, -4
+ 267 0002 0446     		mov	r4, r0
+ 268 0004 0D46     		mov	r5, r1
+ 307:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* CDC deinitialization */
+ 269              		.loc 1 307 2 is_stmt 1 view .LVU52
+ 270 0006 FFF7FEFF 		bl	USBD_CUSTOM_HID_DeInit
+ 271              	.LVL20:
+ 309:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 272              		.loc 1 309 2 view .LVU53
+ 273 000a 2946     		mov	r1, r5
+ 274 000c 2046     		mov	r0, r4
+ 275 000e FFF7FEFF 		bl	USBD_CDC_DeInit
+ 276              	.LVL21:
+ 311:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 277              		.loc 1 311 2 view .LVU54
+ 312:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 278              		.loc 1 312 1 is_stmt 0 view .LVU55
+ 279 0012 0020     		movs	r0, #0
+ 280 0014 38BD     		pop	{r3, r4, r5, pc}
+ 312:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 281              		.loc 1 312 1 view .LVU56
+ 282              		.cfi_endproc
+ 283              	.LFE69:
+ 285              		.section	.text.USBD_CDC_HID_Init,"ax",%progbits
+ 286              		.align	1
+ 287              		.syntax unified
+ 288              		.thumb
+ 289              		.thumb_func
+ 290              		.fpu softvfp
+ 292              	USBD_CDC_HID_Init:
+ 293              	.LVL22:
+ 294              	.LFB68:
+ 288:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* HID initialization */
+ 295              		.loc 1 288 1 is_stmt 1 view -0
+ 296              		.cfi_startproc
+ 297              		@ args = 0, pretend = 0, frame = 0
+ 298              		@ frame_needed = 0, uses_anonymous_args = 0
+ 288:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* HID initialization */
+ 299              		.loc 1 288 1 is_stmt 0 view .LVU58
+ 300 0000 38B5     		push	{r3, r4, r5, lr}
+ 301              	.LCFI5:
+ 302              		.cfi_def_cfa_offset 16
+ 303              		.cfi_offset 3, -16
+ 304              		.cfi_offset 4, -12
+ 305              		.cfi_offset 5, -8
+ 306              		.cfi_offset 14, -4
+ 307 0002 0446     		mov	r4, r0
+ 308 0004 0D46     		mov	r5, r1
+ 290:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	/* CDC initialization */
+ 309              		.loc 1 290 2 is_stmt 1 view .LVU59
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 14
+
+
+ 310 0006 FFF7FEFF 		bl	USBD_CUSTOM_HID_Init
+ 311              	.LVL23:
+ 292:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 312              		.loc 1 292 2 view .LVU60
+ 313 000a 2946     		mov	r1, r5
+ 314 000c 2046     		mov	r0, r4
+ 315 000e FFF7FEFF 		bl	USBD_CDC_Init
+ 316              	.LVL24:
+ 294:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 317              		.loc 1 294 2 view .LVU61
+ 295:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 318              		.loc 1 295 1 is_stmt 0 view .LVU62
+ 319 0012 0020     		movs	r0, #0
+ 320 0014 38BD     		pop	{r3, r4, r5, pc}
+ 295:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 321              		.loc 1 295 1 view .LVU63
+ 322              		.cfi_endproc
+ 323              	.LFE68:
+ 325              		.section	.text.USBD_CDC_HID_RegisterInterface,"ax",%progbits
+ 326              		.align	1
+ 327              		.global	USBD_CDC_HID_RegisterInterface
+ 328              		.syntax unified
+ 329              		.thumb
+ 330              		.thumb_func
+ 331              		.fpu softvfp
+ 333              	USBD_CDC_HID_RegisterInterface:
+ 334              	.LVL25:
+ 335              	.LFB76:
+ 400:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 401:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 
+ 402:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** /**
+ 403:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** * @brief  USBD_CDC_HID_RegisterInterface
+ 404:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  pdev: device instance
+ 405:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @param  fops: CUSTOMHID Interface callback
+ 406:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   * @retval status
+ 407:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   */
+ 408:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** //uint8_t  USBD_CDC_HID_RegisterInterface  (USBD_HandleTypeDef   *pdev, USBD_CUSTOM_HID_ItfTypeDef 
+ 409:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** uint8_t  USBD_CDC_HID_RegisterInterface  (USBD_HandleTypeDef   *pdev)
+ 410:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** {
+ 336              		.loc 1 410 1 is_stmt 1 view -0
+ 337              		.cfi_startproc
+ 338              		@ args = 0, pretend = 0, frame = 0
+ 339              		@ frame_needed = 0, uses_anonymous_args = 0
+ 340              		.loc 1 410 1 is_stmt 0 view .LVU65
+ 341 0000 10B5     		push	{r4, lr}
+ 342              	.LCFI6:
+ 343              		.cfi_def_cfa_offset 8
+ 344              		.cfi_offset 4, -8
+ 345              		.cfi_offset 14, -4
+ 346 0002 0446     		mov	r4, r0
+ 411:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	pdev->pUserData= &CDC_HID;
+ 347              		.loc 1 411 2 is_stmt 1 view .LVU66
+ 348              		.loc 1 411 17 is_stmt 0 view .LVU67
+ 349 0004 054B     		ldr	r3, .L30
+ 350 0006 C0F8BC32 		str	r3, [r0, #700]
+ 412:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c ****   USBD_CUSTOM_HID_RegisterInterface(pdev, &USBD_CustomHID_fops_FS);
+ 351              		.loc 1 412 3 is_stmt 1 view .LVU68
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 15
+
+
+ 352 000a 0549     		ldr	r1, .L30+4
+ 353 000c FFF7FEFF 		bl	USBD_CUSTOM_HID_RegisterInterface
+ 354              	.LVL26:
+ 413:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	USBD_CDC_RegisterInterface(pdev, &USBD_Interface_fops_FS);
+ 355              		.loc 1 413 2 view .LVU69
+ 356 0010 0449     		ldr	r1, .L30+8
+ 357 0012 2046     		mov	r0, r4
+ 358 0014 FFF7FEFF 		bl	USBD_CDC_RegisterInterface
+ 359              	.LVL27:
+ 414:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	
+ 415:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** 	return USBD_OK;
+ 360              		.loc 1 415 2 view .LVU70
+ 416:Middlewares/ST\STM32_USB_Device_Library/Class/Composite_CDC_CHID/Src/usbd_cdc_hid.c **** }
+ 361              		.loc 1 416 1 is_stmt 0 view .LVU71
+ 362 0018 0020     		movs	r0, #0
+ 363 001a 10BD     		pop	{r4, pc}
+ 364              	.LVL28:
+ 365              	.L31:
+ 366              		.loc 1 416 1 view .LVU72
+ 367              		.align	2
+ 368              	.L30:
+ 369 001c 00000000 		.word	.LANCHOR2
+ 370 0020 00000000 		.word	USBD_CustomHID_fops_FS
+ 371 0024 00000000 		.word	USBD_Interface_fops_FS
+ 372              		.cfi_endproc
+ 373              	.LFE76:
+ 375              		.global	USBD_CDC_HID
+ 376              		.global	CDC_HID
+ 377              		.comm	QuatW,4,4
+ 378              		.comm	QuatZ,4,4
+ 379              		.comm	QuatY,4,4
+ 380              		.comm	QuatX,4,4
+ 381              		.comm	f_report,16,4
+ 382              		.comm	send_report,16,4
+ 383              		.comm	packet_num,1,1
+ 384              		.comm	video_detected,1,1
+ 385              		.comm	hid_ver,1,1
+ 386              		.comm	edid,1,1
+ 387              		.comm	mode,1,1
+ 388              		.comm	stage,1,1
+ 389              		.comm	old_status,1,1
+ 390              		.comm	lane_status,1,1
+ 391              		.comm	status,1,1
+ 392              		.section	.data.CDC_HID,"aw"
+ 393              		.align	2
+ 394              		.set	.LANCHOR2,. + 0
+ 397              	CDC_HID:
+ 398 0000 00000000 		.word	USBD_CustomHID_fops_FS
+ 399 0004 00000000 		.word	USBD_Interface_fops_FS
+ 400              		.section	.data.USBD_CDC_HID,"aw"
+ 401              		.align	2
+ 404              	USBD_CDC_HID:
+ 405 0000 00000000 		.word	USBD_CDC_HID_Init
+ 406 0004 00000000 		.word	USBD_CDC_HID_DeInit
+ 407 0008 00000000 		.word	USBD_CDC_HID_Setup
+ 408 000c 00000000 		.word	0
+ 409 0010 00000000 		.word	USBD_CDC_HID_EP0_RxReady
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 16
+
+
+ 410 0014 00000000 		.word	USBD_CDC_HID_DataIn
+ 411 0018 00000000 		.word	USBD_CDC_HID_DataOut
+ 412 001c 00000000 		.word	0
+ 413 0020 00000000 		.word	0
+ 414 0024 00000000 		.word	0
+ 415 0028 00000000 		.word	USBD_CDC_HID_GetCfgDesc
+ 416 002c 00000000 		.word	USBD_CDC_HID_GetCfgDesc
+ 417 0030 00000000 		.word	USBD_CDC_HID_GetCfgDesc
+ 418 0034 00000000 		.word	USBD_CDC_HID_GetDeviceQualifierDesc
+ 419              		.section	.data.USBD_CDC_HID_CfgDesc,"aw"
+ 420              		.align	2
+ 421              		.set	.LANCHOR0,. + 0
+ 424              	USBD_CDC_HID_CfgDesc:
+ 425 0000 09       		.byte	9
+ 426 0001 02       		.byte	2
+ 427 0002 6B       		.byte	107
+ 428 0003 00       		.byte	0
+ 429 0004 03       		.byte	3
+ 430 0005 01       		.byte	1
+ 431 0006 00       		.byte	0
+ 432 0007 C0       		.byte	-64
+ 433 0008 32       		.byte	50
+ 434 0009 08       		.byte	8
+ 435 000a 0B       		.byte	11
+ 436 000b 00       		.byte	0
+ 437 000c 02       		.byte	2
+ 438 000d 02       		.byte	2
+ 439 000e 02       		.byte	2
+ 440 000f 01       		.byte	1
+ 441 0010 02       		.byte	2
+ 442 0011 09       		.byte	9
+ 443 0012 04       		.byte	4
+ 444 0013 00       		.byte	0
+ 445 0014 00       		.byte	0
+ 446 0015 01       		.byte	1
+ 447 0016 02       		.byte	2
+ 448 0017 02       		.byte	2
+ 449 0018 01       		.byte	1
+ 450 0019 00       		.byte	0
+ 451 001a 05       		.byte	5
+ 452 001b 24       		.byte	36
+ 453 001c 00       		.byte	0
+ 454 001d 10       		.byte	16
+ 455 001e 01       		.byte	1
+ 456 001f 05       		.byte	5
+ 457 0020 24       		.byte	36
+ 458 0021 01       		.byte	1
+ 459 0022 00       		.byte	0
+ 460 0023 01       		.byte	1
+ 461 0024 04       		.byte	4
+ 462 0025 24       		.byte	36
+ 463 0026 02       		.byte	2
+ 464 0027 02       		.byte	2
+ 465 0028 05       		.byte	5
+ 466 0029 24       		.byte	36
+ 467 002a 06       		.byte	6
+ 468 002b 00       		.byte	0
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 17
+
+
+ 469 002c 01       		.byte	1
+ 470 002d 07       		.byte	7
+ 471 002e 05       		.byte	5
+ 472 002f 83       		.byte	-125
+ 473 0030 03       		.byte	3
+ 474 0031 08       		.byte	8
+ 475 0032 00       		.byte	0
+ 476 0033 10       		.byte	16
+ 477 0034 09       		.byte	9
+ 478 0035 04       		.byte	4
+ 479 0036 01       		.byte	1
+ 480 0037 00       		.byte	0
+ 481 0038 02       		.byte	2
+ 482 0039 0A       		.byte	10
+ 483 003a 00       		.byte	0
+ 484 003b 00       		.byte	0
+ 485 003c 00       		.byte	0
+ 486 003d 07       		.byte	7
+ 487 003e 05       		.byte	5
+ 488 003f 02       		.byte	2
+ 489 0040 02       		.byte	2
+ 490 0041 40       		.byte	64
+ 491 0042 00       		.byte	0
+ 492 0043 00       		.byte	0
+ 493 0044 07       		.byte	7
+ 494 0045 05       		.byte	5
+ 495 0046 82       		.byte	-126
+ 496 0047 02       		.byte	2
+ 497 0048 40       		.byte	64
+ 498 0049 00       		.byte	0
+ 499 004a 00       		.byte	0
+ 500 004b 09       		.byte	9
+ 501 004c 04       		.byte	4
+ 502 004d 02       		.byte	2
+ 503 004e 00       		.byte	0
+ 504 004f 02       		.byte	2
+ 505 0050 03       		.byte	3
+ 506 0051 00       		.byte	0
+ 507 0052 00       		.byte	0
+ 508 0053 00       		.byte	0
+ 509 0054 09       		.byte	9
+ 510 0055 21       		.byte	33
+ 511 0056 11       		.byte	17
+ 512 0057 01       		.byte	1
+ 513 0058 00       		.byte	0
+ 514 0059 01       		.byte	1
+ 515 005a 22       		.byte	34
+ 516 005b 35       		.byte	53
+ 517 005c 00       		.byte	0
+ 518 005d 07       		.byte	7
+ 519 005e 05       		.byte	5
+ 520 005f 81       		.byte	-127
+ 521 0060 03       		.byte	3
+ 522 0061 40       		.byte	64
+ 523 0062 00       		.byte	0
+ 524 0063 01       		.byte	1
+ 525 0064 07       		.byte	7
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 18
+
+
+ 526 0065 05       		.byte	5
+ 527 0066 01       		.byte	1
+ 528 0067 03       		.byte	3
+ 529 0068 40       		.byte	64
+ 530 0069 00       		.byte	0
+ 531 006a 01       		.byte	1
+ 532              		.section	.data.USBD_CDC_HID_DeviceQualifierDesc,"aw"
+ 533              		.align	2
+ 534              		.set	.LANCHOR1,. + 0
+ 537              	USBD_CDC_HID_DeviceQualifierDesc:
+ 538 0000 0A       		.byte	10
+ 539 0001 06       		.byte	6
+ 540 0002 00       		.byte	0
+ 541 0003 02       		.byte	2
+ 542 0004 00       		.byte	0
+ 543 0005 00       		.byte	0
+ 544 0006 00       		.byte	0
+ 545 0007 40       		.byte	64
+ 546 0008 01       		.byte	1
+ 547 0009 00       		.byte	0
+ 548              		.text
+ 549              	.Letext0:
+ 550              		.file 2 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 551              		.file 3 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 552              		.file 4 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 553              		.file 5 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\lib\\gcc\\arm-none
+ 554              		.file 6 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 555              		.file 7 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 556              		.file 8 "d:\\stm32\\gnu mcu eclipse\\arm embedded gcc\\8.2.1-1.4-20190214-0604\\arm-none-eabi\\inc
+ 557              		.file 9 "Drivers/CMSIS/Include/core_cm3.h"
+ 558              		.file 10 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h"
+ 559              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 560              		.file 12 "Inc/main.h"
+ 561              		.file 13 "Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h"
+ 562              		.file 14 "Inc/usbd_desc.h"
+ 563              		.file 15 "Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc/usbd_customhid.h"
+ 564              		.file 16 "Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h"
+ 565              		.file 17 "Inc/usbd_cdc_if.h"
+ 566              		.file 18 "Inc/usbd_custom_hid_if.h"
+ 567              		.file 19 "Middlewares/ST/STM32_USB_Device_Library/Class/Composite_CDC_CHID/Inc/usbd_cdc_hid.h"
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 19
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbd_cdc_hid.c
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:16     .text.USBD_CDC_HID_GetCfgDesc:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:23     .text.USBD_CDC_HID_GetCfgDesc:0000000000000000 USBD_CDC_HID_GetCfgDesc
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:45     .text.USBD_CDC_HID_GetCfgDesc:0000000000000008 $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:50     .text.USBD_CDC_HID_GetDeviceQualifierDesc:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:56     .text.USBD_CDC_HID_GetDeviceQualifierDesc:0000000000000000 USBD_CDC_HID_GetDeviceQualifierDesc
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:77     .text.USBD_CDC_HID_GetDeviceQualifierDesc:0000000000000008 $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:82     .text.USBD_CDC_HID_DataOut:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:88     .text.USBD_CDC_HID_DataOut:0000000000000000 USBD_CDC_HID_DataOut
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:124    .text.USBD_CDC_HID_DataIn:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:130    .text.USBD_CDC_HID_DataIn:0000000000000000 USBD_CDC_HID_DataIn
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:166    .text.USBD_CDC_HID_EP0_RxReady:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:172    .text.USBD_CDC_HID_EP0_RxReady:0000000000000000 USBD_CDC_HID_EP0_RxReady
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:202    .text.USBD_CDC_HID_Setup:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:208    .text.USBD_CDC_HID_Setup:0000000000000000 USBD_CDC_HID_Setup
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:246    .text.USBD_CDC_HID_DeInit:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:252    .text.USBD_CDC_HID_DeInit:0000000000000000 USBD_CDC_HID_DeInit
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:286    .text.USBD_CDC_HID_Init:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:292    .text.USBD_CDC_HID_Init:0000000000000000 USBD_CDC_HID_Init
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:326    .text.USBD_CDC_HID_RegisterInterface:0000000000000000 $t
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:333    .text.USBD_CDC_HID_RegisterInterface:0000000000000000 USBD_CDC_HID_RegisterInterface
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:369    .text.USBD_CDC_HID_RegisterInterface:000000000000001c $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:404    .data.USBD_CDC_HID:0000000000000000 USBD_CDC_HID
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:397    .data.CDC_HID:0000000000000000 CDC_HID
+                            *COM*:0000000000000004 QuatW
+                            *COM*:0000000000000004 QuatZ
+                            *COM*:0000000000000004 QuatY
+                            *COM*:0000000000000004 QuatX
+                            *COM*:0000000000000010 f_report
+                            *COM*:0000000000000010 send_report
+                            *COM*:0000000000000001 packet_num
+                            *COM*:0000000000000001 video_detected
+                            *COM*:0000000000000001 hid_ver
+                            *COM*:0000000000000001 edid
+                            *COM*:0000000000000001 mode
+                            *COM*:0000000000000001 stage
+                            *COM*:0000000000000001 old_status
+                            *COM*:0000000000000001 lane_status
+                            *COM*:0000000000000001 status
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:393    .data.CDC_HID:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:401    .data.USBD_CDC_HID:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:420    .data.USBD_CDC_HID_CfgDesc:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:424    .data.USBD_CDC_HID_CfgDesc:0000000000000000 USBD_CDC_HID_CfgDesc
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:533    .data.USBD_CDC_HID_DeviceQualifierDesc:0000000000000000 $d
+C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s:537    .data.USBD_CDC_HID_DeviceQualifierDesc:0000000000000000 USBD_CDC_HID_DeviceQualifierDesc
+
+UNDEFINED SYMBOLS
+USBD_CDC_DataOut
+USBD_CUSTOM_HID_DataOut
+USBD_CDC_DataIn
+USBD_CUSTOM_HID_DataIn
+USBD_CUSTOM_HID_EP0_RxReady
+USBD_CDC_EP0_RxReady
+USBD_CDC_Setup
+USBD_CUSTOM_HID_Setup
+USBD_CUSTOM_HID_DeInit
+ARM GAS  C:\Users\madmax\AppData\Local\Temp\ccvzswlr.s 			page 20
+
+
+USBD_CDC_DeInit
+USBD_CUSTOM_HID_Init
+USBD_CDC_Init
+USBD_CUSTOM_HID_RegisterInterface
+USBD_CDC_RegisterInterface
+USBD_CustomHID_fops_FS
+USBD_Interface_fops_FS
