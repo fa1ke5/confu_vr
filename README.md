@@ -46,9 +46,13 @@ VR шлем на основе платы Confu HDMI to MIPI.
 Commands list:
 
 H - help.
+
 S - status register.
+
 D - Display status register on OLED.
+
 I - get chip ID.
+
 F - find I2C devices.
 
 
