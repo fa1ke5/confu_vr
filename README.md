@@ -27,7 +27,7 @@ VR шлем на основе платы Confu HDMI to MIPI.
 4. Скачать и установить комплект программного обеспечения OSVR http://assets.razerzone.com/eeimages/osvr/HDK_Windows_Installer_Beta_0.8.0.0.exe
 5. Скачать файлы конфигурации https://github.com/fa1ke5/confu_vr/blob/main/doc/srv_config.rar и распаковать содержимое в каталог C:\Program Files\HDK-Software-Suite\OSVR-Core\bin
 6. В утилите HDK Tray Application выбрать Options->Custom, указать файл osvr_config_HDK_2_extended_mode_no_cam_my.json
-7. Запустить сервер, установить и запустить SteamVR. Должен быть обнаружен VR шлем с трекером и запустится процедура настрйоки комнаты.
+7. Запустить сервер, установить и запустить SteamVR. Должен быть обнаружен VR шлем с трекером и запустится процедура настрoйки комнаты.
 
 !!!!Важно
 
